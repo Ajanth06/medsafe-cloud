@@ -19,6 +19,10 @@ export const metadata: Metadata = {
   },
   description:
     "AI-powered healthcare platform that helps cancer patients organize and understand their medical documents.",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/apple-icon",
+  },
 };
 
 export default function RootLayout({

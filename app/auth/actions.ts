@@ -24,6 +24,10 @@ export async function signInWithOAuth(provider: "google" | "apple") {
     provider,
     options: {
       redirectTo: `${origin}/auth/callback`,
+      queryParams:
+        provider === "google"
+          ? { prompt: "select_account" }
+          : undefined,
     },
   });
 
@@ -82,6 +86,6 @@ export async function signUpWithEmail(formData: FormData) {
 
 export async function signOut() {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  await supabase.auth.signOut({ scope: "global" });
   redirect("/login");
 }
