@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-slate-50">
@@ -15,14 +17,20 @@ export default function Home() {
           stay connected with your healthcare team.
         </p>
 
-        <div className="mt-10 flex gap-4">
-          <button className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700">
+        <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+          <Link
+            href="/login"
+            className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
+          >
             Get Started
-          </button>
+          </Link>
 
-          <button className="rounded-xl border border-slate-300 px-6 py-3 font-semibold hover:bg-slate-100">
-            Learn More
-          </button>
+          <Link
+            href="/signup"
+            className="rounded-xl border border-slate-300 px-6 py-3 font-semibold hover:bg-slate-100"
+          >
+            Create Account
+          </Link>
         </div>
       </section>
     </main>

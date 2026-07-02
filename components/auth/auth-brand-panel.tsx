@@ -15,7 +15,7 @@ const features = [
 
 export function AuthBrandPanel() {
   return (
-    <div className="relative flex min-h-[280px] flex-col justify-between overflow-hidden bg-gradient-to-br from-[#1D4ED8] via-[#2563EB] to-[#3B82F6] px-8 py-10 text-white lg:min-h-screen lg:px-12 lg:py-14 xl:px-16">
+    <div className="relative flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#1D4ED8] via-[#2563EB] to-[#3B82F6] px-8 py-8 text-white lg:min-h-screen lg:px-12 lg:py-14 xl:px-16">
       {/* Decorative background elements */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -41,7 +41,7 @@ export function AuthBrandPanel() {
           </p>
         </div>
 
-        <ul className="mt-8 space-y-3" role="list">
+        <ul className="mt-6 hidden space-y-3 sm:block" role="list">
           {features.map(({ icon: Icon, label }) => (
             <li key={label} className="flex items-center gap-3 text-sm lg:text-base">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm">
@@ -51,11 +51,6 @@ export function AuthBrandPanel() {
             </li>
           ))}
         </ul>
-      </div>
-
-      {/* Mobile illustration */}
-      <div className="relative z-10 mt-8 lg:hidden">
-        <HealthcareIllustration />
       </div>
     </div>
   );

@@ -18,12 +18,14 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
   const { error } = await searchParams;
 
   return (
-    <div className="min-h-screen bg-background lg:grid lg:grid-cols-2">
-      <AuthBrandPanel />
-
-      <main className="flex flex-col items-center justify-center px-6 py-10 sm:px-10 lg:px-12 lg:py-14">
+    <div className="flex min-h-screen flex-col bg-background lg:grid lg:grid-cols-2">
+      <main className="order-1 flex flex-col items-center justify-center px-6 py-10 sm:px-10 lg:order-2 lg:px-12 lg:py-14">
         <SignupForm error={error} />
       </main>
+
+      <div className="order-2 lg:order-1">
+        <AuthBrandPanel />
+      </div>
     </div>
   );
 }
