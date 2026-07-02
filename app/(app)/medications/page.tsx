@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AppHeader } from "@/components/app/app-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
-import { getUserOrRedirect } from "@/lib/auth";
+import { requireOnboardingComplete } from "@/lib/auth";
 import { getUserMedications } from "@/lib/data/health";
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function MedicationsPage() {
-  await getUserOrRedirect();
+  await requireOnboardingComplete();
   const medications = await getUserMedications();
 
   return (

@@ -4,7 +4,7 @@ import { AppHeader } from "@/components/app/app-header";
 import { DocumentListItem } from "@/components/app/document-list-item";
 import { EmptyState } from "@/components/app/empty-state";
 import { Button } from "@/components/ui/button";
-import { getUserOrRedirect } from "@/lib/auth";
+import { requireOnboardingComplete } from "@/lib/auth";
 import { getUserDocuments } from "@/lib/data/health";
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DocumentsPage() {
-  await getUserOrRedirect();
+  await requireOnboardingComplete();
   const documents = await getUserDocuments();
 
   return (

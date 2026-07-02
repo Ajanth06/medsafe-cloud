@@ -8,6 +8,7 @@ const protectedPrefixes = [
   "/ai",
   "/profile",
   "/timeline",
+  "/onboarding",
 ];
 
 function isProtectedRoute(pathname: string) {
@@ -54,7 +55,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (!user && isProtectedRoute(pathname)) {
+  if (!user && (isProtectedRoute(pathname) || pathname === "/onboarding")) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { EmptyState } from "@/components/app/empty-state";
 import { TimelineView } from "@/components/app/timeline-view";
-import { getUserOrRedirect } from "@/lib/auth";
+import { requireOnboardingComplete } from "@/lib/auth";
 import { getUserTimelineEvents } from "@/lib/data/health";
 
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function TimelinePage() {
-  await getUserOrRedirect();
+  await requireOnboardingComplete();
   const timelineEvents = await getUserTimelineEvents();
 
   return (

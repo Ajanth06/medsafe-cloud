@@ -6,7 +6,7 @@ import { AppHeader } from "@/components/app/app-header";
 import { HealthCard } from "@/components/app/health-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getUserOrRedirect } from "@/lib/auth";
+import { requireOnboardingComplete } from "@/lib/auth";
 import { getUserHealthStats } from "@/lib/data/health";
 
 export const metadata: Metadata = {
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfilePage() {
-  const { user, displayName } = await getUserOrRedirect();
+  const { user, displayName } = await requireOnboardingComplete();
   const stats = await getUserHealthStats();
 
   return (

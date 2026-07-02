@@ -1,12 +1,12 @@
 import { BottomNav } from "@/components/app/bottom-nav";
-import { getUserOrRedirect } from "@/lib/auth";
+import { requireOnboardingComplete } from "@/lib/auth";
 
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await getUserOrRedirect();
+  await requireOnboardingComplete();
 
   return (
     <div className="min-h-dvh bg-background pb-24">

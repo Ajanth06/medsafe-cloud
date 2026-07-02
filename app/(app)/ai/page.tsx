@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AppHeader } from "@/components/app/app-header";
 import { AiChat } from "@/components/app/ai-chat";
-import { getUserOrRedirect } from "@/lib/auth";
+import { requireOnboardingComplete } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "KI-Chat",
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AiPage() {
-  const { displayName } = await getUserOrRedirect();
+  const { displayName } = await requireOnboardingComplete();
 
   return (
     <>

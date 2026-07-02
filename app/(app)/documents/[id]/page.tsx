@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { DocumentDetailView } from "@/components/app/document-detail-view";
-import { getUserOrRedirect } from "@/lib/auth";
+import { requireOnboardingComplete } from "@/lib/auth";
 import { getUserDocument } from "@/lib/data/health";
 
 interface DocumentPageProps {
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: DocumentPageProps): Promise<M
 }
 
 export default async function DocumentPage({ params }: DocumentPageProps) {
-  await getUserOrRedirect();
+  await requireOnboardingComplete();
   const { id } = await params;
   const document = await getUserDocument(id);
 

@@ -6,9 +6,10 @@ import { AppHeader } from "@/components/app/app-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { HealthCard } from "@/components/app/health-card";
 import { TodaySummary } from "@/components/app/today-summary";
+import { WelcomeDashboard } from "@/components/app/welcome-dashboard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getUserOrRedirect } from "@/lib/auth";
+import { requireOnboardingComplete } from "@/lib/auth";
 import { getUserDashboardData } from "@/lib/data/health";
 import { emptyAiSummary, getGreeting } from "@/lib/demo-data";
 
@@ -17,9 +18,33 @@ export const metadata: Metadata = {
   description: "Dein persönliches Gesundheits-Dashboard.",
 };
 
-export default async function DashboardPage() {
-  const { displayName } = await getUserOrRedirect();
+interface DashboardPageProps {
+  searchParams: Promise<{ welcome?: string }>;
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+  const { displayName } = await requireOnboardingComplete();
   const { stats, todayItems, aiSummary } = await getUserDashboardData();
+  const { welcome } = await searchParams;
+
+  const isNewUser =
+    stats.documents === 0 &&
+    stats.medications === 0 &&
+    !aiSummary &&
+    todayItems.length === 0;
+
+  const showWelcome = isNewUser || welcome === "1";
+
+  if (showWelcome) {
+    return (
+      <>
+        <AppHeader />
+        <main className="mx-auto max-w-lg px-5 py-6">
+          <WelcomeDashboard displayName={displayName} />
+        </main>
+      </>
+    );
+  }
 
   return (
     <>
