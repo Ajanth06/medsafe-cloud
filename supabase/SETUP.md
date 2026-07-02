@@ -3,31 +3,57 @@
 
 ## Redirect URLs (Authentication → URL Configuration)
 
-Site URL:
-http://localhost:3003
+Site URL (production):
+https://www.medsafe-cloud.de
 
 Redirect URLs (add all):
 http://localhost:3003/auth/callback
-http://localhost:3000/auth/callback
-https://your-production-domain.com/auth/callback
+https://www.medsafe-cloud.de/auth/callback
 
-## Providers (Authentication → Providers)
+## Google OAuth — Schritt für Schritt
 
-### Email
-- Enable Email provider (default: on)
-- Confirm email: recommended for production
+### 1. Projekt erstellen
+https://console.cloud.google.com/projectcreate
+- Name: `MedSafe Cloud`
+- Erstellen
 
-### Google
-1. Create OAuth credentials in Google Cloud Console
-2. Authorized redirect URI:
-   https://woisxvgsgvpfnntmrpat.supabase.co/auth/v1/callback
-3. Paste Client ID + Client Secret in Supabase → Google provider → Enable
+### 2. OAuth-Zustimmungsbildschirm
+https://console.cloud.google.com/apis/credentials/consent
+- User Type: **External**
+- App name: `MedSafe Cloud`
+- Authorized domains: `medsafe-cloud.de`
+- Test users: deine E-Mail hinzufügen
 
-### Apple
-1. Create Services ID in Apple Developer Console
-2. Return URL:
-   https://woisxvgsgvpfnntmrpat.supabase.co/auth/v1/callback
-3. Paste Client ID + Secret in Supabase → Apple provider → Enable
+### 3. OAuth Client ID
+https://console.cloud.google.com/apis/credentials → **+ Anmeldedaten erstellen** → **OAuth-Client-ID**
+- Typ: **Webanwendung**
+- JavaScript origins:
+  - `https://www.medsafe-cloud.de`
+  - `http://localhost:3003`
+- Redirect URIs:
+  - `https://woisxvgsgvpfnntmrpat.supabase.co/auth/v1/callback`
+
+### 4. In Supabase eintragen
+https://supabase.com/dashboard/project/woisxvgsgvpfnntmrpat/auth/providers?provider=Google
+- **Enable Sign in with Google** aktivieren
+- Client ID + Client Secret einfügen → **Save**
+
+## User data isolation (run after 001)
+
+Run `supabase/migrations/002_user_health_data.sql` in the SQL Editor.
+
+This creates per-user tables with Row Level Security:
+- `documents` — only `auth.uid() = user_id`
+- `medications`
+- `timeline_events`
+- `health_summaries`
+
+Each logged-in user can only read and write their own rows.
+
+
+1. Apple Developer → Services ID
+2. Return URL: `https://woisxvgsgvpfnntmrpat.supabase.co/auth/v1/callback`
+3. Supabase → Apple provider → Enable + Credentials
 
 ## API Keys
 

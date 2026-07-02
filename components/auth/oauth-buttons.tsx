@@ -37,7 +37,9 @@ function AppleIcon({ className }: { className?: string }) {
 export async function OAuthButtons() {
   const headerList = await headers();
   const userAgent = headerList.get("user-agent") ?? "";
-  const showApple = isAppleDevice(userAgent);
+  const showApple =
+    process.env.NEXT_PUBLIC_ENABLE_APPLE_OAUTH === "true" &&
+    isAppleDevice(userAgent);
 
   return (
     <div className="space-y-3">
