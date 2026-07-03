@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { Upload } from "lucide-react";
 import { AppHeader } from "@/components/app/app-header";
 import { DocumentListItem } from "@/components/app/document-list-item";
+import { DocumentUploadButton } from "@/components/app/document-upload-button";
 import { EmptyState } from "@/components/app/empty-state";
-import { Button } from "@/components/ui/button";
 import { requireOnboardingComplete } from "@/lib/auth";
 import { getUserDocuments } from "@/lib/data/health";
 
@@ -24,10 +23,7 @@ export default async function DocumentsPage() {
       />
 
       <main className="mx-auto max-w-lg space-y-4 px-5 py-6">
-        <Button fullWidth size="lg">
-          <Upload className="h-4 w-4" />
-          Dokument hochladen
-        </Button>
+        <DocumentUploadButton />
 
         {documents.length > 0 ? (
           <div className="space-y-3">

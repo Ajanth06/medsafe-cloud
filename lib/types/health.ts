@@ -12,6 +12,10 @@ export interface HealthDocument {
   summary: string;
   keyPoints: string[];
   originalPreview: string;
+  fileName: string | null;
+  mimeType: string | null;
+  storagePath: string | null;
+  fileUrl: string | null;
 }
 
 export interface Medication {

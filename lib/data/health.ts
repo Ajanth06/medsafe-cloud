@@ -39,17 +39,23 @@ function formatLastUpdate(value: string | null | undefined) {
       });
 }
 
-function mapDocument(row: {
-  id: string;
-  title: string;
-  source: string | null;
-  document_date: string | null;
-  type: string;
-  analyzed: boolean;
-  summary: string | null;
-  key_points: unknown;
-  original_preview: string | null;
-}): HealthDocument {
+function mapDocument(
+  row: {
+    id: string;
+    title: string;
+    source: string | null;
+    document_date: string | null;
+    type: string;
+    analyzed: boolean;
+    summary: string | null;
+    key_points: unknown;
+    original_preview: string | null;
+    file_name?: string | null;
+    mime_type?: string | null;
+    storage_path?: string | null;
+  },
+  fileUrl: string | null = null,
+): HealthDocument {
   const keyPoints = Array.isArray(row.key_points)
     ? row.key_points.filter((item): item is string => typeof item === "string")
     : [];
@@ -64,6 +70,10 @@ function mapDocument(row: {
     summary: row.summary ?? "",
     keyPoints,
     originalPreview: row.original_preview ?? "",
+    fileName: row.file_name ?? null,
+    mimeType: row.mime_type ?? null,
+    storagePath: row.storage_path ?? null,
+    fileUrl,
   };
 }
 
@@ -106,7 +116,7 @@ export async function getUserDocuments(): Promise<HealthDocument[]> {
     .order("created_at", { ascending: false });
 
   if (error || !data) return [];
-  return data.map(mapDocument);
+  return data.map((row) => mapDocument(row));
 }
 
 export async function getUserDocument(id: string): Promise<HealthDocument | null> {
@@ -118,7 +128,16 @@ export async function getUserDocument(id: string): Promise<HealthDocument | null
     .maybeSingle();
 
   if (error || !data) return null;
-  return mapDocument(data);
+
+  let fileUrl: string | null = null;
+  if (data.storage_path) {
+    const { data: signed } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(data.storage_path, 60 * 60);
+    fileUrl = signed?.signedUrl ?? null;
+  }
+
+  return mapDocument(data, fileUrl);
 }
 
 export async function getUserMedications(): Promise<Medication[]> {
