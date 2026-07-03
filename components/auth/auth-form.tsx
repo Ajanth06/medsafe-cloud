@@ -43,12 +43,14 @@ export function AuthForm({ error, message }: AuthFormProps) {
       className="w-full max-w-[420px] border-0 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_40px_rgba(15,23,42,0.06)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_12px_40px_rgba(0,0,0,0.2)]"
     >
       <CardHeader className="space-y-6 pb-2">
-        <MedSafeLogo />
+        <MedSafeLogo className="lg:hidden" />
         <div className="space-y-1">
           <CardTitle as="h1" className="text-2xl">
-            Willkommen zurück
+            Schön, dass du da bist
           </CardTitle>
-          <CardDescription>Melde dich an, um fortzufahren</CardDescription>
+          <CardDescription>
+            Melde dich an und greife sicher auf deine Gesundheitsdaten zu.
+          </CardDescription>
         </div>
       </CardHeader>
 
@@ -69,18 +71,6 @@ export function AuthForm({ error, message }: AuthFormProps) {
             {message}
           </p>
         )}
-
-        <RememberMeCheckbox />
-
-        <OAuthButtons />
-
-        <div className="relative flex items-center py-1">
-          <div className="grow border-t border-border" />
-          <span className="mx-4 shrink-0 text-xs font-medium uppercase tracking-wider text-muted">
-            oder
-          </span>
-          <div className="grow border-t border-border" />
-        </div>
 
         <form
           action={signInWithEmail}
@@ -119,10 +109,22 @@ export function AuthForm({ error, message }: AuthFormProps) {
             </Link>
           </div>
 
-          <Button type="submit" fullWidth size="lg">
+          <Button type="submit" fullWidth size="lg" className="h-14 text-base">
             Anmelden
           </Button>
         </form>
+
+        <div className="relative flex items-center py-1">
+          <div className="grow border-t border-border" />
+          <span className="mx-4 shrink-0 text-xs font-medium uppercase tracking-wider text-muted">
+            oder
+          </span>
+          <div className="grow border-t border-border" />
+        </div>
+
+        <OAuthButtons />
+
+        <RememberMeCheckbox />
       </CardContent>
 
       <CardFooter className="flex-col gap-5 pt-2">

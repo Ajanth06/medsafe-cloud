@@ -24,7 +24,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
       </main>
 
       <div className="order-2 lg:order-1">
-        <AuthBrandPanel />
+        <AuthBrandPanel variant="signup" />
       </div>
     </div>
   );

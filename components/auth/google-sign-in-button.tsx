@@ -121,7 +121,10 @@ export function GoogleSignInButton({ className }: GoogleSignInButtonProps) {
         onReady={() => setScriptReady(true)}
       />
       <div className={cn("w-full", className)}>
-        <div ref={buttonRef} className="flex w-full justify-center [&>div]:w-full" />
+        <div
+          ref={buttonRef}
+          className="flex min-h-[52px] w-full items-center justify-center py-0.5 [&>div]:min-h-[52px] [&>div]:w-full [&_iframe]:min-h-[52px]"
+        />
         {error && (
           <p role="alert" className="mt-2 text-sm text-red-600">
             {error}

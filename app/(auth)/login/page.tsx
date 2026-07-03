@@ -3,9 +3,9 @@ import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { AuthForm } from "@/components/auth/auth-form";
 
 export const metadata: Metadata = {
-  title: "Sign In",
+  title: "Anmelden",
   description:
-    "Sign in to MedSafe Cloud — your AI-powered health companion for organizing and understanding medical documents.",
+    "Melde dich bei MedSafe Cloud an und behalte deine Gesundheitsdaten im Blick.",
 };
 
 interface LoginPageProps {
@@ -19,14 +19,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { error, message } = await searchParams;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background lg:grid lg:grid-cols-2">
-      <main className="order-1 flex flex-col items-center justify-center px-6 py-10 sm:px-10 lg:order-2 lg:px-12 lg:py-14">
+    <div className="flex min-h-screen flex-col lg:grid lg:grid-cols-2">
+      <div className="order-1 w-full lg:order-1 lg:min-h-screen">
+        <AuthBrandPanel variant="login" />
+      </div>
+
+      <main className="order-2 flex flex-1 flex-col items-center justify-center px-5 py-8 sm:px-10 lg:order-2 lg:px-12 lg:py-14">
         <AuthForm error={error} message={message} />
       </main>
-
-      <div className="order-2 lg:order-1">
-        <AuthBrandPanel />
-      </div>
     </div>
   );
 }

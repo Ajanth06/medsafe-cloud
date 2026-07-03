@@ -13,8 +13,8 @@ export function RememberMeCheckbox({ id = "medsafe-remember-me" }: RememberMeChe
         className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary/20 focus:ring-offset-0"
       />
       <span className="text-sm leading-relaxed text-muted">
-        <span className="font-medium text-foreground">30 Tage angemeldet bleiben</span>
-        <span className="block text-xs">Nur auf privaten Geräten aktivieren.</span>
+        <span className="font-medium text-foreground">Angemeldet bleiben</span>
+        <span className="block text-xs">Nur auf privaten Geräten empfohlen.</span>
       </span>
     </label>
   );

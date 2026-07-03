@@ -117,7 +117,7 @@ export function SessionTimeoutGuard() {
             Weiterarbeiten
           </Button>
           <Button type="button" variant="outline" fullWidth onClick={stayLoggedIn}>
-            30 Tage angemeldet bleiben
+            Angemeldet bleiben
           </Button>
         </div>
       </div>
