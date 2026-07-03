@@ -6,6 +6,14 @@ import { signInWithEmail } from "@/app/auth/actions";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { RememberMeCheckbox } from "@/components/auth/remember-me-checkbox";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { readRememberMeFromCheckbox, setRememberMe } from "@/lib/session-policy";
 import { cn } from "@/lib/utils";
@@ -30,22 +38,23 @@ interface AuthFormProps {
 
 export function AuthForm({ error, message }: AuthFormProps) {
   return (
-    <div
+    <Card
       suppressHydrationWarning
-      className="w-full max-w-[440px] lg:max-w-[480px]"
+      className="w-full max-w-[420px] border-0 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_40px_rgba(15,23,42,0.06)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_12px_40px_rgba(0,0,0,0.2)]"
     >
-      <MedSafeLogo className="mb-8 lg:hidden" />
+      <CardHeader className="space-y-6 pb-2">
+        <MedSafeLogo />
+        <div className="space-y-1 lg:hidden">
+          <CardTitle as="h1" className="text-2xl">
+            Schön, dass du da bist
+          </CardTitle>
+          <CardDescription>
+            Melde dich an und greife sicher auf deine Gesundheitsdaten zu.
+          </CardDescription>
+        </div>
+      </CardHeader>
 
-      <div className="mb-8 space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground lg:text-4xl">
-          Schön, dass du da bist
-        </h1>
-        <p className="text-sm text-muted lg:text-base">
-          Melde dich an und greife sicher auf deine Gesundheitsdaten zu.
-        </p>
-      </div>
-
-      <div className="space-y-5">
+      <CardContent className="space-y-5 pt-4">
         {error && (
           <p
             role="alert"
@@ -79,7 +88,6 @@ export function AuthForm({ error, message }: AuthFormProps) {
             autoComplete="email"
             placeholder="du@beispiel.de"
             required
-            className="h-12"
           />
 
           <Input
@@ -90,7 +98,6 @@ export function AuthForm({ error, message }: AuthFormProps) {
             autoComplete="current-password"
             placeholder="Dein Passwort"
             required
-            className="h-12"
           />
 
           <div className="flex justify-end">
@@ -102,7 +109,7 @@ export function AuthForm({ error, message }: AuthFormProps) {
             </Link>
           </div>
 
-          <Button type="submit" fullWidth size="lg" className="h-12 text-base lg:h-14">
+          <Button type="submit" fullWidth size="lg" className="h-14 text-base">
             Anmelden
           </Button>
         </form>
@@ -118,9 +125,9 @@ export function AuthForm({ error, message }: AuthFormProps) {
         <OAuthButtons />
 
         <RememberMeCheckbox />
-      </div>
+      </CardContent>
 
-      <div className="mt-8 space-y-5">
+      <CardFooter className="flex-col gap-5 pt-2">
         <p className="text-center text-sm text-muted">
           Noch kein Konto?{" "}
           <Link
@@ -135,7 +142,7 @@ export function AuthForm({ error, message }: AuthFormProps) {
           <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           Ohne &quot;Angemeldet bleiben&quot; wirst du nach 15 Minuten Inaktivität abgemeldet.
         </p>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }
