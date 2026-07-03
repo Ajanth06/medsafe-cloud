@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { createClient } from "@/lib/supabase/client";
+import { readRememberMeFromCheckbox, setRememberMe } from "@/lib/session-policy";
 import { cn } from "@/lib/utils";
 
 declare global {
@@ -73,6 +74,8 @@ export function GoogleSignInButton({ className }: GoogleSignInButtonProps) {
             setError(signInError.message);
             return;
           }
+
+          setRememberMe(readRememberMeFromCheckbox());
 
           router.push("/dashboard");
           router.refresh();

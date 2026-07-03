@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { Lock, Shield } from "lucide-react";
 import { signInWithEmail } from "@/app/auth/actions";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
+import { RememberMeCheckbox } from "@/components/auth/remember-me-checkbox";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { readRememberMeFromCheckbox, setRememberMe } from "@/lib/session-policy";
 import { cn } from "@/lib/utils";
 
 function MedSafeLogo({ className }: { className?: string }) {
@@ -42,9 +46,9 @@ export function AuthForm({ error, message }: AuthFormProps) {
         <MedSafeLogo />
         <div className="space-y-1">
           <CardTitle as="h1" className="text-2xl">
-            Welcome back
+            Willkommen zurück
           </CardTitle>
-          <CardDescription>Sign in to continue</CardDescription>
+          <CardDescription>Melde dich an, um fortzufahren</CardDescription>
         </div>
       </CardHeader>
 
@@ -66,75 +70,75 @@ export function AuthForm({ error, message }: AuthFormProps) {
           </p>
         )}
 
+        <RememberMeCheckbox />
+
         <OAuthButtons />
 
         <div className="relative flex items-center py-1">
           <div className="grow border-t border-border" />
           <span className="mx-4 shrink-0 text-xs font-medium uppercase tracking-wider text-muted">
-            or
+            oder
           </span>
           <div className="grow border-t border-border" />
         </div>
 
-        <form action={signInWithEmail} className="space-y-4" noValidate>
+        <form
+          action={signInWithEmail}
+          className="space-y-4"
+          noValidate
+          onSubmit={() => {
+            setRememberMe(readRememberMeFromCheckbox());
+          }}
+        >
           <Input
             id="email"
-            label="Email Address"
+            label="E-Mail"
             type="email"
             name="email"
             autoComplete="email"
-            placeholder="you@example.com"
+            placeholder="du@beispiel.de"
             required
           />
 
           <Input
             id="password"
-            label="Password"
+            label="Passwort"
             type="password"
             name="password"
             autoComplete="current-password"
-            placeholder="Enter your password"
+            placeholder="Dein Passwort"
             required
           />
 
-          <div className="flex items-center justify-between gap-4">
-            <label className="flex cursor-pointer items-center gap-2.5">
-              <input
-                type="checkbox"
-                name="remember"
-                defaultChecked={false}
-                className="h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary/20 focus:ring-offset-0"
-              />
-              <span className="text-sm text-muted">Remember me</span>
-            </label>
+          <div className="flex justify-end">
             <Link
               href="/forgot-password"
               className="rounded text-sm font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
-              Forgot password?
+              Passwort vergessen?
             </Link>
           </div>
 
           <Button type="submit" fullWidth size="lg">
-            Continue
+            Anmelden
           </Button>
         </form>
       </CardContent>
 
       <CardFooter className="flex-col gap-5 pt-2">
         <p className="text-center text-sm text-muted">
-          Don&apos;t have an account?{" "}
+          Noch kein Konto?{" "}
           <Link
             href="/signup"
             className="rounded font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
           >
-            Create Account
+            Registrieren
           </Link>
         </p>
 
         <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted">
           <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          Your data is encrypted and securely stored.
+          Ohne &quot;Angemeldet bleiben&quot; wirst du nach 15 Minuten Inaktivität abgemeldet.
         </p>
       </CardFooter>
     </Card>

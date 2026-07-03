@@ -1,4 +1,6 @@
-import { headers } from "next/headers";
+"use client";
+
+import { useEffect, useState } from "react";
 import { signInWithOAuth } from "@/app/auth/actions";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { Button } from "@/components/ui/button";
@@ -12,12 +14,15 @@ function AppleIcon({ className }: { className?: string }) {
   );
 }
 
-export async function OAuthButtons() {
-  const headerList = await headers();
-  const userAgent = headerList.get("user-agent") ?? "";
-  const showApple =
-    process.env.NEXT_PUBLIC_ENABLE_APPLE_OAUTH === "true" &&
-    isAppleDevice(userAgent);
+export function OAuthButtons() {
+  const [showApple, setShowApple] = useState(false);
+
+  useEffect(() => {
+    setShowApple(
+      process.env.NEXT_PUBLIC_ENABLE_APPLE_OAUTH === "true" &&
+        isAppleDevice(navigator.userAgent),
+    );
+  }, []);
 
   return (
     <div className="space-y-3">

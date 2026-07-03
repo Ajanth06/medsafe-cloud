@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Lock, Shield } from "lucide-react";
 import { completeOnboarding } from "@/app/onboarding/actions";
+import { SessionTimeoutGuard } from "@/components/app/session-timeout-guard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -26,6 +27,7 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
 
   return (
     <div className="min-h-dvh bg-background">
+      <SessionTimeoutGuard />
       <main className="mx-auto max-w-lg px-6 py-10">
         <div className="mb-8 flex items-center gap-2.5">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary shadow-sm">

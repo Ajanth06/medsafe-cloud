@@ -1,4 +1,5 @@
 import { BottomNav } from "@/components/app/bottom-nav";
+import { SessionTimeoutGuard } from "@/components/app/session-timeout-guard";
 import { requireOnboardingComplete } from "@/lib/auth";
 
 export default async function AppLayout({
@@ -10,6 +11,7 @@ export default async function AppLayout({
 
   return (
     <div className="min-h-dvh bg-background pb-24">
+      <SessionTimeoutGuard />
       {children}
       <BottomNav />
     </div>
