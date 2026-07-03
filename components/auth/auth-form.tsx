@@ -21,10 +21,10 @@ import { cn } from "@/lib/utils";
 function MedSafeLogo({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
-      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary shadow-sm lg:h-11 lg:w-11">
+      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary shadow-sm">
         <Shield className="h-5 w-5 text-white" aria-hidden="true" />
       </div>
-      <span className="text-lg font-semibold tracking-tight text-foreground lg:text-xl">
+      <span className="text-lg font-semibold tracking-tight text-foreground">
         MedSafe Cloud
       </span>
     </div>
@@ -40,9 +40,9 @@ export function AuthForm({ error, message }: AuthFormProps) {
   return (
     <Card
       suppressHydrationWarning
-      className="w-full max-w-[420px] border-0 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_40px_rgba(15,23,42,0.06)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_12px_40px_rgba(0,0,0,0.2)] lg:max-w-[500px]"
+      className="w-full max-w-[420px] border-0 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_40px_rgba(15,23,42,0.06)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_12px_40px_rgba(0,0,0,0.2)]"
     >
-      <CardHeader className="space-y-6 pb-2 lg:space-y-7 lg:px-8 lg:pt-8">
+      <CardHeader className="space-y-6 pb-2">
         <MedSafeLogo />
         <div className="space-y-1 lg:hidden">
           <CardTitle as="h1" className="text-2xl">
@@ -54,7 +54,7 @@ export function AuthForm({ error, message }: AuthFormProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-5 pt-4 lg:space-y-6 lg:px-8">
+      <CardContent className="space-y-5 pt-4">
         {error && (
           <p
             role="alert"
@@ -88,7 +88,6 @@ export function AuthForm({ error, message }: AuthFormProps) {
             autoComplete="email"
             placeholder="du@beispiel.de"
             required
-            className="lg:h-12"
           />
 
           <Input
@@ -99,7 +98,6 @@ export function AuthForm({ error, message }: AuthFormProps) {
             autoComplete="current-password"
             placeholder="Dein Passwort"
             required
-            className="lg:h-12"
           />
 
           <div className="flex justify-end">
@@ -129,7 +127,7 @@ export function AuthForm({ error, message }: AuthFormProps) {
         <RememberMeCheckbox />
       </CardContent>
 
-      <CardFooter className="flex-col gap-5 pt-2 lg:gap-6 lg:px-8 lg:pb-8">
+      <CardFooter className="flex-col gap-5 pt-2">
         <p className="text-center text-sm text-muted">
           Noch kein Konto?{" "}
           <Link
