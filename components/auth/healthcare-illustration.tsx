@@ -1,4 +1,8 @@
-export function HealthcareIllustration() {
+interface HealthcareIllustrationProps {
+  pulseShield?: boolean;
+}
+
+export function HealthcareIllustration({ pulseShield = false }: HealthcareIllustrationProps) {
   return (
     <div
       className="relative mx-auto w-full max-w-md"
@@ -64,7 +68,10 @@ export function HealthcareIllustration() {
         </g>
 
         {/* Floating shield badge */}
-        <g filter="url(#soft-shadow)">
+        <g
+          filter="url(#soft-shadow)"
+          className={pulseShield ? "shield-pulse" : undefined}
+        >
           <circle cx="300" cy="90" r="36" fill="url(#shield-gradient)" />
           <path
             d="M300 68 C300 68 285 74 285 82 C285 96 300 108 300 108 C300 108 315 96 315 82 C315 74 300 68 300 68Z"

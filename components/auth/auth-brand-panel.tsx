@@ -47,15 +47,15 @@ export function AuthBrandPanel({ variant = "signup" }: AuthBrandPanelProps) {
 
         <div className="relative z-10 flex flex-1 flex-col justify-center">
           <div className="mb-8 w-full max-w-md">
-            <HealthcareIllustration />
+            <HealthcareIllustration pulseShield />
           </div>
 
           <div className="max-w-md">
-            <h1 className="text-3xl font-semibold leading-tight tracking-tight lg:text-4xl xl:text-[2.75rem] xl:leading-[1.15]">
-              Schön, dass du wieder da bist
+            <h1 className="text-3xl font-semibold leading-[1.05] tracking-tight lg:text-4xl lg:text-5xl xl:text-[3.25rem]">
+              Deine Gesundheit.
             </h1>
-            <p className="mt-4 text-base leading-relaxed text-blue-100 lg:text-lg">
-              Melde dich an und behalte deine Gesundheitsdaten im Blick.
+            <p className="mt-3 text-base leading-relaxed text-blue-50/95 sm:text-lg lg:text-xl">
+              Sicher. Digital. Immer an deiner Seite.
             </p>
           </div>
 
