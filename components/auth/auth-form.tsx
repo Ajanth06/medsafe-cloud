@@ -40,21 +40,21 @@ export function AuthForm({ error, message }: AuthFormProps) {
   return (
     <Card
       suppressHydrationWarning
-      className="flex min-h-screen w-full flex-col border-0 bg-background shadow-none"
+      className="w-full max-w-[420px] border-0 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_40px_rgba(15,23,42,0.06)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_12px_40px_rgba(0,0,0,0.2)]"
     >
-      <CardHeader className="space-y-6 px-6 pb-2 pt-10 sm:px-10 lg:px-16 lg:pb-4 lg:pt-14 xl:px-24">
-        <MedSafeLogo className="lg:hidden" />
-        <div className="space-y-2">
-          <CardTitle as="h1" className="text-2xl lg:text-3xl">
+      <CardHeader className="space-y-6 pb-2">
+        <MedSafeLogo />
+        <div className="space-y-1 lg:hidden">
+          <CardTitle as="h1" className="text-2xl">
             Schön, dass du da bist
           </CardTitle>
-          <CardDescription className="text-sm lg:text-base">
+          <CardDescription>
             Melde dich an und greife sicher auf deine Gesundheitsdaten zu.
           </CardDescription>
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 space-y-5 px-6 pt-4 sm:px-10 lg:space-y-6 lg:px-16 lg:pt-6 xl:px-24">
+      <CardContent className="space-y-5 pt-4">
         {error && (
           <p
             role="alert"
@@ -88,7 +88,6 @@ export function AuthForm({ error, message }: AuthFormProps) {
             autoComplete="email"
             placeholder="du@beispiel.de"
             required
-            className="h-12 text-base lg:h-14 lg:text-base"
           />
 
           <Input
@@ -99,7 +98,6 @@ export function AuthForm({ error, message }: AuthFormProps) {
             autoComplete="current-password"
             placeholder="Dein Passwort"
             required
-            className="h-12 text-base lg:h-14 lg:text-base"
           />
 
           <div className="flex justify-end">
@@ -111,7 +109,7 @@ export function AuthForm({ error, message }: AuthFormProps) {
             </Link>
           </div>
 
-          <Button type="submit" fullWidth size="lg" className="h-14 text-base lg:h-16 lg:text-lg">
+          <Button type="submit" fullWidth size="lg" className="h-14 text-base">
             Anmelden
           </Button>
         </form>
@@ -129,7 +127,7 @@ export function AuthForm({ error, message }: AuthFormProps) {
         <RememberMeCheckbox />
       </CardContent>
 
-      <CardFooter className="mt-auto flex-col gap-5 px-6 pb-10 pt-2 sm:px-10 lg:gap-6 lg:px-16 lg:pb-14 lg:pt-4 xl:px-24">
+      <CardFooter className="flex-col gap-5 pt-2">
         <p className="text-center text-sm text-muted">
           Noch kein Konto?{" "}
           <Link
