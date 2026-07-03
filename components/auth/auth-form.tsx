@@ -40,9 +40,13 @@ export function AuthForm({ error, message }: AuthFormProps) {
   return (
     <Card
       suppressHydrationWarning
-      className="w-full max-w-[420px] border-0 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_40px_rgba(15,23,42,0.06)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_12px_40px_rgba(0,0,0,0.2)]"
+      className={cn(
+        "flex min-h-screen w-full flex-col border-0 bg-background shadow-none",
+        "lg:mx-auto lg:min-h-0 lg:max-w-[420px] lg:rounded-2xl lg:bg-card lg:shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_40px_rgba(15,23,42,0.06)]",
+        "dark:lg:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_12px_40px_rgba(0,0,0,0.2)]",
+      )}
     >
-      <CardHeader className="space-y-6 pb-2">
+      <CardHeader className="space-y-6 px-6 pb-2 pt-10 sm:px-8 lg:p-6 lg:pt-6">
         <MedSafeLogo className="lg:hidden" />
         <div className="space-y-1">
           <CardTitle as="h1" className="text-2xl">
@@ -54,7 +58,7 @@ export function AuthForm({ error, message }: AuthFormProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-5 pt-4">
+      <CardContent className="flex-1 space-y-5 px-6 pt-4 sm:px-8 lg:p-6">
         {error && (
           <p
             role="alert"
@@ -127,7 +131,7 @@ export function AuthForm({ error, message }: AuthFormProps) {
         <RememberMeCheckbox />
       </CardContent>
 
-      <CardFooter className="flex-col gap-5 pt-2">
+      <CardFooter className="mt-auto flex-col gap-5 px-6 pb-10 pt-2 sm:px-8 lg:p-6 lg:pt-0">
         <p className="text-center text-sm text-muted">
           Noch kein Konto?{" "}
           <Link
