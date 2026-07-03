@@ -44,12 +44,12 @@ export function AuthForm({ error, message }: AuthFormProps) {
     >
       <CardHeader className="space-y-6 pb-2">
         <MedSafeLogo />
-        <div className="space-y-1 lg:hidden">
+        <div className="space-y-1">
           <CardTitle as="h1" className="text-2xl">
-            Schön, dass du da bist
+            Schön, dass du wieder da bist
           </CardTitle>
           <CardDescription>
-            Melde dich an und greife sicher auf deine Gesundheitsdaten zu.
+            Melde dich an, um fortzufahren.
           </CardDescription>
         </div>
       </CardHeader>
