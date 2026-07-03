@@ -20,7 +20,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <div className="flex min-h-screen flex-col lg:grid lg:grid-cols-2">
-      <div className="order-1 w-full lg:order-1 lg:min-h-screen">
+      <div className="order-1 hidden w-full lg:block lg:order-1 lg:min-h-screen">
         <AuthBrandPanel variant="login" />
       </div>
 

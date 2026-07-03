@@ -43,7 +43,7 @@ export function AuthForm({ error, message }: AuthFormProps) {
       className="w-full max-w-[420px] border-0 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_40px_rgba(15,23,42,0.06)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_12px_40px_rgba(0,0,0,0.2)]"
     >
       <CardHeader className="space-y-6 pb-2">
-        <MedSafeLogo className="lg:hidden" />
+        <MedSafeLogo />
         <div className="space-y-1">
           <CardTitle as="h1" className="text-2xl">
             Schön, dass du da bist
