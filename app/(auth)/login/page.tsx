@@ -20,7 +20,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background lg:grid lg:grid-cols-2">
-      <main className="order-1 flex min-h-screen w-full flex-col lg:order-2 lg:min-h-0 lg:justify-center lg:px-12 lg:py-14">
+      <main className="order-1 flex min-h-screen w-full flex-col lg:order-2 lg:min-h-0 lg:justify-center">
         <AuthForm error={error} message={message} />
       </main>
 
