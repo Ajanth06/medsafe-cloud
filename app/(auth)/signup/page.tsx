@@ -3,9 +3,9 @@ import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { SignupForm } from "@/components/auth/signup-form";
 
 export const metadata: Metadata = {
-  title: "Create Account",
+  title: "Registrieren",
   description:
-    "Create your MedSafe Cloud account to securely organize and understand your medical documents.",
+    "Erstelle dein MedSafe Cloud Konto und organisiere deine Gesundheitsdaten sicher.",
 };
 
 interface SignupPageProps {
@@ -19,13 +19,13 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background lg:grid lg:grid-cols-2">
-      <main className="order-1 flex flex-col items-center justify-center px-6 py-10 sm:px-10 lg:order-2 lg:px-12 lg:py-14">
-        <SignupForm error={error} />
-      </main>
-
-      <div className="order-2 lg:order-1">
+      <div className="order-1 w-full lg:order-1 lg:min-h-screen">
         <AuthBrandPanel variant="signup" />
       </div>
+
+      <main className="order-2 flex flex-1 flex-col items-center justify-center px-5 py-8 sm:px-10 lg:order-2 lg:px-12 lg:py-14">
+        <SignupForm error={error} />
+      </main>
     </div>
   );
 }
