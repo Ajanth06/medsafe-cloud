@@ -46,11 +46,11 @@ export function AuthBrandPanel({ variant = "signup" }: AuthBrandPanelProps) {
         <BrandBackground />
 
         <div className="relative z-10 flex flex-1 flex-col justify-center">
-          <div className="glass-headline mb-8 w-full max-w-md rounded-[1.75rem] px-6 py-5 lg:px-7 lg:py-6">
-            <h1 className="text-[2rem] font-semibold leading-[1.06] tracking-[-0.03em] text-white antialiased lg:text-[2.75rem] xl:text-[3rem]">
+          <div className="mb-8 w-full max-w-md">
+            <h1 className="glass-text-title text-[2rem] font-semibold leading-[1.06] tracking-[-0.03em] lg:text-[2.75rem] xl:text-[3rem]">
               Deine Gesundheit.
             </h1>
-            <p className="mt-2.5 text-base font-medium leading-snug tracking-[-0.015em] text-white/82 lg:text-xl">
+            <p className="glass-text-sub mt-2.5 text-base font-medium leading-snug tracking-[-0.015em] lg:text-xl">
               Sicher. Digital. Immer an deiner Seite.
             </p>
           </div>
