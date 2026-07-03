@@ -24,4 +24,6 @@ export function inferDocumentType(file: File): DocumentType {
 export const ACCEPTED_DOCUMENT_TYPES =
   "application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,.pdf,.heic,.heif";
 
+export const CAMERA_IMAGE_TYPES = "image/*";
+
 export const MAX_DOCUMENT_SIZE_BYTES = 50 * 1024 * 1024;
