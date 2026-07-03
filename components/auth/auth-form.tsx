@@ -9,10 +9,8 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { readRememberMeFromCheckbox, setRememberMe } from "@/lib/session-policy";
@@ -42,19 +40,19 @@ export function AuthForm({ error, message }: AuthFormProps) {
       suppressHydrationWarning
       className="w-full max-w-[420px] border-0 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_40px_rgba(15,23,42,0.06)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_12px_40px_rgba(0,0,0,0.2)]"
     >
-      <CardHeader className="space-y-6 pb-2">
+      <CardHeader className="space-y-3 p-5 pb-0 lg:space-y-2.5 lg:p-6 lg:pb-0">
         <MedSafeLogo />
-        <div className="space-y-1 lg:hidden">
-          <CardTitle as="h1" className="text-2xl">
-            Schön, dass du da bist
-          </CardTitle>
-          <CardDescription>
-            Melde dich an und greife sicher auf deine Gesundheitsdaten zu.
-          </CardDescription>
+        <div className="space-y-1.5">
+          <h1 className="glass-text-title-light text-xl font-semibold leading-[1.08] tracking-[-0.03em] lg:text-2xl">
+            Sicher anmelden.
+          </h1>
+          <p className="glass-text-sub-light text-sm font-medium leading-relaxed tracking-[-0.01em]">
+            Deine Gesundheitsdaten sind verschlüsselt und nur für dich zugänglich.
+          </p>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-5 pt-4">
+      <CardContent className="space-y-3.5 p-5 pt-3 lg:space-y-3 lg:p-6 lg:pt-4">
         {error && (
           <p
             role="alert"
@@ -74,7 +72,7 @@ export function AuthForm({ error, message }: AuthFormProps) {
 
         <form
           action={signInWithEmail}
-          className="space-y-4"
+          className="space-y-3.5"
           noValidate
           onSubmit={() => {
             setRememberMe(readRememberMeFromCheckbox());
@@ -109,7 +107,7 @@ export function AuthForm({ error, message }: AuthFormProps) {
             </Link>
           </div>
 
-          <Button type="submit" fullWidth size="lg" className="h-14 text-base">
+          <Button type="submit" fullWidth size="lg" className="h-12 text-base lg:h-[3.25rem]">
             Anmelden
           </Button>
         </form>
@@ -127,7 +125,7 @@ export function AuthForm({ error, message }: AuthFormProps) {
         <RememberMeCheckbox />
       </CardContent>
 
-      <CardFooter className="flex-col gap-5 pt-2">
+      <CardFooter className="flex-col gap-2.5 p-5 pt-2 pb-5 lg:gap-3 lg:p-6 lg:pt-2 lg:pb-6">
         <p className="text-center text-sm text-muted">
           Noch kein Konto?{" "}
           <Link

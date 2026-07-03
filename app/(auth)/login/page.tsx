@@ -19,12 +19,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { error, message } = await searchParams;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background lg:grid lg:h-screen lg:grid-cols-2 lg:overflow-hidden">
-      <main className="order-1 flex min-h-screen w-full flex-col items-center justify-center px-6 py-10 sm:px-10 lg:order-2 lg:min-h-0 lg:px-12 lg:py-14">
+    <div className="flex h-screen min-h-0 flex-col overflow-hidden bg-background lg:grid lg:grid-cols-2">
+      <main className="order-1 flex h-full min-h-0 w-full flex-col items-center justify-center px-6 py-8 sm:px-10 lg:order-2 lg:overflow-hidden lg:px-10 lg:py-0 xl:px-12">
         <AuthForm error={error} message={message} />
       </main>
 
-      <div className="hidden h-full lg:order-1 lg:block">
+      <div className="hidden h-full min-h-0 overflow-hidden lg:order-1 lg:block">
         <AuthBrandPanel variant="login" />
       </div>
     </div>

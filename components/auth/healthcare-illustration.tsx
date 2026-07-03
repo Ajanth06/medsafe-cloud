@@ -1,11 +1,17 @@
+import { cn } from "@/lib/utils";
+
 interface HealthcareIllustrationProps {
   pulseShield?: boolean;
+  className?: string;
 }
 
-export function HealthcareIllustration({ pulseShield = false }: HealthcareIllustrationProps) {
+export function HealthcareIllustration({
+  pulseShield = false,
+  className,
+}: HealthcareIllustrationProps) {
   return (
     <div
-      className="relative mx-auto w-full max-w-md"
+      className={cn("relative mx-auto w-full max-w-md", className)}
       aria-hidden="true"
     >
       <svg
