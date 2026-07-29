@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { isSignupEnabled } from "@/lib/auth/config";
 import { createClient } from "@/lib/supabase/server";
 
 async function getOrigin() {
@@ -59,6 +60,10 @@ export async function signInWithEmail(formData: FormData) {
 }
 
 export async function signUpWithEmail(formData: FormData) {
+  if (!isSignupEnabled()) {
+    redirect("/login?error=Registrierung+ist+derzeit+deaktiviert");
+  }
+
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
   const fullName = String(formData.get("full_name") ?? "");

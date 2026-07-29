@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "npx tsx --test lib/market-intelligence/__tests__/**/*.test.ts",
+    "mi:setup": "npx tsx scripts/setup-aaryx-supabase.ts",
+    "mi:migrate": "npx tsx scripts/apply-mi-migrations.ts",
+    "mi:verify": "npx tsx scripts/verify-mi-supabase.ts",
+    "mi:validate": "npx tsx scripts/aaryx-validate.ts",
+    "mi:worker": "npx tsx scripts/aaryx-worker.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
@@ -19,10 +25,12 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "pg": "^8.16.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

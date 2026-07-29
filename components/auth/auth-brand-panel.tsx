@@ -8,6 +8,7 @@ import {
   Shield,
   ShieldCheck,
 } from "lucide-react";
+import { AuthBrandDecor } from "@/components/auth/auth-brand-decor";
 import { HealthcareIllustration } from "@/components/auth/healthcare-illustration";
 
 type AuthBrandPanelVariant = "login" | "signup";
@@ -71,6 +72,7 @@ export function AuthBrandPanel({ variant = "signup" }: AuthBrandPanelProps) {
     return (
       <div className="relative flex h-full min-h-screen flex-col overflow-hidden bg-gradient-to-br from-[#1D4ED8] via-[#2563EB] to-[#3B82F6] px-8 pt-8 pb-4 text-white lg:min-h-0 lg:px-12 lg:pt-14 lg:pb-5 xl:px-16">
         <LoginBrandBackground />
+        <AuthBrandDecor />
         <LoginDnaDecor />
 
         <div className="relative z-10 flex h-full min-h-0 flex-col">
@@ -121,6 +123,7 @@ export function AuthBrandPanel({ variant = "signup" }: AuthBrandPanelProps) {
   return (
     <div className="relative flex h-full min-h-screen flex-col overflow-hidden bg-gradient-to-br from-[#1D4ED8] via-[#2563EB] to-[#3B82F6] px-8 py-8 text-white lg:min-h-0 lg:px-12 lg:py-14 xl:px-16">
       <BrandBackground />
+      <AuthBrandDecor />
 
       <div className="relative z-10 flex flex-1 flex-col justify-center">
         <div className="mb-4 flex items-center gap-2 text-blue-100/80">

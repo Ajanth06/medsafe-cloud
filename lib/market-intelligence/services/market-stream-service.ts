@@ -1,0 +1,284 @@
+import { MARKET_ASSETS } from "@/lib/market-intelligence/config/assets";
+import { getMarketProviderConfig } from "@/lib/market-intelligence/config/provider-config";
+import { SYMBOL_REGISTRY } from "@/lib/market-intelligence/config/symbol-registry";
+import { runEventPipeline } from "@/lib/market-intelligence/engine/event-pipeline";
+import {
+  getPriceHistoryBuffer,
+  resetPriceHistoryBuffer,
+} from "@/lib/market-intelligence/engine/price-history-buffer";
+import { createMarketDataProvider } from "@/lib/market-intelligence/providers/provider-factory";
+import { fetchQuotesWithFailover } from "@/lib/market-intelligence/providers/provider-failover";
+import {
+  recordProviderFailure,
+  recordProviderSuccess,
+} from "@/lib/market-intelligence/providers/provider-health-store";
+import { isStale } from "@/lib/market-intelligence/services/data-quality";
+import { DuplicateTickFilter } from "@/lib/market-intelligence/services/duplicate-ticks";
+import { marketLogger } from "@/lib/market-intelligence/services/market-logger";
+import { shouldSuppressAnomalyDuringRollover } from "@/lib/market-intelligence/services/contract-rollover";
+import type {
+  EnrichedMarketQuote,
+  FeedConnectionState,
+  MarketIntelligenceDashboardData,
+  NormalizedMarketQuote,
+} from "@/lib/types/market";
+import {
+  MOCK_ALERTS,
+  MOCK_BREAKING_NEWS,
+  MOCK_PRICE_HISTORY,
+  MOCK_TIMELINE,
+} from "@/lib/market-intelligence/mock-data";
+import { PRIMARY_SYMBOLS } from "@/lib/market-intelligence/config/symbol-registry";
+import { ANOMALY_DETECTION_RULES } from "@/lib/market-intelligence/config/detection-rules";
+import { seedBufferFromHistory } from "@/lib/market-intelligence/engine/event-pipeline";
+import { buildSystemHealth } from "@/lib/market-intelligence/providers/provider-health";
+import { runNewsPipeline } from "@/lib/market-intelligence/services/news-intelligence-orchestrator";
+import { buildOperationsHealth } from "@/lib/market-intelligence/operations/system-watchdog";
+import { getInAppAlerts, getUnreadAlertCount } from "@/lib/market-intelligence/operations/in-app-alert-store";
+import { hydrateOperationsFromDb, getAlertsForApi } from "@/lib/market-intelligence/persistence/hydrate";
+import { isMiPersistenceEnabled } from "@/lib/market-intelligence/persistence/config";
+import { persistMarketEvents } from "@/lib/market-intelligence/persistence/events-repository";
+import {
+  persistLatestQuotes,
+  persistPriceHistorySnapshots,
+} from "@/lib/market-intelligence/persistence/quotes-repository";
+
+type PipelineResult = ReturnType<typeof runEventPipeline>;
+
+interface StreamState {
+  quotes: EnrichedMarketQuote[];
+  pipeline: PipelineResult | null;
+  lastPollAt: string | null;
+  lastError: string | null;
+  websocketState: FeedConnectionState;
+  isDemo: boolean;
+}
+
+let streamState: StreamState = {
+  quotes: [],
+  pipeline: null,
+  lastPollAt: null,
+  lastError: null,
+  websocketState: "NOT_CONFIGURED",
+  isDemo: true,
+};
+
+let pollTimer: ReturnType<typeof setInterval> | null = null;
+let lastHistoryPersistAt = 0;
+const tickFilter = new DuplicateTickFilter();
+
+function seedDemoHistory(): void {
+  resetPriceHistoryBuffer();
+  const buffer = getPriceHistoryBuffer();
+  const historyMap = new Map<
+    string,
+    { assetId: string; snapshots: { price: number; timestamp: string }[] }
+  >();
+
+  for (const [symbol, snapshots] of MOCK_PRICE_HISTORY) {
+    const asset = MARKET_ASSETS.find((a) => a.symbol === symbol);
+    if (asset) historyMap.set(symbol, { assetId: asset.assetId, snapshots });
+  }
+
+  seedBufferFromHistory(buffer, historyMap);
+}
+
+function toDemoQuote(quote: NormalizedMarketQuote): NormalizedMarketQuote {
+  return {
+    ...quote,
+    dataAvailability: "DEMO",
+    isRealtime: false,
+    source: "development-mock",
+  };
+}
+
+async function pollMarketData(): Promise<void> {
+  const config = getMarketProviderConfig();
+  const provider = createMarketDataProvider();
+  const symbols = SYMBOL_REGISTRY.map((e) => e.internalSymbol);
+
+  try {
+    let quotes: NormalizedMarketQuote[];
+
+    if (config.isConfigured) {
+      const primary = createMarketDataProvider("polygon");
+      const result = await fetchQuotesWithFailover(primary, symbols);
+      quotes = result.quotes;
+
+      if (result.usedFallback) {
+        streamState.isDemo = true;
+        quotes = quotes.map(toDemoQuote);
+        recordProviderFailure({ provider: primary.id, providerType: "market", error: "failover" });
+        marketLogger.warn("market_provider_failover_active", { attempts: result.attempts });
+      } else {
+        streamState.isDemo = false;
+        recordProviderSuccess({ provider: result.providerId, providerType: "market" });
+      }
+
+      streamState.websocketState = config.websocketEnabled ? "CONNECTED" : "NOT_CONFIGURED";
+    } else {
+      seedDemoHistory();
+      const mockQuotes = await provider.getQuotes(symbols);
+      quotes = mockQuotes.map(toDemoQuote);
+      streamState.isDemo = true;
+      streamState.websocketState = "NOT_CONFIGURED";
+    }
+
+    for (const quote of quotes) {
+      if (quote.price <= 0 || quote.dataAvailability === "UNAVAILABLE") continue;
+
+      const isDup = tickFilter.isDuplicate({
+        symbol: quote.symbol,
+        price: quote.price,
+        timestamp: quote.timestamp,
+      });
+      if (isDup) continue;
+
+      if (shouldSuppressAnomalyDuringRollover(quote.symbol)) {
+        marketLogger.info("Suppressing anomaly during contract rollover", {
+          symbol: quote.symbol,
+        });
+      }
+    }
+
+    const nowMs = Date.now();
+    for (const quote of quotes) {
+      if (quote.staleAfterSeconds && isStale(quote.timestamp, quote.staleAfterSeconds, nowMs)) {
+        quote.dataAvailability = "STALE";
+      }
+    }
+
+    const buffer = getPriceHistoryBuffer();
+    const pipeline = runEventPipeline(quotes, buffer, nowMs);
+
+    streamState = {
+      ...streamState,
+      quotes: pipeline.quotes,
+      pipeline,
+      lastPollAt: new Date().toISOString(),
+      lastError: null,
+    };
+
+    if (isMiPersistenceEnabled()) {
+      void persistLatestQuotes(pipeline.quotes);
+      void persistMarketEvents(pipeline.marketEvents);
+      const now = Date.now();
+      if (now - lastHistoryPersistAt > 60_000) {
+        lastHistoryPersistAt = now;
+        void persistPriceHistorySnapshots(pipeline.quotes);
+      }
+    }
+  } catch (error) {
+    streamState.lastError = error instanceof Error ? error.message : String(error);
+    recordProviderFailure({
+      provider: "market-primary",
+      providerType: "market",
+      error: streamState.lastError,
+    });
+    marketLogger.error("Market data poll failed", { error: streamState.lastError });
+  }
+}
+
+export function startMarketStream(): void {
+  if (pollTimer) return;
+
+  const config = getMarketProviderConfig();
+  void pollMarketData();
+
+  pollTimer = setInterval(() => {
+    void pollMarketData();
+  }, config.pollIntervalMs);
+
+  marketLogger.info("Market stream started", {
+    configured: config.isConfigured,
+    pollIntervalMs: config.pollIntervalMs,
+  });
+}
+
+export function stopMarketStream(): void {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+}
+
+export function getStreamState(): StreamState {
+  return streamState;
+}
+
+function toLegacyDetectionRules() {
+  return ANOMALY_DETECTION_RULES.filter((r) => r.direction === "UP" || r.direction === "BOTH").map(
+    (rule) => ({
+      id: rule.id,
+      asset: rule.assetName,
+      symbol: rule.symbol,
+      condition: { type: "percentageChange" as const, operator: ">=" as const, value: rule.thresholdPercent },
+      windowMinutes: rule.windowMinutes,
+      action: "CREATE_MARKET_EVENT" as const,
+      severity: rule.severity,
+      enabled: rule.enabled,
+    }),
+  );
+}
+
+export async function getMarketIntelligenceDataFromStream(): Promise<MarketIntelligenceDashboardData> {
+  startMarketStream();
+
+  if (!streamState.pipeline || streamState.quotes.length === 0) {
+    await pollMarketData();
+  }
+
+  if (isMiPersistenceEnabled()) {
+    await hydrateOperationsFromDb();
+  }
+
+  const pipeline = streamState.pipeline!;
+  const newsResult = await runNewsPipeline(pipeline);
+  const systemHealth = await buildSystemHealth(streamState);
+  if (newsResult.newsHealth) {
+    systemHealth.newsHealth = newsResult.newsHealth;
+    systemHealth.newsEngine = newsResult.newsHealth.newsEngine;
+  }
+  systemHealth.operationsHealth = buildOperationsHealth();
+
+  const deliveredAlerts = isMiPersistenceEnabled()
+    ? await getAlertsForApi()
+    : getInAppAlerts({ tab: "ALL" });
+  const unreadAlertCount = getUnreadAlertCount();
+
+  const primaryQuotes = pipeline.quotes.filter((q) =>
+    (PRIMARY_SYMBOLS as readonly string[]).includes(q.symbol),
+  );
+
+  const sortedQuotes = [
+    ...pipeline.quotes.filter((q) => q.symbol === "WTI"),
+    ...pipeline.quotes.filter((q) => q.symbol === "BRENT"),
+    ...pipeline.quotes.filter((q) => q.symbol !== "WTI" && q.symbol !== "BRENT"),
+  ];
+
+  const timeline = [
+    ...newsResult.timeline,
+    ...(streamState.isDemo ? MOCK_TIMELINE.filter((t) => !newsResult.timeline.some((n) => n.category === t.category)) : []),
+  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  return {
+    quotes: sortedQuotes,
+    primaryQuotes,
+    brentWtiSpread: pipeline.brentWtiSpread,
+    marketEvents: pipeline.marketEvents,
+    breakingNews: newsResult.breakingNews.length > 0 ? newsResult.breakingNews : streamState.isDemo ? MOCK_BREAKING_NEWS : [],
+    intelligenceEvents: newsResult.intelligenceEvents,
+    timeline,
+    liveFeed: newsResult.liveFeed,
+    alerts: streamState.isDemo ? MOCK_ALERTS : [],
+    intelligenceAlerts: newsResult.intelligenceAlerts,
+    detectionRules: toLegacyDetectionRules(),
+    crossAssetEvents: pipeline.crossAssetEvents,
+    oilCorrelation: pipeline.oilCorrelation,
+    systemHealth,
+    deliveredAlerts,
+    unreadAlertCount,
+  };
+}
+
+export { pollMarketData };

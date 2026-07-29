@@ -32,9 +32,16 @@ function MedSafeLogo({ className }: { className?: string }) {
 interface AuthFormProps {
   error?: string;
   message?: string;
+  signupEnabled?: boolean;
+  oauthLoginEnabled?: boolean;
 }
 
-export function AuthForm({ error, message }: AuthFormProps) {
+export function AuthForm({
+  error,
+  message,
+  signupEnabled = false,
+  oauthLoginEnabled = true,
+}: AuthFormProps) {
   return (
     <Card
       suppressHydrationWarning
@@ -112,29 +119,35 @@ export function AuthForm({ error, message }: AuthFormProps) {
           </Button>
         </form>
 
-        <div className="relative flex items-center py-1">
-          <div className="grow border-t border-border" />
-          <span className="mx-4 shrink-0 text-xs font-medium uppercase tracking-wider text-muted">
-            oder
-          </span>
-          <div className="grow border-t border-border" />
-        </div>
+        {oauthLoginEnabled && (
+          <>
+            <div className="relative flex items-center py-1">
+              <div className="grow border-t border-border" />
+              <span className="mx-4 shrink-0 text-xs font-medium uppercase tracking-wider text-muted">
+                oder
+              </span>
+              <div className="grow border-t border-border" />
+            </div>
 
-        <OAuthButtons />
+            <OAuthButtons />
+          </>
+        )}
 
         <RememberMeCheckbox />
       </CardContent>
 
       <CardFooter className="flex-col gap-2.5 p-5 pt-2 pb-5 lg:gap-3 lg:p-6 lg:pt-2 lg:pb-6">
-        <p className="text-center text-sm text-muted">
-          Noch kein Konto?{" "}
-          <Link
-            href="/signup"
-            className="rounded font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-          >
-            Registrieren
-          </Link>
-        </p>
+        {signupEnabled && (
+          <p className="text-center text-sm text-muted">
+            Noch kein Konto?{" "}
+            <Link
+              href="/signup"
+              className="rounded font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            >
+              Registrieren
+            </Link>
+          </p>
+        )}
 
         <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted">
           <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />

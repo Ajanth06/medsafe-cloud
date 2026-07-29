@@ -1,0 +1,56 @@
+import { cn } from "@/lib/utils";
+import type { DataAvailability } from "@/lib/types/market";
+
+interface LiveIndicatorProps {
+  isLive?: boolean;
+  dataAvailability?: DataAvailability;
+}
+
+export function LiveIndicator({ isLive = false, dataAvailability }: LiveIndicatorProps) {
+  if (!isLive) {
+    return (
+      <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1">
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-amber-700">
+          {dataAvailability === "DEMO" ? "Demo Data" : "No Live Feed"}
+        </span>
+      </div>
+    );
+  }
+
+  const isDelayed = dataAvailability === "DELAYED";
+
+  return (
+    <div
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full border px-3 py-1",
+        isDelayed
+          ? "border-orange-200 bg-orange-50"
+          : "border-emerald-200 bg-emerald-50",
+      )}
+    >
+      <span className="relative flex h-2 w-2">
+        <span
+          className={cn(
+            "absolute inline-flex h-full w-full animate-ping rounded-full opacity-75",
+            isDelayed ? "bg-orange-400" : "bg-emerald-400",
+          )}
+        />
+        <span
+          className={cn(
+            "relative inline-flex h-2 w-2 rounded-full",
+            isDelayed ? "bg-orange-500" : "bg-emerald-500",
+          )}
+        />
+      </span>
+      <span
+        className={cn(
+          "text-[11px] font-semibold uppercase tracking-widest",
+          isDelayed ? "text-orange-700" : "text-emerald-700",
+        )}
+      >
+        {isDelayed ? "Delayed Feed" : "Live Monitoring"}
+      </span>
+    </div>
+  );
+}

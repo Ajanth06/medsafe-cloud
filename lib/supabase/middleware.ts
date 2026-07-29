@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isSignupEnabled } from "@/lib/auth/config";
 
 const protectedPrefixes = [
   "/dashboard",
@@ -9,6 +10,7 @@ const protectedPrefixes = [
   "/profile",
   "/timeline",
   "/onboarding",
+  "/market-intelligence",
 ];
 
 function isProtectedRoute(pathname: string) {
@@ -46,6 +48,13 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+
+  if (!isSignupEnabled() && pathname.startsWith("/signup")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
   const isAuthRoute =
     pathname.startsWith("/login") || pathname.startsWith("/signup");
 
