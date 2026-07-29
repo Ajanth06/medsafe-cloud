@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTime } from "@/lib/market-intelligence/format";
+import { miDe } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import type { IntelligenceEvent } from "@/lib/types/market";
 
@@ -26,7 +27,7 @@ export function IntelligenceTimeline({ events }: IntelligenceTimelineProps) {
         id="intelligence-timeline-heading"
         className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted"
       >
-        Intelligence Timeline
+        {miDe.intelTimeline}
       </h2>
       <Card>
         <CardContent className="p-5">

@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, Minus } from "lucide-react";
 import { Sparkline } from "@/components/market-intelligence/sparkline";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatChange, formatPrice, formatTime } from "@/lib/market-intelligence/format";
+import { miDe, tDelayedMinutes, tVolatility } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import type { EnrichedMarketQuote } from "@/lib/types/market";
 
@@ -41,11 +42,19 @@ export function MarketCard({ quote, featured = false }: MarketCardProps) {
   return (
     <Card
       className={cn(
-        "overflow-hidden transition-shadow hover:shadow-[0_4px_20px_rgba(15,23,42,0.08)]",
-        featured && "border-slate-800 ring-1 ring-slate-700/20",
+        "group relative overflow-hidden border-[#171717]/10 bg-white/80 shadow-[0_8px_30px_rgba(23,23,23,0.06)] backdrop-blur transition-all hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(23,23,23,0.11)]",
+        featured && "border-orange-300/50 ring-1 ring-orange-300/20",
         unavailable && "opacity-80",
       )}
     >
+      <div
+        className={cn(
+          "absolute inset-x-0 top-0 h-0.5 opacity-80",
+          featured
+            ? "bg-gradient-to-r from-[#d24b2f] via-orange-400 to-cyan-400"
+            : "bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent",
+        )}
+      />
       <CardContent className="space-y-3 p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
@@ -65,7 +74,7 @@ export function MarketCard({ quote, featured = false }: MarketCardProps) {
                     : "bg-yellow-50 text-yellow-700",
                 )}
               >
-                {quote.volatilityStatus.replace("_", " ")}
+                {tVolatility(quote.volatilityStatus)}
               </span>
             )}
           </div>
@@ -73,9 +82,9 @@ export function MarketCard({ quote, featured = false }: MarketCardProps) {
 
         {unavailable ? (
           <div className="rounded-xl bg-background/60 p-4 text-center">
-            <p className="text-sm font-semibold text-muted">Data Unavailable</p>
+            <p className="text-sm font-semibold text-muted">{miDe.dataUnavailable}</p>
             <p className="mt-1 text-xs text-muted">
-              Configure MARKET_DATA_API_KEY for live quotes
+              {miDe.configureApiKey}
             </p>
           </div>
         ) : (
@@ -96,7 +105,7 @@ export function MarketCard({ quote, featured = false }: MarketCardProps) {
                   {positive && <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />}
                   {negative && <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />}
                   {!positive && !negative && <Minus className="h-3.5 w-3.5" aria-hidden="true" />}
-                  <span>Day {formatChange(quote.percentageChange, true)}</span>
+                  <span>{miDe.day} {formatChange(quote.percentageChange, true)}</span>
                 </div>
               </div>
               {quote.sparkline.length >= 2 && (
@@ -113,9 +122,9 @@ export function MarketCard({ quote, featured = false }: MarketCardProps) {
         )}
 
         <p className="text-[10px] text-muted">
-          {quote.isStale ? "Stale — " : "Updated "}
+          {quote.isStale ? `${miDe.stale} ` : `${miDe.updated} `}
           {formatTime(quote.timestamp)} CET
-          {quote.delaySeconds ? ` · Delayed ${Math.round(quote.delaySeconds / 60)}m` : ""}
+          {quote.delaySeconds ? ` · ${tDelayedMinutes(Math.round(quote.delaySeconds / 60))}` : ""}
           {quote.latency?.providerToServerMs != null &&
             ` · ${quote.latency.providerToServerMs}ms`}
         </p>

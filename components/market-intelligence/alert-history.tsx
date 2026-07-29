@@ -1,6 +1,7 @@
 import { SeverityBadge } from "@/components/market-intelligence/severity-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatChange, formatDateTime, formatPrice } from "@/lib/market-intelligence/format";
+import { miDe } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import type { MarketAlert } from "@/lib/types/market";
 
@@ -15,7 +16,7 @@ export function AlertHistory({ alerts }: AlertHistoryProps) {
         id="alert-history-heading"
         className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted"
       >
-        Alert History
+        {miDe.alertHistory}
       </h2>
       <div className="space-y-3">
         {alerts.map((alert) => (
@@ -36,41 +37,41 @@ export function AlertHistory({ alerts }: AlertHistoryProps) {
                         : "bg-red-50 text-red-700",
                     )}
                   >
-                    AI {alert.aiAssessmentCorrect ? "Correct" : "Incorrect"}
+                    KI {alert.aiAssessmentCorrect ? miDe.aiCorrect : miDe.aiIncorrect}
                   </span>
                 )}
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
                 <div>
-                  <p className="text-muted">Triggered</p>
+                  <p className="text-muted">{miDe.triggered}</p>
                   <p className="font-mono font-medium">{formatDateTime(alert.triggeredAt)}</p>
                 </div>
                 <div>
-                  <p className="text-muted">Alert Price</p>
+                  <p className="text-muted">{miDe.alertPrice}</p>
                   <p className="font-mono font-medium">
                     {formatPrice(alert.alertPrice, alert.symbol)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-muted">Type</p>
+                  <p className="text-muted">{miDe.type}</p>
                   <p className="font-medium">{alert.eventType.replace("_", " ")}</p>
                 </div>
                 <div>
-                  <p className="text-muted">AI Assessment</p>
+                  <p className="text-muted">{miDe.aiAssessment}</p>
                   <p className="font-medium">
                     {alert.aiAssessmentCorrect === null
-                      ? "Pending"
+                      ? miDe.pendingValidation
                       : alert.aiAssessmentCorrect
-                        ? "Validated"
-                        : "Missed"}
+                        ? miDe.validated
+                        : miDe.missed}
                   </p>
                 </div>
               </div>
 
               <div>
                 <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted">
-                  Post-Alert Performance
+                  {miDe.postAlertPerformance}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {alert.performanceSnapshots.map((snapshot) => (

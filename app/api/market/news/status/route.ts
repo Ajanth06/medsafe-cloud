@@ -25,6 +25,12 @@ export async function GET() {
     officialSources: officialHealth.status === "ONLINE" ? "ACTIVE" : "READY",
     verificationEngine: "ACTIVE",
     eventCorrelation: "ACTIVE",
+    lastNewsAt: null,
+    averageNewsLatencyMs: null,
     isLive: config.isConfigured,
+    primarySource: config.isConfigured
+      ? newsProvider.name
+      : "Demo-News (kein NEWS_API_KEY)",
+    officialSourceLabel: "Official RSS (Fed, EIA u. a.)",
   });
 }

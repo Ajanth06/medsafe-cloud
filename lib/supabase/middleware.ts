@@ -2,16 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isSignupEnabled } from "@/lib/auth/config";
 
-const protectedPrefixes = [
-  "/dashboard",
-  "/documents",
-  "/medications",
-  "/ai",
-  "/profile",
-  "/timeline",
-  "/onboarding",
-  "/market-intelligence",
-];
+const protectedPrefixes = ["/profile", "/market-intelligence"];
 
 function isProtectedRoute(pathname: string) {
   return protectedPrefixes.some(
@@ -60,11 +51,11 @@ export async function updateSession(request: NextRequest) {
 
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = "/market-intelligence";
     return NextResponse.redirect(url);
   }
 
-  if (!user && (isProtectedRoute(pathname) || pathname === "/onboarding")) {
+  if (!user && isProtectedRoute(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

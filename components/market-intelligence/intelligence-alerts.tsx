@@ -1,6 +1,7 @@
 import { SeverityBadge } from "@/components/market-intelligence/severity-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatChange, formatTime } from "@/lib/market-intelligence/format";
+import { miDe, tEventStatus, tVerification } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import type { IntelligenceAlert } from "@/lib/types/market";
 
@@ -15,7 +16,7 @@ export function IntelligenceAlerts({ alerts }: IntelligenceAlertsProps) {
         id="intelligence-alerts-heading"
         className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted"
       >
-        Active Intelligence Alerts
+        {miDe.activeAlerts}
       </h2>
       <div className="space-y-3">
         {alerts.map((alert) => (
@@ -35,7 +36,7 @@ export function IntelligenceAlerts({ alerts }: IntelligenceAlertsProps) {
                   CET
                 </span>
                 <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase">
-                  {alert.status}
+                  {tEventStatus(alert.status)}
                 </span>
               </div>
 
@@ -44,18 +45,18 @@ export function IntelligenceAlerts({ alerts }: IntelligenceAlertsProps) {
 
               {alert.possibleEvent && (
                 <p className="text-sm">
-                  <span className="font-medium text-foreground">Possible Event:</span>{" "}
+                  <span className="font-medium text-foreground">{miDe.possibleEvent}:</span>{" "}
                   {alert.possibleEvent}
                 </p>
               )}
 
               <div className="flex flex-wrap gap-3 text-xs">
                 <span>
-                  Verification:{" "}
-                  <span className="font-semibold uppercase">{alert.verification}</span>
+                  {miDe.verificationLabel}:{" "}
+                  <span className="font-semibold uppercase">{alert.verification ? tVerification(alert.verification) : alert.verification}</span>
                 </span>
                 <span>
-                  Confidence:{" "}
+                  {miDe.confidenceLabel}:{" "}
                   <span className="font-semibold uppercase">{alert.confidence}</span> (
                   {alert.confidenceScore})
                 </span>

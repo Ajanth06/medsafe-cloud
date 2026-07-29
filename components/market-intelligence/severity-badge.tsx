@@ -1,3 +1,4 @@
+import { tSeverity } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import type { AlertSeverity, EventSeverity } from "@/lib/types/market";
 
@@ -23,7 +24,7 @@ export function SeverityBadge({ severity, className }: SeverityBadgeProps) {
         className,
       )}
     >
-      {severity}
+      {tSeverity(severity)}
     </span>
   );
 }

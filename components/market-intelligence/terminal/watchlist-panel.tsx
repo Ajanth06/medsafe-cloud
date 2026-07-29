@@ -7,6 +7,7 @@ import {
   DEFAULT_TERMINAL_PREFERENCES,
   type UserTerminalPreferences,
 } from "@/lib/market-intelligence/user/preferences-types";
+import { miDe } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 
 const WATCHLIST_STORAGE_KEY = "aaryx-watchlist";
@@ -56,11 +57,11 @@ export function WatchlistPanel({ initialSymbols, onChange }: WatchlistPanelProps
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">Personal Watchlist</h3>
-        {saving && <span className="text-xs text-muted">Saving…</span>}
+        <h3 className="text-sm font-semibold text-foreground">{miDe.watchlist}</h3>
+        {saving && <span className="text-xs text-muted">{miDe.saving}</span>}
       </div>
       <p className="text-xs text-muted">
-        Pin assets to your Markets view. Synced to your account when persistence is enabled.
+        {miDe.watchlistHint}
       </p>
       <div className="flex flex-wrap gap-2">
         {MARKET_ASSETS.map((asset) => {
@@ -88,7 +89,7 @@ export function WatchlistPanel({ initialSymbols, onChange }: WatchlistPanelProps
         size="sm"
         onClick={() => void persist([...DEFAULT_TERMINAL_PREFERENCES.watchlistSymbols])}
       >
-        Reset to default
+        {miDe.resetDefault}
       </Button>
     </section>
   );

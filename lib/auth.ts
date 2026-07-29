@@ -194,22 +194,7 @@ export async function getUserOrRedirect() {
   };
 }
 
+/** @deprecated Onboarding removed — AARYX uses login-only access. */
 export async function requireOnboardingComplete() {
-  const result = await getUserOrRedirect();
-
-  if (!result.profile.onboardingCompleted) {
-    redirect("/onboarding");
-  }
-
-  return result;
-}
-
-export async function requireOnboardingPending() {
-  const result = await getUserOrRedirect();
-
-  if (result.profile.onboardingCompleted) {
-    redirect("/dashboard");
-  }
-
-  return result;
+  return getUserOrRedirect();
 }

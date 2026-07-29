@@ -153,9 +153,9 @@ export const MOCK_BREAKING_NEWS: NewsEvent[] = [
   {
     id: "news-001",
     timestamp: minutesAgo(3),
-    title: "Middle East escalation detected",
+    title: "Eskalation im Nahen Osten erkannt",
     summary:
-      "Multiple reports indicate a new geopolitical escalation in the Middle East region with potential impact on energy markets.",
+      "Mehrere Berichte deuten auf eine neue geopolitische Eskalation im Nahen Osten mit möglichem Einfluss auf Energiemärkte hin.",
     eventType: "GEOPOLITICAL",
     severity: "CRITICAL",
     sourceVerification: {
@@ -175,9 +175,9 @@ export const MOCK_BREAKING_NEWS: NewsEvent[] = [
   {
     id: "news-002",
     timestamp: minutesAgo(18),
-    title: "ECB signals cautious stance on rate cuts",
+    title: "EZB signalisiert vorsichtige Haltung bei Zinssenkungen",
     summary:
-      "European Central Bank officials hint at a more cautious approach to further rate reductions amid sticky inflation data.",
+      "Vertreter der Europäischen Zentralbank deuten eine vorsichtigere Haltung bei weiteren Zinssenkungen angesichts hartnäckiger Inflationsdaten an.",
     eventType: "ECONOMIC",
     severity: "MEDIUM",
     sourceVerification: {
@@ -199,43 +199,43 @@ export const MOCK_TIMELINE: IntelligenceEvent[] = [
   {
     id: "tl-001",
     timestamp: minutesAgo(7),
-    title: "Unusual Brent movement detected",
-    description: "Price velocity exceeded baseline threshold.",
+    title: "Ungewöhnliche Brent-Bewegung erkannt",
+    description: "Preisgeschwindigkeit überschritt Basisschwelle.",
     category: "detection",
   },
   {
     id: "tl-002",
     timestamp: minutesAgo(6),
-    title: "Brent exceeds +1.5% / 10 min threshold",
-    description: "Rule brent-up-10m triggered.",
+    title: "Brent überschreitet +1,5 % / 10 Min.",
+    description: "Regel brent-up-10m ausgelöst.",
     category: "threshold",
   },
   {
     id: "tl-003",
     timestamp: minutesAgo(5),
-    title: "First geopolitical report detected",
-    description: "Single-source headline ingested from wire service.",
+    title: "Erster geopolitischer Bericht erkannt",
+    description: "Einzelquellen-Schlagzeile von Nachrichtenagentur erfasst.",
     category: "news",
   },
   {
     id: "tl-004",
     timestamp: minutesAgo(4),
-    title: "Multiple sources detected",
-    description: "3 independent sources confirm escalation narrative.",
+    title: "Mehrere Quellen erkannt",
+    description: "3 unabhängige Quellen bestätigen Eskalations-Narrativ.",
     category: "verification",
   },
   {
     id: "tl-005",
     timestamp: minutesAgo(3),
-    title: "Event classified as HIGH",
-    description: "Severity upgraded based on market correlation.",
+    title: "Ereignis als HOCH eingestuft",
+    description: "Schweregrad aufgrund Marktkorrelation erhöht.",
     category: "classification",
   },
   {
     id: "tl-006",
     timestamp: minutesAgo(2),
-    title: "AI market assessment generated",
-    description: "Risk-off regime identified with high confidence.",
+    title: "KI-Markteinschätzung erstellt",
+    description: "Risikoaversion mit hoher Konfidenz identifiziert.",
     category: "ai",
   },
 ];

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { miDe, tStatus } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 
 interface ValidationCheck {
@@ -49,7 +50,7 @@ export function ValidationDashboard() {
   }, []);
 
   if (loading && !report) {
-    return <p className="text-sm text-muted">Loading validation status…</p>;
+    return <p className="text-sm text-muted">{miDe.loadingValidation}</p>;
   }
 
   if (!report) return null;
@@ -64,23 +65,23 @@ export function ValidationDashboard() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Production Validation</h2>
-          <p className={cn("text-sm font-medium", statusColor)}>Status: {report.overallStatus}</p>
+          <h2 className="text-lg font-semibold">{miDe.validationTitle}</h2>
+          <p className={cn("text-sm font-medium", statusColor)}>{miDe.statusLabel}: {tStatus(report.overallStatus)}</p>
         </div>
         <button
           type="button"
           onClick={() => void runCheck()}
           className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-medium text-white"
         >
-          Run Health Check
+          {miDe.runHealthCheck}
         </button>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <MetricCard label="Persistence" value={report.metrics.persistenceEnabled ? "ON" : "OFF"} />
-        <MetricCard label="Live Data" value={report.metrics.isLive ? "LIVE" : "DEMO"} />
+        <MetricCard label={miDe.persistence} value={report.metrics.persistenceEnabled ? miDe.persistenceOn : miDe.persistenceOff} />
+        <MetricCard label={miDe.liveData} value={report.metrics.isLive ? miDe.liveData : miDe.demoData} />
         <MetricCard
-          label="Replay Pass Rate"
+          label={miDe.replayPassRate}
           value={report.metrics.replayPassRate != null ? `${report.metrics.replayPassRate}%` : "—"}
         />
       </div>
@@ -101,7 +102,7 @@ export function ValidationDashboard() {
                   check.status === "FAIL" && "bg-red-100 text-red-800",
                 )}
               >
-                {check.status}
+                {tStatus(check.status)}
               </span>
             </div>
           ))}

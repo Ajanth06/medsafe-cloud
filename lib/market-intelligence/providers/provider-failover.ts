@@ -6,6 +6,10 @@ import type { NormalizedMarketQuote } from "@/lib/types/market";
 
 const fallbackProvider = new DevelopmentMarketDataProvider();
 
+function hasUsableQuotes(quotes: NormalizedMarketQuote[]): boolean {
+  return quotes.some((q) => q.price > 0 && q.dataAvailability !== "UNAVAILABLE");
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -26,7 +30,7 @@ export async function fetchQuotesWithFailover(
   for (let attempt = 1; attempt <= PROVIDER_RETRY_ATTEMPTS; attempt++) {
     try {
       const quotes = await primary.getQuotes(symbols);
-      if (quotes.length > 0) {
+      if (hasUsableQuotes(quotes)) {
         return {
           quotes,
           providerId: primary.id ?? "primary",
@@ -34,7 +38,7 @@ export async function fetchQuotesWithFailover(
           attempts: attempt,
         };
       }
-      lastError = new Error("Empty quote response");
+      lastError = new Error("No usable quotes (plan limit or unavailable symbols)");
     } catch (error) {
       lastError = error;
       marketLogger.warn("provider_fetch_failed", {

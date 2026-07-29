@@ -744,6 +744,10 @@ export interface NewsSystemHealth {
   lastNewsAt: string | null;
   averageNewsLatencyMs: number | null;
   isLive: boolean;
+  /** Human-readable primary wire (e.g. NewsAPI.org / Demo) */
+  primarySource: string;
+  /** Official RSS contribution label */
+  officialSourceLabel: string;
 }
 
 export interface IntelligenceEvent {

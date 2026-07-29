@@ -5,6 +5,7 @@ import { SourceVerificationBadge } from "@/components/market-intelligence/source
 import { Card, CardContent } from "@/components/ui/card";
 import { buildDemoAnalysis } from "@/lib/market-intelligence/services/ai-analysis";
 import { formatChange, formatTime } from "@/lib/market-intelligence/format";
+import { miDe, tEventStatus, tVerification } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import type { NewsEvent } from "@/lib/types/market";
 
@@ -19,7 +20,7 @@ export function BreakingIntelligence({ events }: BreakingIntelligenceProps) {
         id="breaking-intelligence-heading"
         className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted"
       >
-        Breaking Intelligence
+        {miDe.breakingIntel}
       </h2>
       <div className="space-y-4">
         {events.map((event) => {
@@ -61,13 +62,13 @@ export function BreakingIntelligence({ events }: BreakingIntelligenceProps) {
                   </div>
 
                   <div className="text-xs text-muted">
-                    <span className="font-medium text-foreground">Sources:</span>{" "}
+                    <span className="font-medium text-foreground">{miDe.sources}:</span>{" "}
                     {event.sourceVerification.sources.join(", ")}
                   </div>
 
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-muted">
-                      Status:
+                      {miDe.statusLabel}:
                     </span>
                     <span
                       className={cn(
@@ -80,14 +81,14 @@ export function BreakingIntelligence({ events }: BreakingIntelligenceProps) {
                       )}
                     >
                       {event.sourceVerification.status === "UNVERIFIED"
-                        ? "UNVERIFIED"
-                        : event.status}
+                        ? tVerification("UNVERIFIED")
+                        : tEventStatus(event.status)}
                     </span>
                   </div>
 
                   <div>
                     <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted">
-                      Affected Markets
+                      {miDe.affectedMarkets}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {event.affectedMarkets.map((market) => (

@@ -1,3 +1,4 @@
+import { tDataAvailability } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import type { DataAvailability } from "@/lib/types/market";
 
@@ -7,14 +8,6 @@ const styles: Record<DataAvailability, string> = {
   DEMO: "bg-amber-50 text-amber-700 border-amber-200",
   UNAVAILABLE: "bg-red-50 text-red-700 border-red-200",
   STALE: "bg-slate-100 text-slate-600 border-slate-200",
-};
-
-const labels: Record<DataAvailability, string> = {
-  LIVE: "REALTIME",
-  DELAYED: "DELAYED",
-  DEMO: "DEMO DATA",
-  UNAVAILABLE: "UNAVAILABLE",
-  STALE: "STALE",
 };
 
 interface DataAvailabilityBadgeProps {
@@ -34,7 +27,7 @@ export function DataAvailabilityBadge({
         className,
       )}
     >
-      {labels[availability]}
+      {tDataAvailability(availability)}
     </span>
   );
 }

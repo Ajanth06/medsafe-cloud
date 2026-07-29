@@ -19,17 +19,17 @@ export function buildDemoAnalysis(event: NewsEvent): AIAnalysis {
         market.changePercent > 0
           ? "BULLISH"
           : market.changePercent < -0.5
-            ? "BEARISH / WATCH"
-            : "BEARISH",
+            ? "BEARISH"
+            : "NEUTRAL",
     })),
     confidence: event.severity === "CRITICAL" ? "HIGH" : "MEDIUM",
     potentialCause: isGeopolitical
-      ? "Geopolitical escalation and increasing energy supply risk."
-      : "Macro uncertainty and shifting risk sentiment across global markets.",
+      ? "Geopolitische Eskalation und steigendes Versorgungsrisiko für Energie."
+      : "Makrounsicherheit und wechselnde Risikostimmung an den globalen Märkten.",
     keyRisk: isGeopolitical
-      ? "Further escalation could increase the geopolitical risk premium."
-      : "Delayed confirmation may amplify volatility in correlated assets.",
+      ? "Weitere Eskalation könnte die geopolitische Risikoprämie erhöhen."
+      : "Verzögerte Bestätigung kann die Volatilität korrelierter Assets verstärken.",
     disclaimer:
-      "Demo assessment only — not financial advice or a live trading recommendation.",
+      "Nur Demo-Einschätzung — keine Anlageberatung und keine Live-Handelsempfehlung.",
   };
 }

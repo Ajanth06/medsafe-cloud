@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { miDe, tConfidence, tPressure, tRegime } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import type { AIAnalysis } from "@/lib/types/market";
 
@@ -11,7 +12,6 @@ const sentimentColor: Record<string, string> = {
   BEARISH: "text-red-600",
   NEUTRAL: "text-slate-600",
   WATCH: "text-amber-600",
-  "BEARISH / WATCH": "text-orange-600",
 };
 
 export function AIAssessment({ analysis }: AIAssessmentProps) {
@@ -20,28 +20,28 @@ export function AIAssessment({ analysis }: AIAssessmentProps) {
       <CardContent className="space-y-4 p-5">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-            AI Market Assessment
+            {miDe.aiAssessment}
           </p>
           <p className="mt-1 text-xs text-amber-400/80">
-            Demo data — not a live trading recommendation
+            {miDe.demoDisclaimer}
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-slate-500">
-              Market Regime
+              {miDe.marketRegime}
             </p>
             <p className="mt-0.5 font-mono font-semibold text-white">
-              {analysis.marketRegime}
+              {tRegime(analysis.marketRegime.replace(/-/g, "_"))}
             </p>
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-wider text-slate-500">
-              Confidence
+              {miDe.confidence}
             </p>
             <p className="mt-0.5 font-mono font-semibold text-white">
-              {analysis.confidence}
+              {tConfidence(analysis.confidence)}
             </p>
           </div>
         </div>
@@ -59,7 +59,7 @@ export function AIAssessment({ analysis }: AIAssessmentProps) {
                   sentimentColor[item.sentiment] ?? "text-slate-400",
                 )}
               >
-                {item.sentiment}
+                {tPressure(item.sentiment)}
               </span>
             </div>
           ))}
@@ -68,7 +68,7 @@ export function AIAssessment({ analysis }: AIAssessmentProps) {
         <div className="space-y-2 border-t border-slate-700 pt-3 text-sm">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-slate-500">
-              Potential Cause
+              {miDe.potentialCauseLabel}
             </p>
             <p className="mt-0.5 leading-relaxed text-slate-300">
               {analysis.potentialCause}
@@ -76,7 +76,7 @@ export function AIAssessment({ analysis }: AIAssessmentProps) {
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-wider text-slate-500">
-              Key Risk
+              {miDe.keyRisk}
             </p>
             <p className="mt-0.5 leading-relaxed text-slate-300">{analysis.keyRisk}</p>
           </div>

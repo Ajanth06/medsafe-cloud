@@ -4,6 +4,7 @@ import { EvidencePanel } from "@/components/market-intelligence/evidence-panel";
 import { SourceVerificationBadge } from "@/components/market-intelligence/source-verification-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTime } from "@/lib/market-intelligence/format";
+import { miDe, tSourcesCount, tVerification } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import type { IntelligenceEventCluster } from "@/lib/types/market";
 
@@ -20,7 +21,7 @@ export function IntelligenceEventsSection({ events }: IntelligenceEventsSectionP
         id="intelligence-events-heading"
         className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted"
       >
-        Intelligence Events
+        {miDe.intelEvents}
       </h2>
       <div className="space-y-4">
         {events.map((event) => (
@@ -30,22 +31,22 @@ export function IntelligenceEventsSection({ events }: IntelligenceEventsSectionP
               <div className="flex flex-wrap items-center gap-2">
                 {event.dataAvailability === "DEMO" && (
                   <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-700">
-                    Demo Data
+                    {miDe.demoData}
                   </span>
                 )}
                 {event.state === "UNVERIFIED" && (
                   <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-700">
-                    Unverified
+                    {tVerification("UNVERIFIED")}
                   </span>
                 )}
                 {event.state === "CONFLICTING" && (
                   <span className="rounded-md bg-red-50 px-2 py-0.5 text-[10px] font-semibold uppercase text-red-700">
-                    Conflicting Reports
+                    {miDe.conflictingReports}
                   </span>
                 )}
                 {event.watchMode && (
                   <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold uppercase text-blue-700">
-                    Watch Mode
+                    {tVerification("WATCH_MODE")}
                   </span>
                 )}
                 <SourceVerificationBadge
@@ -72,18 +73,18 @@ export function IntelligenceEventsSection({ events }: IntelligenceEventsSectionP
               {event.leadLag && (
                 <div className="rounded-lg border border-border bg-muted/30 p-3">
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">
-                    What AARYX Detected First
+                    {miDe.whatDetectedFirst}
                   </p>
                   <p className="mt-1 text-sm font-medium text-foreground">{event.leadLag.label}</p>
                   {!event.leadLag.isReliable && (
-                    <p className="mt-0.5 text-xs text-muted">Timing comparison approximate</p>
+                    <p className="mt-0.5 text-xs text-muted">{miDe.timingApproximate}</p>
                   )}
                 </div>
               )}
 
               <div>
                 <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted">
-                  Sources ({event.independentSourceCount} independent)
+                  {tSourcesCount(event.independentSourceCount)}
                 </p>
                 <div className="space-y-1">
                   {event.sources.slice(0, 5).map((source) => (

@@ -3,47 +3,50 @@ import { normalizeNewsItem } from "@/lib/market-intelligence/services/news-norma
 import type { NewsProvider } from "@/lib/market-intelligence/providers/news/news-provider-types";
 import type { NormalizedNewsItem, NewsProviderHealthInfo } from "@/lib/types/market";
 
-/** Demo news data for development — explicitly labeled DEMO, never LIVE. */
+/** Demo-News für Entwicklung — explizit als DEMO markiert, nie LIVE. */
 const DEMO_NEWS: NormalizedNewsItem[] = [
   {
     id: "demo-news-001",
-    title: "Reports of military escalation in Gulf region",
-    summary: "Multiple wire services report increased military activity near key energy shipping routes.",
+    title: "Berichte über militärische Eskalation im Golfraum",
+    summary:
+      "Mehrere Nachrichtenagenturen berichten über verstärkte Militäraktivität nahe wichtiger Energie-Schifffahrtsrouten.",
     source: "Demo Wire",
     publishedAt: new Date(Date.now() - 4 * 60_000).toISOString(),
     categories: ["GEOPOLITICAL"],
     geopoliticalType: "MILITARY_STRIKE",
-    entities: ["Iran", "Strait of Hormuz"],
+    entities: ["Iran", "Straße von Hormus"],
     dataAvailability: "DEMO",
   },
   {
     id: "demo-news-002",
-    title: "Independent media confirms Gulf region incident",
-    summary: "Second independent outlet corroborates initial reports of escalation affecting energy markets.",
+    title: "Unabhängige Medien bestätigen Vorfall im Golfraum",
+    summary:
+      "Ein zweites unabhängiges Medium bestätigt erste Berichte über Eskalation mit Auswirkungen auf Energiemärkte.",
     source: "Demo Media",
     publishedAt: new Date(Date.now() - 3 * 60_000).toISOString(),
     categories: ["GEOPOLITICAL"],
     geopoliticalType: "MILITARY_STRIKE",
-    entities: ["Middle East", "Brent", "WTI"],
+    entities: ["Naher Osten", "Brent", "WTI"],
     dataAvailability: "DEMO",
   },
   {
     id: "demo-news-003",
-    title: "US Department of Defense statement on regional security",
-    summary: "Official statement acknowledges heightened security posture in the Middle East.",
+    title: "US-Verteidigungsministerium zu regionaler Sicherheit",
+    summary:
+      "Offizielle Stellungnahme bestätigt erhöhte Sicherheitslage im Nahen Osten.",
     source: "US Department of Defense",
     publishedAt: new Date(Date.now() - 2 * 60_000).toISOString(),
     categories: ["GEOPOLITICAL"],
     isOfficialSource: true,
     geopoliticalType: "MILITARY_STRIKE",
-    entities: ["US", "Middle East"],
+    entities: ["USA", "Naher Osten"],
     dataAvailability: "DEMO",
   },
 ];
 
 export class DevelopmentNewsProvider implements NewsProvider {
   readonly id = "development";
-  readonly name = "Development Demo News Provider";
+  readonly name = "Entwicklungs-Demo-News";
 
   private labelDemo(items: NormalizedNewsItem[]): NormalizedNewsItem[] {
     return items.map((item) =>
@@ -51,7 +54,7 @@ export class DevelopmentNewsProvider implements NewsProvider {
         {
           ...item,
           dataAvailability: "DEMO",
-          title: item.title.includes("(DEMO)") ? item.title : `${item.title} (DEMO)`,
+          title: item.title.includes("(Demo)") ? item.title : `${item.title} (Demo)`,
         },
         this.id,
       ),
@@ -97,12 +100,12 @@ export class DevelopmentNewsProvider implements NewsProvider {
       providerId: this.id,
       status: "OFFLINE",
       lastUpdate: new Date().toISOString(),
-      error: "No live news provider configured — showing DEMO news",
+      error: "Kein Live-News-Provider — Demo-News werden angezeigt",
     };
   }
 }
 
-/** Scenario-specific demo data for tests and historical replay */
+/** Szenario-Demo-Daten für Tests und historisches Replay */
 export function getDemoNewsScenario(
   scenario: "market-first" | "news-first" | "unverified" | "retraction",
   anchorMs: number = Date.now(),
@@ -118,8 +121,8 @@ export function getDemoNewsScenario(
     case "news-first":
       return [{
         id: "demo-news-first",
-        title: "Major shipping disruption reported in Strait of Hormuz (DEMO)",
-        summary: "Breaking report of shipping disruption — markets not yet reacted.",
+        title: "Große Schifffahrtsstörung in der Straße von Hormus gemeldet (Demo)",
+        summary: "Eilmeldung zu Schifffahrtsstörung — Märkte haben noch nicht reagiert.",
         source: "Demo Wire",
         publishedAt: new Date(base).toISOString(),
         categories: ["GEOPOLITICAL"],
@@ -129,8 +132,8 @@ export function getDemoNewsScenario(
     case "unverified":
       return [{
         id: "demo-social-rumor",
-        title: "Unverified social media report of oil facility incident (DEMO)",
-        summary: "Single unverified social media post — no confirmation.",
+        title: "Unbestätigter Social-Media-Bericht über Ölanlagen-Vorfall (Demo)",
+        summary: "Einzelner unbestätigter Social-Media-Post — keine Bestätigung.",
         source: "SocialMediaUser",
         publishedAt: new Date(base).toISOString(),
         categories: ["GEOPOLITICAL"],
@@ -140,8 +143,8 @@ export function getDemoNewsScenario(
     case "retraction":
       return [{
         id: "demo-retracted",
-        title: "Initial report of attack retracted (DEMO)",
-        summary: "Source retracts earlier report.",
+        title: "Erster Angriffsbericht zurückgezogen (Demo)",
+        summary: "Quelle zieht früheren Bericht zurück.",
         source: "Demo Wire",
         publishedAt: new Date(base).toISOString(),
         categories: ["GEOPOLITICAL"],

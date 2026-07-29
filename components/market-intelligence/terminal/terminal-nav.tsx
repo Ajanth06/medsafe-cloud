@@ -1,5 +1,6 @@
 "use client";
 
+import { miDe } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import {
   Activity,
@@ -23,13 +24,13 @@ export type TerminalView =
   | "settings";
 
 const VIEWS: { id: TerminalView; label: string; icon: typeof Activity }[] = [
-  { id: "overview", label: "Overview", icon: LayoutDashboard },
-  { id: "markets", label: "Markets", icon: LineChart },
-  { id: "oil", label: "Oil", icon: Droplets },
-  { id: "intelligence", label: "Intel", icon: Newspaper },
-  { id: "alerts", label: "Alerts", icon: Bell },
-  { id: "operations", label: "Ops", icon: Server },
-  { id: "settings", label: "Settings", icon: Settings },
+  { id: "overview", label: miDe.navOverview, icon: LayoutDashboard },
+  { id: "markets", label: miDe.navMarkets, icon: LineChart },
+  { id: "oil", label: miDe.navOil, icon: Droplets },
+  { id: "intelligence", label: miDe.navIntel, icon: Newspaper },
+  { id: "alerts", label: miDe.navAlerts, icon: Bell },
+  { id: "operations", label: miDe.navOps, icon: Server },
+  { id: "settings", label: miDe.navSettings, icon: Settings },
 ];
 
 interface TerminalNavProps {
@@ -54,8 +55,8 @@ export function TerminalNav({ unreadCount = 0 }: TerminalNavProps) {
 
   return (
     <nav
-      className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-card p-1"
-      aria-label="Terminal navigation"
+      className="flex gap-1 overflow-x-auto rounded-2xl border border-white/10 bg-black/20 p-1.5 backdrop-blur-xl"
+      aria-label="Terminal-Navigation"
     >
       {VIEWS.map(({ id, label, icon: Icon }) => (
         <button
@@ -63,16 +64,16 @@ export function TerminalNav({ unreadCount = 0 }: TerminalNavProps) {
           type="button"
           onClick={() => setView(id)}
           className={cn(
-            "relative flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+            "relative flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all",
             active === id
-              ? "bg-slate-900 text-white"
-              : "text-muted hover:bg-slate-100 hover:text-foreground",
+              ? "bg-gradient-to-r from-[#d24b2f] to-orange-500 text-white shadow-[0_8px_20px_rgba(210,75,47,0.25)]"
+              : "text-slate-400 hover:bg-white/10 hover:text-cyan-100",
           )}
         >
           <Icon className="h-3.5 w-3.5" aria-hidden="true" />
           <span className="hidden sm:inline">{label}</span>
           {id === "alerts" && unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[9px] font-bold text-white">
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-cyan-400 px-1 text-[9px] font-bold text-[#07111a]">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}

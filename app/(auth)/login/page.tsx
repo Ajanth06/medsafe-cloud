@@ -6,8 +6,7 @@ import { isOAuthLoginEnabled, isSignupEnabled } from "@/lib/auth/config";
 
 export const metadata: Metadata = {
   title: "Anmelden",
-  description:
-    "Melde dich bei MedSafe Cloud an und behalte deine Gesundheitsdaten im Blick.",
+  description: "Melde dich bei AARYX an und öffne das Marktintelligenz-Terminal.",
 };
 
 interface LoginPageProps {
@@ -23,8 +22,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const oauthLoginEnabled = isOAuthLoginEnabled();
 
   return (
-    <div className="flex h-screen min-h-0 flex-col overflow-hidden bg-background lg:grid lg:grid-cols-2">
-      <main className="relative order-1 flex h-full min-h-0 w-full flex-col items-center justify-center px-6 py-8 sm:px-10 lg:order-2 lg:overflow-hidden lg:px-10 lg:py-0 xl:px-12">
+    <div className="flex h-screen min-h-0 flex-col overflow-hidden bg-[#f7f3ea] lg:grid lg:grid-cols-[1.05fr_0.95fr]">
+      <main className="relative order-1 flex h-full min-h-0 w-full flex-col items-center justify-center overflow-hidden px-5 py-6 sm:px-10 lg:order-2 lg:px-10 lg:py-0 xl:px-14">
         <AuthFormDecor />
         <div className="relative z-10 w-full max-w-[420px]">
           <AuthForm

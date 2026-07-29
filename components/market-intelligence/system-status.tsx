@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTime } from "@/lib/market-intelligence/format";
+import { miDe, tStatus } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import type { EngineStatus, FeedConnectionState, OperationsHealth, ProviderHealthStatus, SystemHealth } from "@/lib/types/market";
 
@@ -45,7 +46,7 @@ function StatusRow({
       <span className="text-muted">{label}</span>
       <span className="flex items-center gap-2 font-medium text-foreground">
         <StatusDot status={status} />
-        <span className="font-mono text-xs uppercase">{status}</span>
+        <span className="font-mono text-xs uppercase">{tStatus(status)}</span>
       </span>
     </div>
   );
@@ -54,13 +55,13 @@ function StatusRow({
 function OperationsRows({ ops }: { ops: OperationsHealth }) {
   return (
     <div className="space-y-2">
-      <StatusRow label="Market Monitoring" status={ops.marketMonitoring} />
-      <StatusRow label="News Monitoring" status={ops.newsMonitoring} />
-      <StatusRow label="Alert Engine" status={ops.alertEngine} />
+      <StatusRow label={miDe.marketMonitoring} status={ops.marketMonitoring} />
+      <StatusRow label={miDe.newsMonitoring} status={ops.newsMonitoring} />
+      <StatusRow label={miDe.alertEngine} status={ops.alertEngine} />
       <StatusRow label="Telegram" status={ops.telegram} />
       {ops.lastPipelineRunAt && (
         <p className="text-xs text-muted">
-          Last pipeline: {formatTime(ops.lastPipelineRunAt)} CET
+          {miDe.lastPipeline}: {formatTime(ops.lastPipelineRunAt)} CET
         </p>
       )}
       {ops.hostingNote && (
@@ -70,7 +71,7 @@ function OperationsRows({ ops }: { ops: OperationsHealth }) {
         <div className="space-y-1 pt-1">
           {ops.workers.map((w) => (
             <p key={w.workerId} className="font-mono text-[10px] text-muted">
-              {w.workerType}: {formatTime(w.lastBeatAt)} — {w.status}
+              {w.workerType}: {formatTime(w.lastBeatAt)} — {tStatus(w.status)}
             </p>
           ))}
         </div>
@@ -84,31 +85,45 @@ export function SystemStatus({ health }: SystemStatusProps) {
     <Card>
       <CardContent className="space-y-3 p-4">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">
-          System Status
+          {miDe.systemStatus}
         </p>
         <div className="space-y-2">
           <StatusRow
-            label="Market Provider"
+            label={miDe.marketProvider}
             status={health.providerConfigured ? health.marketData : "NOT_CONFIGURED"}
           />
           <StatusRow label="WTI" status={health.wtiFeed} />
-          <StatusRow label="Brent" status={health.brentFeed} />
-          {health.goldFeed && <StatusRow label="Gold" status={health.goldFeed} />}
+          <StatusRow label="BRENT" status={health.brentFeed} />
+          {health.goldFeed && <StatusRow label={miDe.gold} status={health.goldFeed} />}
           <StatusRow label="WebSocket" status={health.websocket} />
-          <StatusRow label="REST Fallback" status={health.restFallback} />
-          <StatusRow label="Event Detection" status={health.eventDetection} />
-          <StatusRow label="News Engine" status={health.newsEngine} />
+          <StatusRow label={miDe.restFallback} status={health.restFallback} />
+          <StatusRow label={miDe.eventDetection} status={health.eventDetection} />
+          <StatusRow label={miDe.newsEngine} status={health.newsEngine} />
           {health.newsHealth && (
             <>
-              <StatusRow label="Verification" status={health.newsHealth.verificationEngine} />
-              <StatusRow label="Event Correlation" status={health.newsHealth.eventCorrelation} />
+              <div className="rounded-lg border border-border/60 bg-muted/20 px-2.5 py-2 text-xs">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">
+                  {miDe.newsSource}
+                </p>
+                <p className="mt-1 font-medium text-foreground">
+                  {health.newsHealth.primarySource}
+                </p>
+                <p className="mt-0.5 text-muted">{health.newsHealth.officialSourceLabel}</p>
+                {health.newsHealth.lastNewsAt && (
+                  <p className="mt-1 text-[10px] text-muted">
+                    {miDe.lastNews}: {formatTime(health.newsHealth.lastNewsAt)} CET
+                  </p>
+                )}
+              </div>
+              <StatusRow label={miDe.verification} status={health.newsHealth.verificationEngine} />
+              <StatusRow label={miDe.eventCorrelation} status={health.newsHealth.eventCorrelation} />
             </>
           )}
-          <StatusRow label="AI Engine" status={health.aiEngine} />
+          <StatusRow label={miDe.aiEngine} status={health.aiEngine} />
           {health.operationsHealth && (
             <>
               <div className="border-t border-border pt-2">
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted">AARYX 24/7 Status</p>
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted">{miDe.aaryx247Status}</p>
                 <OperationsRows ops={health.operationsHealth} />
               </div>
             </>
@@ -116,22 +131,22 @@ export function SystemStatus({ health }: SystemStatusProps) {
         </div>
         <div className="border-t border-border pt-2 text-xs text-muted">
           <p>
-            Source: <span className="font-medium text-foreground">{health.dataSource}</span>
+            {miDe.sourceLabel}: <span className="font-medium text-foreground">{health.dataSource}</span>
           </p>
           {health.lastHeartbeat && (
-            <p className="mt-1">Last heartbeat: {formatTime(health.lastHeartbeat)} CET</p>
+            <p className="mt-1">{miDe.lastHeartbeat}: {formatTime(health.lastHeartbeat)} CET</p>
           )}
           {health.averageLatencyMs != null && (
-            <p className="mt-1">Avg latency: {health.averageLatencyMs}ms</p>
+            <p className="mt-1">{miDe.avgLatency}: {health.averageLatencyMs}ms</p>
           )}
           {!health.isLive && (
             <p className="mt-1 font-medium text-amber-700">
-              No live provider configured — showing DEMO DATA
+              {miDe.noProviderWarning}
             </p>
           )}
           {health.newsHealth && !health.newsHealth.isLive && (
             <p className="mt-1 font-medium text-amber-700">
-              News: DEMO / TEST DATA — set NEWS_API_KEY for live news
+              {miDe.newsDemoWarning}
             </p>
           )}
         </div>

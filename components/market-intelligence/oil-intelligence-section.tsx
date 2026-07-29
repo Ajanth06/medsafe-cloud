@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { formatChange } from "@/lib/market-intelligence/format";
+import { miDe } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import type {
   BrentWTISpread,
@@ -47,14 +48,14 @@ export function OilIntelligenceSection({
         id="oil-intelligence-heading"
         className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted"
       >
-        Oil Intelligence
+        {miDe.oilIntelligence}
       </h2>
       <Card className="border-slate-700 bg-slate-900 text-slate-100">
         <CardContent className="grid gap-6 p-5 lg:grid-cols-3">
           {wti && (
             <div className="space-y-2">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-                WTI Momentum
+                {miDe.wtiMomentum}
               </p>
               <MomentumRow label="5M" value={wti.returns.m5} />
               <MomentumRow label="15M" value={wti.returns.m15} />
@@ -66,7 +67,7 @@ export function OilIntelligenceSection({
           {brent && (
             <div className="space-y-2">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-                Brent Momentum
+                {miDe.brentMomentum}
               </p>
               <MomentumRow label="5M" value={brent.returns.m5} />
               <MomentumRow label="15M" value={brent.returns.m15} />
@@ -77,7 +78,7 @@ export function OilIntelligenceSection({
 
           <div className="space-y-2">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-              Correlation Status
+              {miDe.correlationStatus}
             </p>
             {oilCorrelation ? (
               <>
@@ -88,13 +89,13 @@ export function OilIntelligenceSection({
                   )}
                 >
                   {oilCorrelation.bothConfirmed
-                    ? "OIL MARKET CONFIRMED"
-                    : "Independent movement"}
+                    ? miDe.oilConfirmed
+                    : miDe.independentMovement}
                 </p>
                 <p className="text-xs text-slate-400">{oilCorrelation.description}</p>
                 {spread && (
                   <p className="font-mono text-sm">
-                    Spread: ${spread.spread.toFixed(2)}{" "}
+                    {miDe.spread}: ${spread.spread.toFixed(2)}{" "}
                     <span className="text-slate-400">
                       ({formatChange(spread.spreadChangePercent, true)})
                     </span>
@@ -102,7 +103,7 @@ export function OilIntelligenceSection({
                 )}
               </>
             ) : (
-              <p className="text-xs text-slate-400">Awaiting oil correlation data</p>
+              <p className="text-xs text-slate-400">{miDe.awaitingOilCorrelation}</p>
             )}
           </div>
         </CardContent>

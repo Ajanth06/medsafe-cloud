@@ -109,9 +109,12 @@ async function pollMarketData(): Promise<void> {
         streamState.isDemo = true;
         quotes = quotes.map(toDemoQuote);
         recordProviderFailure({ provider: primary.id, providerType: "market", error: "failover" });
+        streamState.lastError =
+          "Polygon-Plan erlaubt diese Daten nicht — Demo-Modus aktiv. Für Live-Futures Plan upgraden oder MARKET_DATA_PROVIDER entfernen.";
         marketLogger.warn("market_provider_failover_active", { attempts: result.attempts });
       } else {
         streamState.isDemo = false;
+        streamState.lastError = null;
         recordProviderSuccess({ provider: result.providerId, providerType: "market" });
       }
 

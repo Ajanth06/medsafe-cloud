@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SeverityBadge } from "@/components/market-intelligence/severity-badge";
 import { SourceVerificationBadge } from "@/components/market-intelligence/source-verification-badge";
 import { formatTime } from "@/lib/market-intelligence/format";
+import { miDe, tUnreadAlerts } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import type { AlertReadStatus, DeliveredAlert } from "@/lib/types/market";
 import Link from "next/link";
@@ -17,10 +18,10 @@ interface AlertCenterProps {
 type Tab = "ACTIVE" | "HIGH_PRIORITY" | "ALL" | "RESOLVED";
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "ACTIVE", label: "Active" },
-  { id: "HIGH_PRIORITY", label: "High Priority" },
-  { id: "ALL", label: "All" },
-  { id: "RESOLVED", label: "Resolved" },
+  { id: "ACTIVE", label: miDe.tabActive },
+  { id: "HIGH_PRIORITY", label: miDe.tabHigh },
+  { id: "ALL", label: miDe.tabAll },
+  { id: "RESOLVED", label: miDe.tabResolved },
 ];
 
 function filterAlerts(alerts: DeliveredAlert[], tab: Tab): DeliveredAlert[] {
@@ -38,10 +39,10 @@ function filterAlerts(alerts: DeliveredAlert[], tab: Tab): DeliveredAlert[] {
 
 function ReadBadge({ status }: { status: AlertReadStatus }) {
   if (status === "UNREAD") {
-    return <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-blue-700">Unread</span>;
+    return <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-blue-700">{miDe.unread}</span>;
   }
   if (status === "ACKNOWLEDGED") {
-    return <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-600">Ack</span>;
+    return <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-600">{miDe.ack}</span>;
   }
   return null;
 }
@@ -54,9 +55,9 @@ export function AlertCenter({ alerts, unreadCount = 0 }: AlertCenterProps) {
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">AARYX Alert Center</h2>
+          <h2 className="text-lg font-semibold text-foreground">{miDe.alertCenter}</h2>
           {unreadCount > 0 && (
-            <p className="text-sm text-muted">{unreadCount} unread alert{unreadCount !== 1 ? "s" : ""}</p>
+            <p className="text-sm text-muted">{tUnreadAlerts(unreadCount)}</p>
           )}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -78,7 +79,7 @@ export function AlertCenter({ alerts, unreadCount = 0 }: AlertCenterProps) {
 
       {filtered.length === 0 ? (
         <Card>
-          <CardContent className="p-6 text-center text-sm text-muted">No alerts in this view.</CardContent>
+          <CardContent className="p-6 text-center text-sm text-muted">{miDe.noAlerts}</CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
@@ -120,7 +121,7 @@ export function AlertCenter({ alerts, unreadCount = 0 }: AlertCenterProps) {
 
                 {alert.confidenceScore != null && (
                   <p className="text-xs text-muted">
-                    Confidence: {alert.confidenceScore}/100 — {alert.confidence}
+                    {miDe.confidenceLabel}: {alert.confidenceScore}/100 — {alert.confidence}
                   </p>
                 )}
 
@@ -136,7 +137,7 @@ export function AlertCenter({ alerts, unreadCount = 0 }: AlertCenterProps) {
                   href={alert.deepLink.replace(/^https?:\/\/[^/]+/, "")}
                   className="inline-block text-xs font-medium text-blue-600 hover:underline"
                 >
-                  View event →
+                  {miDe.viewEvent}
                 </Link>
               </CardContent>
             </Card>

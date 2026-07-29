@@ -174,7 +174,7 @@ function mapResponseToAnalysis(
     model: getAIProviderConfig().model,
     promptVersion: AI_PROMPT_VERSION,
     mode: "LIVE",
-    disclaimer: "AI-assisted market intelligence — not financial advice. No BUY/SELL signals.",
+    disclaimer: "KI-gestützte Marktintelligenz — keine Anlageberatung. Keine Kauf-/Verkaufssignale.",
     metrics: {
       aiJobCreatedAt: now,
       aiCompletedAt: now,

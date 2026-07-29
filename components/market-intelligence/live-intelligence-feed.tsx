@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { SeverityBadge } from "@/components/market-intelligence/severity-badge";
 import { formatTime } from "@/lib/market-intelligence/format";
+import { miDe } from "@/lib/market-intelligence/i18n/de";
 import type { LiveFeedEntry } from "@/lib/types/market";
 
 interface LiveIntelligenceFeedProps {
@@ -16,7 +17,7 @@ export function LiveIntelligenceFeed({ entries }: LiveIntelligenceFeedProps) {
         id="live-feed-heading"
         className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted"
       >
-        Live Intelligence Feed
+        {miDe.liveFeed}
       </h2>
       <Card>
         <CardContent className="p-0">

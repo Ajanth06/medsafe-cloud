@@ -24,7 +24,7 @@ export function analyzeOilCorrelation(
       windowMinutes,
       confidenceBoost: 0,
       eventType: "NONE",
-      description: "Insufficient WTI/Brent data for correlation analysis.",
+      description: "Unzureichende WTI/Brent-Daten für Korrelationsanalyse.",
     };
   }
 
@@ -42,7 +42,7 @@ export function analyzeOilCorrelation(
     confidenceBoost: bothConfirmed ? CONFIDENCE_WEIGHTS.wtiBrentSimultaneous : 0,
     eventType: bothConfirmed ? "OIL_MARKET_ANOMALY" : "NONE",
     description: bothConfirmed
-      ? `WTI ${wtiReturn.percentageChange >= 0 ? "+" : ""}${wtiReturn.percentageChange.toFixed(1)}% & Brent ${brentReturn.percentageChange >= 0 ? "+" : ""}${brentReturn.percentageChange.toFixed(1)}% within ${windowMinutes} min — oil market anomaly confirmed.`
-      : `WTI/Brent moving independently (WTI ${wtiReturn.percentageChange.toFixed(1)}%, Brent ${brentReturn.percentageChange.toFixed(1)}%).`,
+      ? `WTI ${wtiReturn.percentageChange >= 0 ? "+" : ""}${wtiReturn.percentageChange.toFixed(1)} % & Brent ${brentReturn.percentageChange >= 0 ? "+" : ""}${brentReturn.percentageChange.toFixed(1)} % innerhalb ${windowMinutes} Min. — Ölmarkt-Anomalie bestätigt.`
+      : `WTI/Brent bewegen sich unabhängig (WTI ${wtiReturn.percentageChange.toFixed(1)} %, Brent ${brentReturn.percentageChange.toFixed(1)} %).`,
   };
 }

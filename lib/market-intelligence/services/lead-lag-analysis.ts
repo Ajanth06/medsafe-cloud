@@ -16,7 +16,7 @@ export function calculateLeadLag(input: {
       anomalyDetectedAt: anomalyDetectedAt ?? null,
       differenceMs: null,
       leader: "UNKNOWN",
-      label: "Timing comparison unavailable",
+      label: "Zeitvergleich nicht verfügbar",
       isReliable: false,
     };
   }
@@ -35,7 +35,7 @@ export function calculateLeadLag(input: {
       anomalyDetectedAt: anomalyDetectedAt ?? null,
       differenceMs: null,
       leader: "UNKNOWN",
-      label: "Timing comparison unavailable — missing timestamp",
+      label: "Zeitvergleich nicht verfügbar — Zeitstempel fehlt",
       isReliable: false,
     };
   }
@@ -49,13 +49,13 @@ export function calculateLeadLag(input: {
 
   if (Math.abs(differenceMs) < 60_000) {
     leader = "UNKNOWN";
-    label = "Market and news approximately simultaneous (within 1 min)";
+    label = "Markt und News etwa gleichzeitig (innerhalb 1 Min.)";
   } else if (differenceMs > 0) {
     leader = "MARKET";
-    label = `MARKET LED NEWS BY ${formatDuration(absDiff)}`;
+    label = `MARKT VOR NEWS UM ${formatDuration(absDiff)}`;
   } else {
     leader = "NEWS";
-    label = `NEWS LED MARKET BY ${formatDuration(absDiff)}`;
+    label = `NEWS VOR MARKT UM ${formatDuration(absDiff)}`;
   }
 
   if (!isReliable) {

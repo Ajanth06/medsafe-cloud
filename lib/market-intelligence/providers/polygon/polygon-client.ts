@@ -29,16 +29,24 @@ export class PolygonClient {
 
       if (!response.ok) {
         const body = await response.text().catch(() => "");
-        throw new Error(`Polygon HTTP ${response.status}: ${body.slice(0, 200)}`);
+        const detail = `Polygon HTTP ${response.status}: ${body.slice(0, 200)}`;
+        const isPlanOrRateLimit = response.status === 403 || response.status === 429;
+        if (isPlanOrRateLimit) {
+          marketLogger.warn(`Polygon API ${response.status} (${path}) — Plan-Limit oder Rate-Limit`);
+        } else {
+          marketLogger.error(`Polygon API request failed: ${detail}`, { path });
+        }
+        throw new Error(detail);
       }
 
       const data = (await response.json()) as T;
       return data;
     } catch (error) {
-      marketLogger.error("Polygon API request failed", {
-        path,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      if (error instanceof Error && error.message.startsWith("Polygon HTTP")) {
+        throw error;
+      }
+      const msg = error instanceof Error ? error.message : String(error);
+      marketLogger.error(`Polygon API request failed: ${msg}`, { path });
       throw error;
     } finally {
       clearTimeout(timeout);

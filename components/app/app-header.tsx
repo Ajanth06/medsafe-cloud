@@ -1,5 +1,3 @@
-import { Shield } from "lucide-react";
-
 interface AppHeaderProps {
   title?: string;
   subtitle?: string;
@@ -9,8 +7,10 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-background/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-lg items-center gap-3 px-5 py-4">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary shadow-sm">
-          <Shield className="h-4 w-4 text-white" aria-hidden="true" />
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#0a0f14] shadow-sm">
+          <span className="font-mono text-[9px] font-bold tracking-wider text-cyan-400">
+            AX
+          </span>
         </div>
         <div className="min-w-0">
           {title ? (
@@ -19,7 +19,9 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
               {subtitle && <p className="truncate text-xs text-muted">{subtitle}</p>}
             </>
           ) : (
-            <span className="text-base font-semibold text-foreground">MedSafe Cloud</span>
+            <span className="font-mono text-base font-semibold tracking-[0.2em] text-foreground">
+              AARYX
+            </span>
           )}
         </div>
       </div>

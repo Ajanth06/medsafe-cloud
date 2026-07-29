@@ -247,7 +247,7 @@ function buildFacts(
   if (marketEvent) {
     facts.push({
       id: `fact-mkt-${marketEvent.id}`,
-      statement: `${marketEvent.asset} ${marketEvent.priceChangePercent >= 0 ? "+" : ""}${marketEvent.priceChangePercent.toFixed(2)}% in ${marketEvent.windowMinutes} minutes`,
+      statement: `${marketEvent.asset} ${marketEvent.priceChangePercent >= 0 ? "+" : ""}${marketEvent.priceChangePercent.toFixed(2)} % in ${marketEvent.windowMinutes} Minuten`,
       evidence: [{ type: "MARKET", id: marketEvent.id }],
     });
   }
@@ -255,7 +255,7 @@ function buildFacts(
   if (pipeline.oilCorrelation?.bothConfirmed) {
     facts.push({
       id: "fact-oil-confirm",
-      statement: "WTI and Brent confirmed simultaneous directional move",
+      statement: "WTI und Brent bestätigen gleichzeitige Richtungsbewegung",
       evidence: [{ type: "MARKET", id: "oil-correlation" }],
     });
   }
@@ -263,7 +263,7 @@ function buildFacts(
   for (const source of cluster.sources.slice(0, 5)) {
     facts.push({
       id: `fact-news-${source.id}`,
-      statement: `${source.sourceName} reported: ${source.headline}`,
+      statement: `${source.sourceName} berichtet: ${source.headline}`,
       evidence: [{ type: source.isOfficial ? "OFFICIAL" : "NEWS", id: source.id }],
     });
   }
@@ -271,7 +271,7 @@ function buildFacts(
   if (cluster.independentSourceCount === 0) {
     facts.push({
       id: "fact-no-news",
-      statement: "No verified news sources linked yet",
+      statement: "Noch keine verifizierten News-Quellen verknüpft",
       evidence: [],
     });
   }
@@ -279,7 +279,7 @@ function buildFacts(
   if (cluster.verification.status === "CONFLICTING") {
     facts.push({
       id: "fact-conflict",
-      statement: "Conflicting reports detected",
+      statement: "Widersprüchliche Berichte erkannt",
       evidence: cluster.sources.map((s) => ({ type: "NEWS" as const, id: s.id })),
     });
   }
@@ -338,8 +338,8 @@ function buildAssetImpacts(
       pressure: toPressure(change),
       confidence: "MEDIUM",
       explanation: quote
-        ? `${asset} ${change >= 0 ? "+" : ""}${change.toFixed(2)}% (10m window)`
-        : "No live quote available",
+        ? `${asset} ${change >= 0 ? "+" : ""}${change.toFixed(2)} % (10-Min-Fenster)`
+        : "Kein Live-Kurs verfügbar",
     };
   });
 }

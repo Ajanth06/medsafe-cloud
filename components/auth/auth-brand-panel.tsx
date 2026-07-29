@@ -1,15 +1,9 @@
 import {
-  BrainCircuit,
-  CalendarDays,
-  Cloud,
-  Dna,
   Lock,
-  Pill,
-  Shield,
   ShieldCheck,
+  Sparkles,
 } from "lucide-react";
-import { AuthBrandDecor } from "@/components/auth/auth-brand-decor";
-import { HealthcareIllustration } from "@/components/auth/healthcare-illustration";
+import { GlobalMarketClock } from "@/components/auth/global-market-clock";
 
 type AuthBrandPanelVariant = "login" | "signup";
 
@@ -17,50 +11,27 @@ interface AuthBrandPanelProps {
   variant?: AuthBrandPanelVariant;
 }
 
-const loginFeatures = [
-  { icon: BrainCircuit, label: "Arztbriefe mit KI verstehen" },
-  { icon: Cloud, label: "Sichere Cloud-Speicherung" },
-  { icon: Pill, label: "Medikamente im Blick behalten" },
-  { icon: CalendarDays, label: "Persönliche medizinische Timeline" },
-] as const;
-
-const signupFeatures = [
-  { icon: BrainCircuit, label: "Arztbriefe mit KI verstehen" },
-  { icon: Cloud, label: "Sichere Cloud-Speicherung" },
-  { icon: Pill, label: "Medikamente im Blick behalten" },
-  { icon: CalendarDays, label: "Persönliche medizinische Timeline" },
-] as const;
-
 function BrandBackground() {
   return (
     <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-      <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
-      <div className="absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-blue-300/20 blur-3xl" />
-      <div className="absolute right-1/4 top-1/3 h-40 w-40 rounded-full bg-white/5 blur-2xl" />
-    </div>
-  );
-}
-
-function LoginBrandBackground() {
-  return (
-    <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-      <div className="absolute inset-0 bg-[linear-gradient(to_left,rgba(255,255,255,0.42)_0%,rgba(191,219,254,0.32)_24%,rgba(96,165,250,0.16)_48%,transparent_78%)]" />
-      <div className="absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-blue-300/20 blur-3xl" />
-    </div>
-  );
-}
-
-function LoginDnaDecor() {
-  return (
-    <div className="pointer-events-none absolute inset-0 z-[1]" aria-hidden="true">
-      <Dna
-        className="absolute left-[5%] top-[10%] h-20 w-20 text-white/[0.06] lg:left-[6%] lg:top-[9%] lg:h-24 lg:w-24"
-        strokeWidth={1}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 16% 14%, rgba(249,115,22,0.34), transparent 27%), radial-gradient(circle at 84% 78%, rgba(34,211,238,0.25), transparent 32%), linear-gradient(145deg, #111827 0%, #0b1520 55%, #07111a 100%)",
+        }}
       />
-      <Dna
-        className="absolute left-[3%] top-[40%] h-32 w-32 text-white/[0.06] lg:h-36 lg:w-36"
-        strokeWidth={1}
+      <div
+        className="absolute inset-0 opacity-30"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(148,163,184,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.08) 1px, transparent 1px)",
+          backgroundSize: "44px 44px",
+        }}
       />
+      <div className="absolute -left-16 top-[18%] h-52 w-52 rounded-full border border-orange-300/20" />
+      <div className="absolute -left-8 top-[22%] h-36 w-36 rounded-full border border-orange-300/15" />
+      <div className="absolute bottom-[10%] right-[8%] h-48 w-48 rounded-full border border-cyan-300/15" />
     </div>
   );
 }
@@ -68,102 +39,62 @@ function LoginDnaDecor() {
 export function AuthBrandPanel({ variant = "signup" }: AuthBrandPanelProps) {
   const isLogin = variant === "login";
 
-  if (isLogin) {
-    return (
-      <div className="relative flex h-full min-h-screen flex-col overflow-hidden bg-gradient-to-br from-[#1D4ED8] via-[#2563EB] to-[#3B82F6] px-8 pt-8 pb-4 text-white lg:min-h-0 lg:px-12 lg:pt-14 lg:pb-5 xl:px-16">
-        <LoginBrandBackground />
-        <AuthBrandDecor />
-        <LoginDnaDecor />
+  return (
+    <div className="relative flex h-full min-h-screen flex-col overflow-hidden bg-[#0a0f14] px-8 pb-5 pt-8 text-white lg:min-h-0 lg:px-12 lg:pb-8 lg:pt-10 xl:px-16">
+      <BrandBackground />
 
-        <div className="relative z-10 flex h-full min-h-0 flex-col">
-          <div className="flex flex-1 flex-col justify-center">
-            <div className="mb-8 w-full max-w-md">
-              <h1 className="glass-text-title text-[2rem] font-semibold leading-[1.06] tracking-[-0.03em] lg:text-[2.75rem] xl:text-[3rem]">
-                Deine Gesundheit.
-              </h1>
-              <p className="glass-text-sub mt-2.5 text-base font-medium leading-snug tracking-[-0.015em] lg:text-xl">
-                Sicher. Digital. Immer an deiner Seite.
-              </p>
+      <div className="relative z-10 flex h-full min-h-0 flex-col">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 shadow-[0_10px_30px_rgba(249,115,22,0.3)]">
+              <span className="font-mono text-[10px] font-black tracking-wider">AX</span>
+            </span>
+            <span className="font-mono text-sm font-bold tracking-[0.32em]">AARYX</span>
+          </div>
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-cyan-200 backdrop-blur">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-300" />
+            Live
+          </span>
+        </div>
+
+        <div className="flex flex-1 flex-col justify-center">
+          <div className="mb-7 w-full max-w-lg">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-orange-300/20 bg-orange-400/10 px-3 py-1.5 text-xs font-semibold text-orange-200">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+              Intelligence that moves with the market
             </div>
-
-            <div className="w-full max-w-md">
-              <HealthcareIllustration
-                pulseShield
-                className="mx-0 -translate-x-3 -translate-y-5 lg:-translate-x-4 lg:-translate-y-8"
-              />
-            </div>
-
-            <ul className="mt-6 space-y-3" role="list">
-              {loginFeatures.map(({ icon: Icon, label }) => (
-                <li key={label} className="flex items-center gap-3 text-sm lg:text-base">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm">
-                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+            <h1 className="text-[2.15rem] font-semibold leading-[1.02] tracking-[-0.045em] text-white lg:text-[3.3rem]">
+              {isLogin ? (
+                <>
+                  Märkte verstehen.
+                  <span className="block bg-gradient-to-r from-orange-300 via-orange-400 to-cyan-300 bg-clip-text text-transparent">
+                    Früher reagieren.
                   </span>
-                  <span className="text-blue-50">{label}</span>
-                </li>
-              ))}
-            </ul>
+                </>
+              ) : (
+                "Zugang zum Terminal."
+              )}
+            </h1>
+            <p className="mt-4 max-w-md text-base font-medium leading-relaxed text-slate-300 lg:text-lg">
+              {isLogin
+                ? "Öl, Makro und Geopolitik in einem lebendigen Intelligence-Terminal."
+                : "Nur freigeschaltete Konten. Keine öffentliche Registrierung."}
+            </p>
           </div>
 
-          <footer className="mt-auto shrink-0 space-y-1 text-[11px] leading-relaxed text-blue-100/70 lg:text-xs">
-            <p className="flex items-center gap-2">
-              <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-blue-50/80" aria-hidden="true" />
-              DSGVO-konforme Datenverarbeitung
-            </p>
-            <p className="flex items-center gap-2">
-              <Lock className="h-3.5 w-3.5 shrink-0 text-blue-50/80" aria-hidden="true" />
-              ISO 27001 orientierte Sicherheitsstandards
-            </p>
-          </footer>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative flex h-full min-h-screen flex-col overflow-hidden bg-gradient-to-br from-[#1D4ED8] via-[#2563EB] to-[#3B82F6] px-8 py-8 text-white lg:min-h-0 lg:px-12 lg:py-14 xl:px-16">
-      <BrandBackground />
-      <AuthBrandDecor />
-
-      <div className="relative z-10 flex flex-1 flex-col justify-center">
-        <div className="mb-4 flex items-center gap-2 text-blue-100/80">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm">
-            <Shield className="h-3.5 w-3.5" aria-hidden="true" />
-          </span>
-          <span className="text-sm font-medium tracking-wide">MedSafe Cloud</span>
+          <GlobalMarketClock />
         </div>
 
-        <div className="max-w-md">
-          <h1 className="text-3xl font-semibold leading-tight tracking-tight lg:text-4xl xl:text-[2.75rem] xl:leading-[1.15]">
-            Deine Gesundheit. An einem Ort.
-          </h1>
-          <p className="mt-4 text-base leading-relaxed text-blue-100 lg:text-lg">
-            Erstelle dein Konto und organisiere Arztbriefe, Befunde und
-            Medikamente sicher an einem Ort.
+        <footer className="mt-auto flex shrink-0 flex-wrap gap-x-5 gap-y-1 text-[10px] leading-relaxed text-slate-500 lg:text-[11px]">
+          <p className="flex items-center gap-2">
+            <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-slate-300" aria-hidden="true" />
+            Keine Anlageberatung · Keine Handelsignale
           </p>
-        </div>
-
-        <ul className="mt-6 space-y-3 lg:hidden" role="list">
-          {signupFeatures.map(({ icon: Icon, label }) => (
-            <li key={label} className="flex items-center gap-3 text-sm">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm">
-                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-              </span>
-              <span className="text-blue-50">{label}</span>
-            </li>
-          ))}
-        </ul>
-
-        <ul className="mt-8 hidden space-y-3 lg:block" role="list">
-          {signupFeatures.map(({ icon: Icon, label }) => (
-            <li key={label} className="flex items-center gap-3 text-sm lg:text-base">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm">
-                <Icon className="h-4 w-4" aria-hidden="true" />
-              </span>
-              <span className="text-blue-50">{label}</span>
-            </li>
-          ))}
-        </ul>
+          <p className="flex items-center gap-2">
+            <Lock className="h-3.5 w-3.5 shrink-0 text-slate-300" aria-hidden="true" />
+            Zugang nur für autorisierte Nutzer
+          </p>
+        </footer>
       </div>
     </div>
   );

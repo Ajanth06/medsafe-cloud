@@ -77,7 +77,7 @@ export function GoogleSignInButton({ className }: GoogleSignInButtonProps) {
 
           setRememberMe(readRememberMeFromCheckbox());
 
-          router.push("/dashboard");
+          router.push("/market-intelligence");
           router.refresh();
         },
         nonce: hashedNonce,

@@ -1,3 +1,4 @@
+import { tVerification } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import type { SourceVerificationStatus } from "@/lib/types/market";
 
@@ -31,7 +32,7 @@ export function SourceVerificationBadge({
         className,
       )}
     >
-      {status.replace("_", " ")}
+      {tVerification(status)}
       {sourceCount !== undefined && sourceCount > 0 && (
         <span className="font-normal normal-case">({sourceCount})</span>
       )}

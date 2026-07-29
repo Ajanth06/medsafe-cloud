@@ -7,6 +7,7 @@ import {
   DEFAULT_TERMINAL_PREFERENCES,
   type UserTerminalPreferences,
 } from "@/lib/market-intelligence/user/preferences-types";
+import { miDe, tSeverity } from "@/lib/market-intelligence/i18n/de";
 import type { AlertSeverity } from "@/lib/types/market";
 
 const SEVERITIES: AlertSeverity[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
@@ -53,19 +54,19 @@ export function AlertPreferencesPanel() {
   }
 
   if (loading) {
-    return <p className="text-sm text-muted">Loading preferences…</p>;
+    return <p className="text-sm text-muted">{miDe.loadingPreferences}</p>;
   }
 
   return (
     <Card>
       <CardContent className="space-y-4 p-5">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-foreground">Alert Preferences</h3>
-          {saving && <span className="text-xs text-muted">Saving…</span>}
+          <h3 className="text-sm font-semibold text-foreground">{miDe.alertPreferences}</h3>
+          {saving && <span className="text-xs text-muted">{miDe.saving}</span>}
         </div>
 
         <label className="flex items-center justify-between gap-4 text-sm">
-          <span>Pause all alerts</span>
+          <span>{miDe.pauseAllAlerts}</span>
           <input
             type="checkbox"
             checked={prefs.alertsPaused}
@@ -74,7 +75,7 @@ export function AlertPreferencesPanel() {
         </label>
 
         <div>
-          <p className="mb-2 text-xs font-medium text-muted">Minimum severity</p>
+          <p className="mb-2 text-xs font-medium text-muted">{miDe.minSeverity}</p>
           <div className="flex flex-wrap gap-2">
             {SEVERITIES.map((s) => (
               <button
@@ -85,7 +86,7 @@ export function AlertPreferencesPanel() {
                   prefs.minimumSeverity === s ? "bg-slate-900 text-white" : "bg-slate-100"
                 }`}
               >
-                {s}
+                {tSeverity(s)}
               </button>
             ))}
           </div>
@@ -94,11 +95,11 @@ export function AlertPreferencesPanel() {
         <div className="grid gap-2 sm:grid-cols-2">
           {(
             [
-              ["oilAlerts", "Oil & energy"],
-              ["geopoliticalAlerts", "Geopolitical"],
-              ["macroAlerts", "Macro / Fed"],
-              ["cryptoAlerts", "Crypto"],
-              ["equityAlerts", "Equities"],
+              ["oilAlerts", miDe.categories.oil],
+              ["geopoliticalAlerts", miDe.categories.geo],
+              ["macroAlerts", miDe.categories.macro],
+              ["cryptoAlerts", miDe.categories.crypto],
+              ["equityAlerts", miDe.categories.equities],
             ] as const
           ).map(([key, label]) => (
             <label key={key} className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2 text-sm">
@@ -113,7 +114,7 @@ export function AlertPreferencesPanel() {
         </div>
 
         <Button type="button" variant="outline" size="sm" onClick={() => void load()}>
-          Refresh
+          {miDe.refresh}
         </Button>
       </CardContent>
     </Card>

@@ -53,7 +53,7 @@ export function detectAnomalies(
       severity: rule.severity,
       eventType: toEventType(windowReturn.direction),
       status: "ACTIVE",
-      description: `${rule.assetName} ${percentageChange >= 0 ? "+" : ""}${percentageChange.toFixed(2)}% / ${rule.windowMinutes} min`,
+      description: `${rule.assetName} ${percentageChange >= 0 ? "+" : ""}${percentageChange.toFixed(2)} % / ${rule.windowMinutes} Min.`,
     });
   }
 

@@ -23,7 +23,7 @@ export class DeterministicAIProvider implements AIProvider {
     const result = await this.analyzeMarketEvent(input);
     if (input.previousAnalysis) {
       result.analysis.changeSummary = {
-        whatChanged: [`Verification: ${input.cluster.verification.status}`, `${input.cluster.sources.length} sources now linked`],
+        whatChanged: [`Verifizierung: ${input.cluster.verification.status}`, `${input.cluster.sources.length} Quellen verknüpft`],
         confidenceDelta: result.analysis.confidenceScore - input.previousAnalysis.confidenceScore,
         previousConfidence: input.previousAnalysis.confidence,
         newConfidence: result.analysis.confidence,
@@ -37,7 +37,7 @@ export class DeterministicAIProvider implements AIProvider {
 
   async summarizeConflictingReports(input: AIProviderAnalyzeInput): Promise<{ summary: string }> {
     return {
-      summary: `Conflicting reports detected across ${input.cluster.sources.length} sources. ${input.context.contradictionFlags.join(". ")}`,
+      summary: `Widersprüchliche Berichte über ${input.cluster.sources.length} Quellen. ${input.context.contradictionFlags.join(". ")}`,
     };
   }
 
@@ -57,17 +57,17 @@ export class DeterministicAIProvider implements AIProvider {
 
     const causeConfirmed = cluster.verification.status === "OFFICIAL_CONFIRMATION" || cluster.verification.status === "CONFIRMED";
     const causeDescription = causeConfirmed
-      ? `Reports suggest: ${cluster.headline}`
+      ? `Berichte deuten auf: ${cluster.headline}`
       : cluster.independentSourceCount > 0
-        ? `Possible link to: ${cluster.headline} — NOT CONFIRMED`
-        : "CAUSE NOT YET CONFIRMED — market move without verified news.";
+        ? `Möglicher Zusammenhang mit: ${cluster.headline} — NICHT BESTÄTIGT`
+        : "URSCHE NOCH NICHT BESTÄTIGT — Marktbewegung ohne verifizierte News.";
 
     const alternatives: string[] = [];
-    if (context.rolloverDetected) alternatives.push("Futures contract rollover");
-    if (context.scheduledEvents.length > 0) alternatives.push("Scheduled macro event overlap");
-    if (context.feedStale) alternatives.push("Stale feed artifact");
+    if (context.rolloverDetected) alternatives.push("Futures-Kontrakt-Rollover");
+    if (context.scheduledEvents.length > 0) alternatives.push("Überlappung mit geplantem Makro-Ereignis");
+    if (context.feedStale) alternatives.push("Veralteter Feed-Artefakt");
     if (alternatives.length === 0 && !causeConfirmed) {
-      alternatives.push("Technical repositioning or liquidity-driven move");
+      alternatives.push("Technische Umschichtung oder liquiditätsgetriebene Bewegung");
     }
 
     const watchItems: WatchItem[] = buildWatchItems(cluster, context);
@@ -79,7 +79,7 @@ export class DeterministicAIProvider implements AIProvider {
       eventId: cluster.id,
       version,
       summary: marketEvent
-        ? `${marketEvent.asset} ${marketEvent.direction === "UP" ? "upside" : "downside"} anomaly${cluster.independentSourceCount > 0 ? " with linked news cluster" : ""}.`
+        ? `${marketEvent.asset} ${marketEvent.direction === "UP" ? "Aufwärts" : "Abwärts"}-Anomalie${cluster.independentSourceCount > 0 ? " mit verknüpftem News-Cluster" : ""}.`
         : cluster.headline,
       eventType: cluster.eventType,
       marketRegime: context.suggestedRegime,
@@ -92,35 +92,36 @@ export class DeterministicAIProvider implements AIProvider {
       alternativeExplanations: alternatives,
       affectedAssets: context.assetImpacts,
       impactAssessment: context.marketAlreadyMoved
-        ? "Market reaction already advanced — initial information advantage may be partially priced in."
-        : "Market reaction still developing or not yet confirmed.",
+        ? "Markt hat bereits reagiert — Informationsvorsprung möglicherweise teilweise eingepreist."
+        : "Marktreaktion entwickelt sich noch oder ist nicht bestätigt.",
       confidence,
       confidenceScore: score,
       confidenceReasons: context.systemConfidence.factors.map((f) => f.label),
       uncertaintyReasons: context.contradictionFlags.length > 0
         ? context.contradictionFlags
         : !causeConfirmed
-          ? ["Cause not confirmed by multiple sources"]
+          ? ["Ursache nicht durch mehrere Quellen bestätigt"]
           : [],
       keyRisks: [
-        context.contradictionFlags.includes("Conflicting news sources")
-          ? "Conflicting narratives may increase volatility"
-          : "Further confirmation may shift assessment",
-        context.marketAlreadyMoved ? "Move may partially reflect available information" : "Delayed reaction possible",
+        context.contradictionFlags.includes("Conflicting news sources") ||
+        context.contradictionFlags.some((f) => f.includes("Widersprüchlich"))
+          ? "Widersprüchliche Narrative können Volatilität erhöhen"
+          : "Weitere Bestätigung kann Einschätzung verschieben",
+        context.marketAlreadyMoved ? "Bewegung spiegelt ggf. bereits bekannte Informationen wider" : "Verzögerte Reaktion möglich",
       ],
       whatToWatchNext: watchItems,
       marketAlreadyMoved: context.marketAlreadyMoved,
       moveAssessment: marketEvent
-        ? `${marketEvent.asset} already moved ${marketEvent.priceChangePercent >= 0 ? "+" : ""}${marketEvent.priceChangePercent.toFixed(2)}% since detection.`
-        : "No significant market move detected yet.",
+        ? `${marketEvent.asset} bereits ${marketEvent.priceChangePercent >= 0 ? "+" : ""}${marketEvent.priceChangePercent.toFixed(2)} % seit Erkennung bewegt.`
+        : "Noch keine signifikante Marktbewegung erkannt.",
       reactionPhase: context.reactionPhase,
-      sourceAssessment: `${cluster.verification.status} — ${cluster.independentSourceCount} independent source(s)${cluster.officialSourceCount > 0 ? `, ${cluster.officialSourceCount} official` : ""}.`,
+      sourceAssessment: `${cluster.verification.status} — ${cluster.independentSourceCount} unabhängige Quelle(n)${cluster.officialSourceCount > 0 ? `, ${cluster.officialSourceCount} offiziell` : ""}.`,
       eventSignificance: context.eventSignificance.level,
       facts: context.facts,
       interpretations: [
         context.suggestedRegime === "GEOPOLITICAL_RISK" || context.suggestedRegime === "ENERGY_SHOCK"
-          ? "Price action may reflect supply-risk repricing if confirmed."
-          : "Move may reflect broader macro or technical factors.",
+          ? "Kursbewegung kann bei Bestätigung Angebotsrisiko-Neubewertung widerspiegeln."
+          : "Bewegung kann breitere Makro- oder technische Faktoren widerspiegeln.",
       ],
       evidence: context.evidence,
       generatedAt: now,
@@ -128,7 +129,7 @@ export class DeterministicAIProvider implements AIProvider {
       promptVersion: AI_PROMPT_VERSION,
       mode: trigger === "MANUAL" ? "DEMO" : "FALLBACK",
       whyThisAlert,
-      disclaimer: "Market intelligence only — not financial advice. No BUY/SELL signals.",
+      disclaimer: "Nur Marktintelligenz — keine Anlageberatung. Keine Kauf-/Verkaufssignale.",
       metrics: {
         aiJobCreatedAt: now,
         aiCompletedAt: now,
@@ -148,7 +149,7 @@ function buildWatchItems(
   if (!cluster.verification.hasOfficialSource) {
     items.push({
       type: "OFFICIAL_CONFIRMATION",
-      description: "Official government or energy authority statement",
+      description: "Offizielle Regierungs- oder Energiebehörden-Stellungnahme",
       priority: "HIGH",
       resolved: false,
     });
@@ -157,7 +158,7 @@ function buildWatchItems(
   if (cluster.potentiallyAffectedMarkets.includes("WTI")) {
     items.push({
       type: "SECONDARY_MARKET_CONFIRMATION",
-      description: "WTI follow-through above recent range",
+      description: "WTI-Follow-through über recente Range",
       relatedAsset: "WTI",
       priority: "MEDIUM",
       resolved: false,
@@ -167,7 +168,7 @@ function buildWatchItems(
   if (cluster.potentiallyAffectedMarkets.includes("BRENT")) {
     items.push({
       type: "SECONDARY_MARKET_CONFIRMATION",
-      description: "Brent confirmation relative to WTI",
+      description: "Brent-Bestätigung relativ zu WTI",
       relatedAsset: "BRENT",
       priority: "MEDIUM",
       resolved: false,
@@ -177,7 +178,7 @@ function buildWatchItems(
   if (context.wtiBrentDifferential && Math.abs(context.wtiBrentDifferential.brentChange - context.wtiBrentDifferential.wtiChange) > 1) {
     items.push({
       type: "SUPPLY_DISRUPTION",
-      description: "Brent-WTI differential widening — possible seaborne supply sensitivity",
+      description: "Brent-WTI-Spread weitet sich — mögliche See-Transport-Empfindlichkeit",
       relatedAsset: "BRENT",
       priority: "HIGH",
       resolved: false,
@@ -187,7 +188,7 @@ function buildWatchItems(
   if (cluster.affectedRegion?.includes("Middle East")) {
     items.push({
       type: "SUPPLY_DISRUPTION",
-      description: "Strait of Hormuz / Red Sea shipping status",
+      description: "Status Straße von Hormus / Rotes Meer Schifffahrt",
       relatedEntity: "Strait of Hormuz",
       priority: "HIGH",
       resolved: false,
@@ -196,7 +197,7 @@ function buildWatchItems(
 
   return items.length > 0 ? items : [{
     type: "NEWS_CONFIRMATION",
-    description: "Additional independent source confirmation",
+    description: "Weitere unabhängige Quellen-Bestätigung",
     priority: "MEDIUM",
     resolved: false,
   }];
@@ -208,12 +209,12 @@ function buildWhyThisAlert(
   marketEvent?: import("@/lib/types/market").MarketEvent,
 ): string[] {
   const reasons: string[] = [];
-  if (marketEvent) reasons.push(`${marketEvent.asset} exceeded anomaly threshold (${marketEvent.priceChangePercent.toFixed(2)}%)`);
-  if (context.oilCorrelation?.bothConfirmed) reasons.push("Brent confirmed WTI directional move");
-  if (cluster.independentSourceCount >= 2) reasons.push(`${cluster.independentSourceCount} independent reports detected`);
-  if (cluster.verification.hasOfficialSource) reasons.push("Official source confirmation present");
+  if (marketEvent) reasons.push(`${marketEvent.asset} überschritt Anomalie-Schwelle (${marketEvent.priceChangePercent.toFixed(2)} %)`);
+  if (context.oilCorrelation?.bothConfirmed) reasons.push("Brent bestätigte WTI-Richtungsbewegung");
+  if (cluster.independentSourceCount >= 2) reasons.push(`${cluster.independentSourceCount} unabhängige Berichte erkannt`);
+  if (cluster.verification.hasOfficialSource) reasons.push("Offizielle Quellen-Bestätigung vorhanden");
   if (context.eventSignificance.level === "HIGH" || context.eventSignificance.level === "SYSTEMIC") {
-    reasons.push(`Event significance classified ${context.eventSignificance.level}`);
+    reasons.push(`Ereignisbedeutung eingestuft als ${context.eventSignificance.level}`);
   }
   return reasons;
 }

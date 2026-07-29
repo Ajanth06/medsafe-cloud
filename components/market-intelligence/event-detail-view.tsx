@@ -5,6 +5,7 @@ import { SeverityBadge } from "@/components/market-intelligence/severity-badge";
 import { SourceVerificationBadge } from "@/components/market-intelligence/source-verification-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTime } from "@/lib/market-intelligence/format";
+import { miDe, tSourcesCount } from "@/lib/market-intelligence/i18n/de";
 import type {
   DeliveredAlert,
   IntelligenceEventCluster,
@@ -27,13 +28,13 @@ export function EventDetailView({
   cluster,
   marketEvent,
 }: EventDetailViewProps) {
-  const title = alert?.title ?? cluster?.headline ?? marketEvent?.description ?? "Market Event";
+  const title = alert?.title ?? cluster?.headline ?? marketEvent?.description ?? miDe.marketEventDefault;
   const severity = alert?.severity ?? intelAlert?.severity ?? cluster?.priority ?? marketEvent?.severity;
 
   return (
     <div className="space-y-6">
       <Link href="/market-intelligence?view=intelligence" className="text-sm text-blue-600 hover:underline">
-        ← Back to Intelligence
+        {miDe.backToIntel}
       </Link>
 
       <header className="space-y-3 border-b border-border pb-6">
@@ -47,13 +48,13 @@ export function EventDetailView({
           )}
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground lg:text-3xl">{title}</h1>
-        <p className="font-mono text-xs text-muted">Event ID: {eventId}</p>
+        <p className="font-mono text-xs text-muted">{miDe.eventId}: {eventId}</p>
       </header>
 
       {alert && (
         <Card>
           <CardContent className="space-y-3 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-widest text-muted">Alert Delivery</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-widest text-muted">{miDe.alertDelivery}</h2>
             <p className="text-sm whitespace-pre-wrap text-foreground">{alert.body.replace(/<[^>]+>/g, "")}</p>
             {alert.affectedAssets.length > 0 && (
               <div className="flex flex-wrap gap-2">
@@ -72,13 +73,13 @@ export function EventDetailView({
       {marketEvent && (
         <Card>
           <CardContent className="space-y-2 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-widest text-muted">Market Anomaly</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-widest text-muted">{miDe.marketAnomaly}</h2>
             <p className="text-sm text-foreground">
-              {marketEvent.symbol} {marketEvent.direction} {marketEvent.percentageChange.toFixed(2)}% in{" "}
+              {marketEvent.symbol} {marketEvent.direction} {marketEvent.percentageChange.toFixed(2)}% {miDe.inWindow}{" "}
               {marketEvent.windowMinutes}m
             </p>
             <p className="text-xs text-muted">
-              Detected {formatTime(marketEvent.detectedAt)} CET · Severity {marketEvent.severity}
+              {miDe.detected} {formatTime(marketEvent.detectedAt)} CET · {miDe.replaySeverity}: {marketEvent.severity}
             </p>
           </CardContent>
         </Card>
@@ -87,19 +88,19 @@ export function EventDetailView({
       {cluster && (
         <Card>
           <CardContent className="space-y-4 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-widest text-muted">Intelligence Cluster</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-widest text-muted">{miDe.intelligenceCluster}</h2>
             <p className="text-sm text-foreground">{cluster.summary}</p>
 
             {cluster.leadLag && (
               <div className="rounded-lg border border-border bg-muted/30 p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">Lead / Lag</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">{miDe.leadLag}</p>
                 <p className="mt-1 text-sm font-medium">{cluster.leadLag.label}</p>
               </div>
             )}
 
             <div>
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted">
-                Sources ({cluster.independentSourceCount} independent)
+                {tSourcesCount(cluster.independentSourceCount)}
               </p>
               <ol className="space-y-2">
                 {cluster.sources.map((source) => (
@@ -125,7 +126,7 @@ export function EventDetailView({
       )}
 
       {!alert && !cluster && !marketEvent && (
-        <p className="text-sm text-muted">Event not found or not yet processed by the pipeline.</p>
+        <p className="text-sm text-muted">{miDe.eventNotFound}</p>
       )}
     </div>
   );

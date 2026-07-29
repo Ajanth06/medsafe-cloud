@@ -7,8 +7,7 @@ import { isSignupEnabled } from "@/lib/auth/config";
 
 export const metadata: Metadata = {
   title: "Registrieren",
-  description:
-    "Erstelle dein MedSafe Cloud Konto und organisiere deine Gesundheitsdaten sicher.",
+  description: "AARYX Terminal — Zugang nur für freigeschaltete Konten.",
 };
 
 interface SignupPageProps {

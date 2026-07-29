@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Syne } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,13 +12,19 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const landingDisplay = Syne({
+  variable: "--font-landing-display",
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+});
+
 export const metadata: Metadata = {
   title: {
     default: "MedSafe Cloud",
     template: "%s — MedSafe Cloud",
   },
   description:
-    "AI-powered healthcare platform that helps cancer patients organize and understand their medical documents.",
+    "MedSafe Cloud — digitales UDI-Management, Rückverfolgbarkeit und regulatorische Compliance für Medizinprodukte.",
   icons: {
     icon: "/icon.svg",
     apple: "/apple-icon",
@@ -33,7 +39,7 @@ export default function RootLayout({
   return (
     <html
       lang="de"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${landingDisplay.variable} h-full antialiased`}
       style={{ colorScheme: "light" }}
     >
       <body className="min-h-full flex flex-col">{children}</body>

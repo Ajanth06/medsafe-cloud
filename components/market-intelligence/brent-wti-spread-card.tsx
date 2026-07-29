@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { formatChange, formatPrice } from "@/lib/market-intelligence/format";
+import { miDe } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import type { BrentWTISpread } from "@/lib/types/market";
 
@@ -15,7 +16,7 @@ export function BrentWTISpreadCard({ spread }: BrentWTISpreadCardProps) {
       <CardContent className="space-y-3 p-4">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-            Brent–WTI Spread
+            {miDe.brentWtiSpread}
           </p>
           <p className="mt-1 font-mono text-2xl font-semibold">
             ${formatPrice(spread.spread, "WTI")}
@@ -24,7 +25,7 @@ export function BrentWTISpreadCard({ spread }: BrentWTISpreadCardProps) {
 
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <p className="text-[10px] uppercase text-slate-500">Brent</p>
+            <p className="text-[10px] uppercase text-slate-500">BRENT</p>
             <p className="font-mono font-medium">${formatPrice(spread.brentPrice, "BRENT")}</p>
           </div>
           <div>
@@ -39,7 +40,7 @@ export function BrentWTISpreadCard({ spread }: BrentWTISpreadCardProps) {
             spreadUp ? "bg-emerald-900/40 text-emerald-300" : "bg-red-900/40 text-red-300",
           )}
         >
-          Spread {formatChange(spread.spreadChange)} ({formatChange(spread.spreadChangePercent, true)})
+          {miDe.spread} {formatChange(spread.spreadChange)} ({formatChange(spread.spreadChangePercent, true)})
         </div>
       </CardContent>
     </Card>

@@ -4,6 +4,7 @@ import { AlertNavBadge } from "@/components/market-intelligence/alert-nav-badge"
 import { EnablePushAlertsButton } from "@/components/market-intelligence/enable-push-alerts-button";
 import { ReplayValidationSection } from "@/components/market-intelligence/replay-validation-section";
 import { LiveIndicator } from "@/components/market-intelligence/live-indicator";
+import { NewsStatusBadge } from "@/components/market-intelligence/news-status-badge";
 import { AlertHistory } from "@/components/market-intelligence/alert-history";
 import { BreakingIntelligence } from "@/components/market-intelligence/breaking-intelligence";
 import { IntelligenceTimeline } from "@/components/market-intelligence/intelligence-timeline";
@@ -14,6 +15,7 @@ import { SystemStatus } from "@/components/market-intelligence/system-status";
 import { IntelligenceAlerts } from "@/components/market-intelligence/intelligence-alerts";
 import { IntelligenceEventsSection } from "@/components/market-intelligence/intelligence-events-section";
 import { OilIntelligenceSection } from "@/components/market-intelligence/oil-intelligence-section";
+import { miDe } from "@/lib/market-intelligence/i18n/de";
 import type { MarketIntelligenceDashboardData } from "@/lib/types/market";
 
 interface MarketIntelligenceDashboardProps {
@@ -31,10 +33,10 @@ export function MarketIntelligenceDashboard({ data }: MarketIntelligenceDashboar
             </div>
             <div className="min-w-0">
               <h1 className="text-2xl font-semibold tracking-tight text-foreground lg:text-3xl">
-                Market Intelligence
+                {miDe.moduleTitle}
               </h1>
               <p className="mt-1 text-sm text-muted lg:text-base">
-                Real-Time Market Monitoring &amp; AI Event Analysis
+                {miDe.moduleSubtitle}
               </p>
             </div>
           </div>
@@ -45,14 +47,21 @@ export function MarketIntelligenceDashboard({ data }: MarketIntelligenceDashboar
             <SystemStatus health={data.systemHealth} />
           </div>
         </div>
-        <LiveIndicator
-          isLive={data.systemHealth.isLive}
-          dataAvailability={
-            data.systemHealth.isLive
-              ? "LIVE"
-              : data.quotes[0]?.dataAvailability ?? "DEMO"
-          }
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <LiveIndicator
+            isLive={data.systemHealth.isLive}
+            dataAvailability={
+              data.systemHealth.isLive
+                ? "LIVE"
+                : data.quotes[0]?.dataAvailability ?? "DEMO"
+            }
+          />
+          <NewsStatusBadge
+            newsHealth={data.systemHealth.newsHealth}
+            newsEngine={data.systemHealth.newsEngine}
+            operationsHealth={data.systemHealth.operationsHealth}
+          />
+        </div>
       </header>
 
       <MarketCardsGrid
@@ -97,10 +106,8 @@ export function MarketIntelligenceDashboard({ data }: MarketIntelligenceDashboar
 
       <footer className="rounded-2xl border border-dashed border-border bg-card/60 p-4 text-center">
         <p className="text-xs text-muted">
-          {data.systemHealth.isLive
-            ? "Live market data active."
-            : "Development demo data — set MARKET_DATA_PROVIDER=polygon and MARKET_DATA_API_KEY for live feeds."}{" "}
-          Separate module — no healthcare data. Not financial advice. No BUY/SELL signals.
+          {data.systemHealth.isLive ? miDe.footerLive : miDe.footerDemo}{" "}
+          {miDe.footerDisclaimer}
         </p>
       </footer>
     </div>

@@ -75,7 +75,7 @@ export function analyzeCrossAssetCorrelation(
     movements,
     possibleRegime,
     eventType: "POTENTIAL_CROSS-MARKET_EVENT",
-    description: `Potential cross-market event: ${description}. Possible regime: ${possibleRegime}.`,
+    description: `Mögliches Cross-Market-Ereignis: ${description}. Mögliches Regime: ${possibleRegime}.`,
     confidenceBoost: CONFIDENCE_WEIGHTS.crossAssetCorrelation,
   };
 }

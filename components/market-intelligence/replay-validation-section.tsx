@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { miDe, tSeverity, tStatus } from "@/lib/market-intelligence/i18n/de";
 
 interface ReplaySummary {
   scenarioId: string;
@@ -37,7 +38,7 @@ export function ReplayValidationSection() {
       const data = (await res.json()) as { results: ReplaySummary[] };
       setResults(data.results);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Replay failed");
+      setError(e instanceof Error ? e.message : miDe.replayFailed);
     } finally {
       setLoading(false);
     }
@@ -47,13 +48,13 @@ export function ReplayValidationSection() {
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Historical Replay & Validation</h2>
+          <h2 className="text-lg font-semibold text-foreground">{miDe.replayTitle}</h2>
           <p className="text-sm text-muted">
-            Phase 7 — replay demo scenarios and measure detection → news → AI → alert latency.
+            {miDe.replayDescription}
           </p>
         </div>
         <Button type="button" variant="outline" size="sm" disabled={loading} onClick={() => void runAll()}>
-          {loading ? "Running…" : "Run All Scenarios"}
+          {loading ? miDe.runningScenarios : miDe.runScenarios}
         </Button>
       </div>
 
@@ -75,14 +76,14 @@ export function ReplayValidationSection() {
                       r.passed ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
                     }`}
                   >
-                    {r.passed ? "PASS" : "FAIL"}
+                    {tStatus(r.passed ? "PASS" : "FAIL")}
                   </span>
                 </div>
                 {r.metrics && (
                   <p className="font-mono text-xs text-muted">
-                    Alerts: {r.metrics.alertsGenerated} · Anomaly: {r.metrics.anomalyDetected ? "yes" : "no"}
-                    {r.metrics.highestSeverity ? ` · Severity: ${r.metrics.highestSeverity}` : ""}
-                    {r.metrics.marketToAlertMs != null ? ` · Market→Alert: ${r.metrics.marketToAlertMs}ms` : ""}
+                    {miDe.replayAlerts}: {r.metrics.alertsGenerated} · {miDe.replayAnomaly}: {r.metrics.anomalyDetected ? miDe.anomalyYes : miDe.anomalyNo}
+                    {r.metrics.highestSeverity ? ` · ${miDe.replaySeverity}: ${tSeverity(r.metrics.highestSeverity)}` : ""}
+                    {r.metrics.marketToAlertMs != null ? ` · ${miDe.replayMarketToAlert}: ${r.metrics.marketToAlertMs}ms` : ""}
                   </p>
                 )}
                 {r.failures.length > 0 && (

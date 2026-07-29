@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { miDe, tEvidenceCount } from "@/lib/market-intelligence/i18n/de";
 import type { AIAnalysisResult } from "@/lib/types/market";
 
 interface EvidencePanelProps {
@@ -14,22 +15,22 @@ export function EvidencePanel({ analysis }: EvidencePanelProps) {
     <Card>
       <CardContent className="space-y-3 p-4">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">
-          Evidence ({analysis.evidence.length} items)
+          {tEvidenceCount(analysis.evidence.length)}
         </p>
 
         {marketEvidence.length > 0 && (
-          <EvidenceGroup title="Market Evidence" items={marketEvidence} />
+          <EvidenceGroup title={miDe.marketEvidence} items={marketEvidence} />
         )}
         {newsEvidence.length > 0 && (
-          <EvidenceGroup title="News Evidence" items={newsEvidence} />
+          <EvidenceGroup title={miDe.newsEvidence} items={newsEvidence} />
         )}
         {officialEvidence.length > 0 && (
-          <EvidenceGroup title="Official Evidence" items={officialEvidence} />
+          <EvidenceGroup title={miDe.officialEvidence} items={officialEvidence} />
         )}
 
         {analysis.uncertaintyReasons.length > 0 && (
           <div>
-            <p className="text-[10px] font-semibold uppercase text-amber-700">Uncertainty</p>
+            <p className="text-[10px] font-semibold uppercase text-amber-700">{miDe.uncertainty}</p>
             <ul className="mt-1 text-xs text-muted">
               {analysis.uncertaintyReasons.map((u, i) => (
                 <li key={i}>• {u}</li>

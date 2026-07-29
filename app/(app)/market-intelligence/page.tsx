@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { TerminalDashboard } from "@/components/market-intelligence/terminal/terminal-dashboard";
+import { miDe } from "@/lib/market-intelligence/i18n/de";
 import { requireOnboardingComplete } from "@/lib/auth";
 import { getMarketIntelligenceData } from "@/lib/market-intelligence/data";
 
 export const metadata: Metadata = {
-  title: "Market Intelligence",
-  description:
-    "Real-Time Market Monitoring & AI Event Analysis — separate module from healthcare data.",
+  title: miDe.terminalTitle,
+  description: miDe.terminalSubtitle,
 };
 
 export default async function MarketIntelligencePage() {
@@ -14,7 +14,7 @@ export default async function MarketIntelligencePage() {
   const data = await getMarketIntelligenceData();
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <main className="mx-auto max-w-[1500px] px-3 py-3 sm:px-6 sm:py-6 lg:px-8">
       <TerminalDashboard data={data} />
     </main>
   );

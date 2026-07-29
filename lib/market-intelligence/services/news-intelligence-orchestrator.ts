@@ -87,12 +87,12 @@ async function searchAllProviders(
     return { items: cached.items, providers: ["cache"] };
   }
 
-  const providers = getConfiguredNewsProviders();
+  const config = getNewsProviderConfig();
   const official = createOfficialSourceProvider();
   const allItems: NormalizedNewsItem[] = [];
   const providerIds: string[] = [];
 
-  for (const provider of providers) {
+  for (const provider of getConfiguredNewsProviders()) {
     try {
       const items = await provider.searchAroundTimestamp({
         timestamp,
@@ -111,12 +111,15 @@ async function searchAllProviders(
     }
   }
 
-  try {
-    const officialItems = await official.searchByKeywords(keywords);
-    allItems.push(...officialItems);
-    providerIds.push(official.id);
-  } catch {
-    // official feeds optional
+  // Offizielle RSS-Feeds (EIA, Fed) nur im Live-Modus — sonst englische Headlines im Demo-UI
+  if (config.isConfigured) {
+    try {
+      const officialItems = await official.searchByKeywords(keywords);
+      allItems.push(...officialItems);
+      providerIds.push(official.id);
+    } catch {
+      // official feeds optional
+    }
   }
 
   const deduped = deduplicateByTitle(allItems);
@@ -198,7 +201,7 @@ export async function investigateMarketEvent(
         ...priority.auditTrail,
         {
           timestamp: new Date().toISOString(),
-          reason: `Investigation triggered by market event ${input.marketEventId}`,
+          reason: `Untersuchung durch Marktereignis ${input.marketEventId} ausgelöst`,
           factor: "market_event_trigger",
         },
       ],
@@ -267,7 +270,7 @@ function buildNewsTimeline(
     events.push({
       id: `tl-mkt-${anomaly.id}`,
       timestamp: anomaly.timestamp,
-      title: `${anomaly.asset} anomaly detected`,
+      title: `${anomaly.asset}: Anomalie erkannt`,
       description: anomaly.description,
       category: "detection",
     });
@@ -277,7 +280,7 @@ function buildNewsTimeline(
     events.push({
       id: `tl-news-${cluster.id}`,
       timestamp: cluster.firstReportAt,
-      title: "First related report detected",
+      title: "Erster relevanter Bericht erkannt",
       description: cluster.headline,
       category: "news",
     });
@@ -286,8 +289,8 @@ function buildNewsTimeline(
       events.push({
         id: `tl-verify-${cluster.id}`,
         timestamp: cluster.latestUpdateAt,
-        title: "Independent source detected",
-        description: `${cluster.independentSourceCount} independent sources`,
+        title: "Unabhängige Quelle erkannt",
+        description: `${cluster.independentSourceCount} unabhängige Quellen`,
         category: "verification",
       });
     }
@@ -296,8 +299,8 @@ function buildNewsTimeline(
       events.push({
         id: `tl-official-${cluster.id}`,
         timestamp: cluster.latestUpdateAt,
-        title: "Official confirmation",
-        description: cluster.sources.find((s) => s.isOfficial)?.sourceName ?? "Official source",
+        title: "Offizielle Bestätigung",
+        description: cluster.sources.find((s) => s.isOfficial)?.sourceName ?? "Offizielle Quelle",
         category: "verification",
       });
     }
@@ -306,7 +309,7 @@ function buildNewsTimeline(
       events.push({
         id: `tl-corr-${cluster.id}`,
         timestamp: new Date().toISOString(),
-        title: `Market-news correlation: ${cluster.marketCorrelation.correlationConfidence}`,
+        title: `Markt-News-Korrelation: ${cluster.marketCorrelation.correlationConfidence}`,
         description: cluster.marketCorrelation.note,
         category: "correlation",
       });
@@ -316,8 +319,8 @@ function buildNewsTimeline(
       events.push({
         id: `tl-leadlag-${cluster.id}`,
         timestamp: new Date().toISOString(),
-        title: cluster.leadLag?.label ?? "Lead/lag analysis",
-        description: "Timing comparison between market move and first report",
+        title: cluster.leadLag?.label ?? "Vorlauf/Nachlauf-Analyse",
+        description: "Zeitvergleich zwischen Marktbewegung und erstem Bericht",
         category: "classification",
       });
     }
@@ -337,7 +340,7 @@ function buildNewsLiveFeed(
       id: `feed-news-${cluster.id}`,
       timestamp: cluster.firstReportAt,
       title: cluster.headline.slice(0, 80),
-      description: `${cluster.independentSourceCount} independent sources · ${cluster.verification.status}`,
+      description: `${cluster.independentSourceCount} unabhängige Quellen · ${cluster.verification.status}`,
       category: "news",
       severity: cluster.priority,
     });
@@ -346,7 +349,7 @@ function buildNewsLiveFeed(
       newsFeed.push({
         id: `feed-verify-${cluster.id}`,
         timestamp: cluster.latestUpdateAt,
-        title: "Event verification upgraded",
+        title: "Ereignis-Verifizierung aufgewertet",
         description: cluster.verification.status,
         category: "verification",
       });
@@ -362,6 +365,10 @@ export async function runNewsPipeline(
   marketPipeline: PipelineResult,
 ): Promise<NewsPipelineResult> {
   const config = getNewsProviderConfig();
+  // Demo-Modus: kein Cache — alte englische RSS-Cluster sonst dauerhaft sichtbar
+  if (!config.isConfigured) {
+    resetNewsPipelineState();
+  }
   const newsProvider = createNewsProvider();
   const official = createOfficialSourceProvider();
 
@@ -384,7 +391,7 @@ export async function runNewsPipeline(
   // News-first: ingest breaking news and watch mode
   try {
     const breaking = await newsProvider.getBreakingNews(10);
-    const officialNews = await official.fetchLatest(10);
+    const officialNews = config.isConfigured ? await official.fetchLatest(10) : [];
     const newsFirst = await processNewsFirstEvents([...breaking, ...officialNews]);
     allClusters = mergeClusters(allClusters, newsFirst);
   } catch (error) {
@@ -462,6 +469,7 @@ export async function runNewsPipeline(
     }
   }
 
+  const primaryProvider = newsProvider;
   const newsHealth: NewsSystemHealth = {
     newsEngine: config.isConfigured ? "ACTIVE" : "NOT_CONFIGURED",
     providers: providerHealths,
@@ -471,6 +479,10 @@ export async function runNewsPipeline(
     lastNewsAt: allClusters[0]?.latestUpdateAt ?? null,
     averageNewsLatencyMs: null,
     isLive: config.isConfigured,
+    primarySource: config.isConfigured
+      ? primaryProvider.name
+      : "Demo-News (kein NEWS_API_KEY)",
+    officialSourceLabel: "Official RSS (Fed, EIA u. a.)",
   };
 
   return {

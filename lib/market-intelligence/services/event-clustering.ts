@@ -208,7 +208,7 @@ export function mergeClusterUpdate(
       ...newItems.map((item) => ({
         id: `upd-${item.id}`,
         timestamp: item.aaryxReceivedAt ?? new Date().toISOString(),
-        title: "New report added",
+        title: "Neuer Bericht hinzugefügt",
         description: `${item.sourceName ?? item.source}: ${item.title}`,
         verificationStatus: updated.verification.status,
       })),

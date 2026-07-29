@@ -34,7 +34,7 @@ export class NewsApiProvider implements NewsProvider {
 
   async searchLatest(params?: NewsSearchParams): Promise<NormalizedNewsItem[]> {
     const q = params?.keywords?.join(" OR ") ?? "oil OR markets OR geopolitical";
-    return this.fetchArticles(`/everything?q=${encodeURIComponent(q)}&sortBy=publishedAt&pageSize=${params?.limit ?? 20}&language=en`);
+    return this.fetchArticles(`/everything?q=${encodeURIComponent(q)}&sortBy=publishedAt&pageSize=${params?.limit ?? 20}&language=de`);
   }
 
   async searchByKeywords(keywords: string[], params?: NewsSearchParams): Promise<NormalizedNewsItem[]> {
@@ -47,12 +47,12 @@ export class NewsApiProvider implements NewsProvider {
     const to = new Date(center.getTime() + (params.afterMinutes ?? 20) * 60_000);
     const q = params.keywords?.join(" OR ") ?? "oil OR crude OR geopolitical";
 
-    const path = `/everything?q=${encodeURIComponent(q)}&from=${from.toISOString()}&to=${to.toISOString()}&sortBy=publishedAt&pageSize=${params.limit ?? 30}&language=en`;
+    const path = `/everything?q=${encodeURIComponent(q)}&from=${from.toISOString()}&to=${to.toISOString()}&sortBy=publishedAt&pageSize=${params.limit ?? 30}&language=de`;
     return this.fetchArticles(path);
   }
 
   async getBreakingNews(limit = 10): Promise<NormalizedNewsItem[]> {
-    return this.fetchArticles(`/top-headlines?category=business&pageSize=${limit}&language=en`);
+    return this.fetchArticles(`/top-headlines?category=business&pageSize=${limit}&language=de`);
   }
 
   async getProviderHealth(): Promise<NewsProviderHealthInfo> {

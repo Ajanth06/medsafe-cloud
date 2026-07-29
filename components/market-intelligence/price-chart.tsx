@@ -1,3 +1,4 @@
+import { miDe } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 
 interface PriceChartProps {
@@ -21,7 +22,7 @@ export function PriceChart({
         className={cn("flex items-center justify-center rounded-lg bg-slate-800/40 text-xs text-slate-500", className)}
         style={{ height }}
       >
-        Insufficient history
+        {miDe.insufficientHistory}
       </div>
     );
   }

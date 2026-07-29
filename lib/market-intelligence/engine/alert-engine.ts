@@ -65,10 +65,10 @@ export function createIntelligenceAlert(input: CreateAlertInput): IntelligenceAl
   const now = new Date().toISOString();
   const title =
     input.oilCorrelation?.eventType === "OIL_MARKET_ANOMALY"
-      ? "OIL MARKET ANOMALY"
+      ? "ÖLMARKT-ANOMALIE"
       : input.crossAsset
-        ? "CROSS-MARKET EVENT"
-        : `${input.anomaly.asset} ${input.anomaly.direction}SIDE ANOMALY`;
+        ? "CROSS-MARKET-EREIGNIS"
+        : `${input.anomaly.asset} ${input.anomaly.direction === "UP" ? "AUFWÄRTS" : "ABWÄRTS"}-ANOMALIE`;
 
   return {
     id: `alert-${input.anomaly.id}`,

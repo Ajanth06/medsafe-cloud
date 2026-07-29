@@ -1,3 +1,4 @@
+import { miDe } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
 import type { DataAvailability } from "@/lib/types/market";
 
@@ -12,7 +13,7 @@ export function LiveIndicator({ isLive = false, dataAvailability }: LiveIndicato
       <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1">
         <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
         <span className="text-[11px] font-semibold uppercase tracking-widest text-amber-700">
-          {dataAvailability === "DEMO" ? "Demo Data" : "No Live Feed"}
+          {dataAvailability === "DEMO" ? miDe.demoData : miDe.noLiveFeed}
         </span>
       </div>
     );
@@ -49,7 +50,7 @@ export function LiveIndicator({ isLive = false, dataAvailability }: LiveIndicato
           isDelayed ? "text-orange-700" : "text-emerald-700",
         )}
       >
-        {isDelayed ? "Delayed Feed" : "Live Monitoring"}
+        {isDelayed ? miDe.delayedFeed : miDe.liveMonitoring}
       </span>
     </div>
   );
