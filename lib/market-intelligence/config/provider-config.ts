@@ -7,24 +7,48 @@ export interface MarketProviderConfig {
   websocketUrl: string;
   pollIntervalMs: number;
   websocketEnabled: boolean;
-  /** True when any live quote path is available (Yahoo / Oil / Polygon). */
+  /** True when the active quote path can run (Yahoo needs no key). */
   isConfigured: boolean;
   oilConfigured: boolean;
   polygonConfigured: boolean;
   yahooEnabled: boolean;
 }
 
+/**
+ * Default market feed is hybrid:
+ * OilPriceAPI for WTI/Brent, Polygon for the rest, Yahoo only as fallback.
+ */
 export function getMarketProviderConfig(): MarketProviderConfig {
   const apiKey = process.env.MARKET_DATA_API_KEY ?? null;
-  const provider = process.env.MARKET_DATA_PROVIDER ?? "yahoo";
-  const quoteStyle = (process.env.MARKET_QUOTE_STYLE ?? "investing").toLowerCase();
+  const provider = (process.env.MARKET_DATA_PROVIDER ?? "composite").toLowerCase();
   const oilConfigured = getOilPriceApiConfig().isConfigured;
-  // Polygon used as optional fallback whenever a key exists
   const polygonConfigured = Boolean(apiKey);
+
   const yahooEnabled =
-    quoteStyle !== "exchange" &&
-    provider !== "mock" &&
-    provider !== "oilpriceapi";
+    provider === "yahoo" ||
+    provider === "investing" ||
+    (provider === "composite" && !polygonConfigured);
+
+  let isConfigured = false;
+  switch (provider) {
+    case "mock":
+      isConfigured = false;
+      break;
+    case "polygon":
+      isConfigured = polygonConfigured;
+      break;
+    case "oilpriceapi":
+      isConfigured = oilConfigured;
+      break;
+    case "composite":
+      isConfigured = oilConfigured || polygonConfigured || yahooEnabled;
+      break;
+    case "yahoo":
+    case "investing":
+    default:
+      isConfigured = true;
+      break;
+  }
 
   return {
     provider,
@@ -35,7 +59,7 @@ export function getMarketProviderConfig(): MarketProviderConfig {
       process.env.MARKET_DATA_WEBSOCKET_URL ?? "wss://socket.polygon.io",
     pollIntervalMs: Number(process.env.MARKET_POLL_INTERVAL_MS ?? 5_000),
     websocketEnabled: process.env.MARKET_DATA_WEBSOCKET_ENABLED === "true",
-    isConfigured: yahooEnabled || oilConfigured || polygonConfigured,
+    isConfigured,
     oilConfigured,
     polygonConfigured,
     yahooEnabled,

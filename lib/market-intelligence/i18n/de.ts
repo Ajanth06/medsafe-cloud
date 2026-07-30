@@ -5,9 +5,9 @@ export const miDe = {
   moduleSubtitle: "Echtzeit-Marktüberwachung & KI-Ereignisanalyse",
   terminalTitle: "AARYX Terminal",
   terminalSubtitle: "Marktintelligenz-Kontrollzentrum",
-  footerLive: "Live-Marktdaten aktiv.",
+  footerLive: "OilPriceAPI/Polygon-Marktdaten aktiv.",
   footerDemo:
-    "Entwicklungs-Demo — Live-Kurse kommen standardmäßig Investing-Style via Yahoo (CL=F / BZ=F / DAX).",
+    "Entwicklungs-Demo — setze MARKET_DATA_PROVIDER=composite für Live-Kurse mit Investing-Struktur.",
   footerDisclaimer:
     "Keine Anlageberatung. Keine Kauf-/Verkaufssignale.",
   loadingTerminal: "Terminal wird geladen…",
@@ -41,7 +41,7 @@ export const miDe = {
   liveMarketsEnergy: "Live-Märkte — Energie-Benchmarks",
   globalMarkets: "Globale Märkte",
   dataUnavailable: "Daten nicht verfügbar",
-  configureApiKey: "Live-Kurse: MARKET_DATA_PROVIDER=yahoo (Investing-Style)",
+  configureApiKey: "Live-Kurse: MARKET_DATA_PROVIDER=composite",
   day: "Tag",
   stale: "Veraltet —",
   updated: "Aktualisiert",

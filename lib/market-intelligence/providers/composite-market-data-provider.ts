@@ -26,61 +26,55 @@ function isUsable(quote: NormalizedMarketQuote | null | undefined): boolean {
 }
 
 /**
- * Investing-style quotes first (Yahoo CL=F / BZ=F / ^GDAXI),
- * then OilPriceAPI / Polygon as fallbacks.
+ * Hybrid path: OilPriceAPI for oil benchmarks, Polygon for broad markets,
+ * with Yahoo only as a last-resort fallback when Polygon is unavailable.
  */
 export class CompositeMarketDataProvider implements MarketDataProvider {
   readonly id = "composite";
   readonly name: string;
 
-  private readonly primary: YahooFinanceMarketDataProvider | null;
   private readonly oil: OilPriceApiProvider | null;
-  private readonly secondary: MarketDataProvider;
+  private readonly market: MarketDataProvider;
+  private readonly yahooFallback: YahooFinanceMarketDataProvider | null;
 
   constructor(opts?: {
-    primary?: YahooFinanceMarketDataProvider | null;
     oil?: OilPriceApiProvider | null;
-    secondary?: MarketDataProvider;
+    market?: MarketDataProvider;
+    yahooFallback?: YahooFinanceMarketDataProvider | null;
   }) {
-    this.primary = opts?.primary ?? null;
     this.oil = opts?.oil ?? null;
-    this.secondary = opts?.secondary ?? new DevelopmentMarketDataProvider();
+    this.market = opts?.market ?? new DevelopmentMarketDataProvider();
+    this.yahooFallback = opts?.yahooFallback ?? null;
     const parts = [
-      this.primary ? "Yahoo (Investing-style)" : null,
-      this.oil ? "OilPriceAPI fallback" : null,
-      this.secondary.name,
+      this.oil ? "OilPriceAPI" : null,
+      this.market.id !== "development" ? this.market.name : null,
+      this.yahooFallback ? "Yahoo fallback" : null,
     ].filter(Boolean);
-    this.name = parts.join(" + ");
+    this.name = parts.length ? parts.join(" + ") : "Composite (empty)";
   }
 
   async getQuote(symbol: string): Promise<NormalizedMarketQuote | null> {
-    if (this.primary?.supportsSymbol(symbol)) {
-      const yahoo = await this.primary.getQuote(symbol);
-      if (isUsable(yahoo)) return yahoo;
-    }
-
     if (this.oil?.supportsSymbol(symbol)) {
       const oil = await this.oil.getQuote(symbol);
       if (isUsable(oil)) return oil;
     }
 
-    return this.secondary.getQuote(symbol);
+    const marketQuote = await this.market.getQuote(symbol);
+    if (isUsable(marketQuote)) return marketQuote;
+
+    if (this.yahooFallback?.supportsSymbol(symbol)) {
+      const yahoo = await this.yahooFallback.getQuote(symbol);
+      if (isUsable(yahoo)) return yahoo;
+    }
+
+    return marketQuote;
   }
 
   async getQuotes(symbols: string[]): Promise<NormalizedMarketQuote[]> {
     const bySymbol = new Map<string, NormalizedMarketQuote>();
 
-    if (this.primary) {
-      const yahooQuotes = await this.primary.getQuotes(symbols);
-      for (const q of yahooQuotes) {
-        if (isUsable(q)) bySymbol.set(q.symbol, q);
-      }
-    }
-
-    const missingAfterYahoo = symbols.filter((s) => !bySymbol.has(s));
-
-    if (this.oil && missingAfterYahoo.length) {
-      const oilTargets = missingAfterYahoo.filter((s) => this.oil!.supportsSymbol(s));
+    if (this.oil) {
+      const oilTargets = symbols.filter((s) => this.oil!.supportsSymbol(s));
       if (oilTargets.length) {
         const oilQuotes = await this.oil.getQuotes(oilTargets);
         for (const q of oilQuotes) {
@@ -89,10 +83,31 @@ export class CompositeMarketDataProvider implements MarketDataProvider {
       }
     }
 
+    const missingAfterOil = symbols.filter((s) => !bySymbol.has(s));
+    if (missingAfterOil.length) {
+      const marketQuotes = await this.market.getQuotes(missingAfterOil);
+      for (const q of marketQuotes) {
+        if (isUsable(q)) bySymbol.set(q.symbol, q);
+      }
+    }
+
+    const missingAfterMarket = symbols.filter((s) => !bySymbol.has(s));
+    if (this.yahooFallback && missingAfterMarket.length) {
+      const yahooTargets = missingAfterMarket.filter((s) =>
+        this.yahooFallback!.supportsSymbol(s),
+      );
+      if (yahooTargets.length) {
+        const yahooQuotes = await this.yahooFallback.getQuotes(yahooTargets);
+        for (const q of yahooQuotes) {
+          if (isUsable(q)) bySymbol.set(q.symbol, q);
+        }
+      }
+    }
+
     const stillMissing = symbols.filter((s) => !bySymbol.has(s));
     if (stillMissing.length) {
-      const secondaryQuotes = await this.secondary.getQuotes(stillMissing);
-      for (const q of secondaryQuotes) {
+      const fallbackQuotes = await this.market.getQuotes(stillMissing);
+      for (const q of fallbackQuotes) {
         bySymbol.set(q.symbol, q);
       }
     }
@@ -106,39 +121,36 @@ export class CompositeMarketDataProvider implements MarketDataProvider {
     symbol: string,
     interval: string,
   ): Promise<HistoricalPrice[]> {
-    if (this.primary?.supportsSymbol(symbol)) {
-      const rows = await this.primary.getHistoricalPrices(symbol, interval);
+    if (this.oil?.supportsSymbol(symbol)) {
+      const rows = await this.oil.getHistoricalPrices(symbol, interval);
       if (rows.length) return rows;
     }
-    if (this.oil?.supportsSymbol(symbol)) {
-      return this.oil.getHistoricalPrices(symbol, interval);
+    const marketRows = await this.market.getHistoricalPrices(symbol, interval);
+    if (marketRows.length) return marketRows;
+    if (this.yahooFallback?.supportsSymbol(symbol)) {
+      return this.yahooFallback.getHistoricalPrices(symbol, interval);
     }
-    return this.secondary.getHistoricalPrices(symbol, interval);
+    return marketRows;
   }
 
   async getPriceChange(
     symbol: string,
     windowMinutes: TimeWindowMinutes,
   ): Promise<WindowReturnDetail | null> {
-    if (this.primary?.supportsSymbol(symbol)) {
-      const detail = await this.primary.getPriceChange(symbol, windowMinutes);
+    if (this.oil?.supportsSymbol(symbol)) {
+      const detail = await this.oil.getPriceChange(symbol, windowMinutes);
       if (detail) return detail;
     }
-    if (this.oil?.supportsSymbol(symbol)) {
-      return this.oil.getPriceChange(symbol, windowMinutes);
+    const marketDetail = await this.market.getPriceChange(symbol, windowMinutes);
+    if (marketDetail) return marketDetail;
+    if (this.yahooFallback?.supportsSymbol(symbol)) {
+      return this.yahooFallback.getPriceChange(symbol, windowMinutes);
     }
-    return this.secondary.getPriceChange(symbol, windowMinutes);
+    return marketDetail;
   }
 
   async getHealth(): Promise<ProviderHealthInfo> {
-    const [yahooHealth, oilHealth, secondaryHealth] = await Promise.all([
-      this.primary?.getHealth() ??
-        Promise.resolve({
-          providerId: "yahoo",
-          status: "OFFLINE" as const,
-          lastUpdate: null,
-          error: "not enabled",
-        }),
+    const [oilHealth, marketHealth, yahooHealth] = await Promise.all([
       this.oil?.getHealth() ??
         Promise.resolve({
           providerId: "oilpriceapi",
@@ -146,10 +158,31 @@ export class CompositeMarketDataProvider implements MarketDataProvider {
           lastUpdate: null,
           error: "not configured",
         }),
-      this.secondary.getHealth(),
+      this.market.getHealth(),
+      this.yahooFallback?.getHealth() ??
+        Promise.resolve({
+          providerId: "yahoo",
+          status: "OFFLINE" as const,
+          lastUpdate: null,
+          error: "not enabled",
+        }),
     ]);
 
-    const statuses = [yahooHealth.status, oilHealth.status, secondaryHealth.status];
+    const enabledHealths: ProviderHealthInfo[] = [];
+    if (this.oil) enabledHealths.push(oilHealth);
+    if (this.market.id !== "development") enabledHealths.push(marketHealth);
+    if (this.yahooFallback) enabledHealths.push(yahooHealth);
+
+    if (enabledHealths.length === 0) {
+      return {
+        providerId: this.id,
+        status: "OFFLINE",
+        lastUpdate: null,
+        error: "No live providers enabled",
+      };
+    }
+
+    const statuses = enabledHealths.map((health) => health.status);
     const online = statuses.some((s) => s === "ONLINE");
     const anyOffline = statuses.some((s) => s === "OFFLINE");
 
@@ -157,52 +190,38 @@ export class CompositeMarketDataProvider implements MarketDataProvider {
       providerId: this.id,
       status: online ? (anyOffline ? "DEGRADED" : "ONLINE") : "OFFLINE",
       lastUpdate:
-        yahooHealth.lastUpdate ?? oilHealth.lastUpdate ?? secondaryHealth.lastUpdate,
+        enabledHealths.find((health) => health.lastUpdate != null)?.lastUpdate ?? null,
       latencyMs:
-        ("latencyMs" in yahooHealth ? yahooHealth.latencyMs : undefined) ??
-        ("latencyMs" in oilHealth ? oilHealth.latencyMs : undefined) ??
-        ("latencyMs" in secondaryHealth ? secondaryHealth.latencyMs : undefined),
+        enabledHealths.find((health) => health.latencyMs != null)?.latencyMs,
       error:
-        [yahooHealth.error, oilHealth.error, secondaryHealth.error]
+        enabledHealths
+          .map((health) => health.error)
           .filter(Boolean)
           .join(" | ") || undefined,
     };
   }
 }
 
+/** Hybrid provider with OilPriceAPI + Polygon, Yahoo only when needed. */
 export function createCompositeMarketDataProvider(): MarketDataProvider {
   const oilConfig = getOilPriceApiConfig();
   const marketConfig = getMarketProviderConfig();
-  const quoteStyle = (process.env.MARKET_QUOTE_STYLE ?? "investing").toLowerCase();
-  const useYahoo =
-    quoteStyle === "investing" ||
-    marketConfig.provider === "yahoo" ||
-    marketConfig.provider === "investing" ||
-    marketConfig.provider === "composite" ||
-    marketConfig.provider === "polygon" ||
-    oilConfig.isConfigured;
 
-  const primary = useYahoo ? new YahooFinanceMarketDataProvider() : null;
   const oil = oilConfig.isConfigured
     ? new OilPriceApiProvider(oilConfig.apiKey ?? undefined)
     : null;
+  const market = marketConfig.polygonConfigured
+    ? new PolygonRestMarketDataProvider(marketConfig.apiKey ?? undefined)
+    : new DevelopmentMarketDataProvider();
+  const yahooFallback = marketConfig.polygonConfigured
+    ? null
+    : new YahooFinanceMarketDataProvider();
 
-  let secondary: MarketDataProvider;
-  if (marketConfig.polygonConfigured) {
-    secondary = new PolygonRestMarketDataProvider(marketConfig.apiKey ?? undefined);
-  } else {
-    secondary = new DevelopmentMarketDataProvider();
-  }
+  marketLogger.info("Using hybrid market data", {
+    oil: Boolean(oil),
+    polygon: marketConfig.polygonConfigured,
+    yahooFallback: Boolean(yahooFallback),
+  });
 
-  if (primary) {
-    marketLogger.info("Using Yahoo Finance for Investing-style quotes", {
-      symbols: ["WTI=CL=F", "BRENT=BZ=F", "DAX=^GDAXI"],
-    });
-  }
-
-  if (primary || oil || marketConfig.polygonConfigured) {
-    return new CompositeMarketDataProvider({ primary, oil, secondary });
-  }
-
-  return new DevelopmentMarketDataProvider();
+  return new CompositeMarketDataProvider({ oil, market, yahooFallback });
 }

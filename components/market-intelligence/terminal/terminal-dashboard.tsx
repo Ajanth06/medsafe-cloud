@@ -37,7 +37,14 @@ import {
 import { DEFAULT_TERMINAL_PREFERENCES } from "@/lib/market-intelligence/user/preferences-types";
 import { miDe } from "@/lib/market-intelligence/i18n/de";
 import type { MarketIntelligenceDashboardData } from "@/lib/types/market";
-import { ArrowRight, LogOut, Newspaper, Radio, UserRound } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  LogOut,
+  Newspaper,
+  Radio,
+  UserRound,
+} from "lucide-react";
 
 interface TerminalDashboardProps {
   data: MarketIntelligenceDashboardData;
@@ -190,6 +197,16 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
 
       <div className="grid items-start gap-3 md:gap-5 xl:grid-cols-[minmax(0,1fr)_19rem]">
         <div className="min-w-0 space-y-4 md:space-y-6">
+          {view === "intelligence" && (
+            <Link
+              href="/market-intelligence"
+              className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-semibold text-slate-200 shadow-sm transition hover:-translate-x-0.5 hover:border-orange-300/25 hover:bg-orange-400/10 hover:text-orange-100"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              Zurück zur Übersicht
+            </Link>
+          )}
+
           {(view === "intelligence" || view === "alerts") && (
             <TerminalSearchBar
               query={query}

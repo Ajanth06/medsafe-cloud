@@ -65,6 +65,7 @@ let streamState: StreamState = {
 
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 let lastHistoryPersistAt = 0;
+let pollInFlight: Promise<void> | null = null;
 const tickFilter = new DuplicateTickFilter();
 
 function seedDemoHistory(): void {
@@ -92,16 +93,43 @@ function toDemoQuote(quote: NormalizedMarketQuote): NormalizedMarketQuote {
   };
 }
 
+function fallbackErrorMessage(config: ReturnType<typeof getMarketProviderConfig>): string {
+  if (config.provider === "composite") {
+    return "OilPriceAPI/Polygon fehlgeschlagen — Demo-Modus.";
+  }
+  if (config.provider === "polygon") {
+    return "Polygon/Massive-Kurse fehlgeschlagen — Demo-Modus. MARKET_DATA_API_KEY prüfen.";
+  }
+  if (config.provider === "oilpriceapi") {
+    return "Live-Öl via OilPriceAPI fehlgeschlagen — Demo-Modus. OILPRICEAPI_KEY prüfen.";
+  }
+  return "Yahoo-Kurse fehlgeschlagen — Demo-Modus.";
+}
+
 async function pollMarketData(): Promise<void> {
+  if (pollInFlight) {
+    return pollInFlight;
+  }
+
+  pollInFlight = runPollMarketData();
+  try {
+    await pollInFlight;
+  } finally {
+    pollInFlight = null;
+  }
+}
+
+async function runPollMarketData(): Promise<void> {
   const config = getMarketProviderConfig();
   const provider = createMarketDataProvider();
   const symbols = SYMBOL_REGISTRY.map((e) => e.internalSymbol);
 
   try {
     let quotes: NormalizedMarketQuote[];
+    let nextLastError: string | null = null;
 
     if (config.isConfigured) {
-      // Composite: OilPriceAPI → WTI/Brent, Polygon → rest (when keyed)
+      // Default: Yahoo-only. Polygon/Oil only if MARKET_DATA_PROVIDER selects them.
       const result = await fetchQuotesWithFailover(provider, symbols);
       quotes = result.quotes;
 
@@ -113,24 +141,29 @@ async function pollMarketData(): Promise<void> {
           providerType: "market",
           error: "failover",
         });
-        streamState.lastError = config.yahooEnabled
-          ? "Investing-Style Kurse (Yahoo) fehlgeschlagen — Demo-Modus."
-          : config.oilConfigured
-            ? "Live-Öl via OilPriceAPI fehlgeschlagen — Demo-Modus. OILPRICEAPI_KEY prüfen."
-            : "Kein Live-Feed — Demo-Modus. MARKET_DATA_PROVIDER=yahoo setzen.";
+        nextLastError = fallbackErrorMessage(config);
         marketLogger.warn("market_provider_failover_active", { attempts: result.attempts });
       } else {
-        // Live if any quote came from a real provider (oilpriceapi / polygon)
         const hasLive = quotes.some(
           (q) =>
             q.source === "yahoo" ||
             q.source === "oilpriceapi" ||
             q.source === "polygon" ||
-            (q.dataAvailability === "LIVE" && q.source !== "development-mock"),
+            (q.dataAvailability !== "UNAVAILABLE" &&
+              q.dataAvailability !== "DEMO" &&
+              q.source !== "development-mock"),
         );
         streamState.isDemo = !hasLive;
-        streamState.lastError = null;
-        recordProviderSuccess({ provider: result.providerId, providerType: "market" });
+        if (!hasLive) {
+          nextLastError = fallbackErrorMessage(config);
+          recordProviderFailure({
+            provider: result.providerId,
+            providerType: "market",
+            error: "provider returned demo-only quotes",
+          });
+        } else {
+          recordProviderSuccess({ provider: result.providerId, providerType: "market" });
+        }
       }
 
       streamState.websocketState = config.websocketEnabled ? "CONNECTED" : "NOT_CONFIGURED";
@@ -161,7 +194,10 @@ async function pollMarketData(): Promise<void> {
 
     const nowMs = Date.now();
     for (const quote of quotes) {
-      if (quote.staleAfterSeconds && isStale(quote.timestamp, quote.staleAfterSeconds, nowMs)) {
+      // Yahoo freshness uses fetch time (timestamp/receivedAt), not last exchange print.
+      const freshnessTs =
+        quote.source === "yahoo" ? (quote.receivedAt ?? quote.timestamp) : quote.timestamp;
+      if (quote.staleAfterSeconds && isStale(freshnessTs, quote.staleAfterSeconds, nowMs)) {
         quote.dataAvailability = "STALE";
       }
     }
@@ -174,7 +210,7 @@ async function pollMarketData(): Promise<void> {
       quotes: pipeline.quotes,
       pipeline,
       lastPollAt: new Date().toISOString(),
-      lastError: null,
+      lastError: nextLastError,
     };
 
     if (isMiPersistenceEnabled()) {

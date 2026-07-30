@@ -18,26 +18,18 @@ export type MarketDataProviderType =
   | "composite";
 
 /**
- * Default: Yahoo Investing-style quotes (CL=F, BZ=F, ^GDAXI…),
- * with OilPriceAPI / Polygon as fallbacks via composite.
+ * Default: hybrid feed.
+ * OilPriceAPI for WTI/Brent, Polygon for the rest, Yahoo only as fallback.
  */
 export function createMarketDataProvider(
   type?: MarketDataProviderType,
 ): MarketDataProvider {
   const marketConfig = getMarketProviderConfig();
   const oilConfig = getOilPriceApiConfig();
+  const providerType = (type ?? marketConfig.provider) as MarketDataProviderType;
 
-  // Default path: Investing-style Yahoo first, then Oil/Polygon fallbacks
-  if (!type) {
-    if (marketConfig.isConfigured) return createCompositeMarketDataProvider();
+  if (providerType === "mock") {
     return new DevelopmentMarketDataProvider();
-  }
-
-  const providerType = type;
-
-  if (providerType === "yahoo" || providerType === "investing") {
-    marketLogger.info("Using Yahoo Finance (Investing-style) market data");
-    return new YahooFinanceMarketDataProvider();
   }
 
   if (providerType === "oilpriceapi") {
@@ -58,23 +50,26 @@ export function createMarketDataProvider(
   }
 
   if (providerType === "composite") {
+    marketLogger.info("Using hybrid market data provider");
     return createCompositeMarketDataProvider();
   }
 
-  return new DevelopmentMarketDataProvider();
+  marketLogger.info("Using Yahoo Finance market data");
+  return new YahooFinanceMarketDataProvider();
 }
 
 export function getConfiguredProviderType(): MarketDataProviderType {
   const marketConfig = getMarketProviderConfig();
   if (!marketConfig.isConfigured) return "mock";
-  if (marketConfig.provider === "yahoo" || marketConfig.provider === "investing") {
-    return "yahoo";
-  }
-  return "composite";
+  if (marketConfig.provider === "polygon") return "polygon";
+  if (marketConfig.provider === "oilpriceapi") return "oilpriceapi";
+  if (marketConfig.provider === "composite") return "composite";
+  return marketConfig.provider === "yahoo" || marketConfig.provider === "investing"
+    ? "yahoo"
+    : "composite";
 }
 
 export function getProviderForAsset(symbol: string): MarketDataProvider {
-  const entry = getSymbolEntry(symbol);
-  if (!entry) return createMarketDataProvider();
+  void getSymbolEntry(symbol);
   return createMarketDataProvider();
 }
