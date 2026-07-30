@@ -18,9 +18,9 @@ export const CONFIDENCE_THRESHOLDS = {
 
 export const STALE_DATA_THRESHOLD_MS = 120_000;
 
-export const PROVIDER_TIMEOUT_MS = 10_000;
+export const PROVIDER_TIMEOUT_MS = 4_000;
 
-export const PROVIDER_RETRY_ATTEMPTS = 3;
+export const PROVIDER_RETRY_ATTEMPTS = 2;
 
 export const VOLATILITY_THRESHOLDS = {
   elevated: 0.5,

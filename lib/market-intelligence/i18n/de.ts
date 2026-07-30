@@ -5,9 +5,9 @@ export const miDe = {
   moduleSubtitle: "Echtzeit-Marktüberwachung & KI-Ereignisanalyse",
   terminalTitle: "AARYX Terminal",
   terminalSubtitle: "Marktintelligenz-Kontrollzentrum",
-  footerLive: "Öl live (OilPriceAPI) + Märkte Investing-Style (Yahoo).",
+  footerLive: "Öl & Märkte Investing-Style (Yahoo CL=F / BZ=F) — 1s Poll.",
   footerDemo:
-    "Entwicklungs-Demo — OILPRICEAPI_KEY für Live-Öl; Rest kommt via Yahoo.",
+    "Entwicklungs-Demo — Live-Kurse via Yahoo Futures (wie Investing).",
   footerDisclaimer:
     "Keine Anlageberatung. Keine Kauf-/Verkaufssignale.",
   loadingTerminal: "Terminal wird geladen…",
@@ -123,7 +123,7 @@ export const miDe = {
   runningScenarios: "Läuft…",
   replayFailed: "Replay fehlgeschlagen",
   noProviderWarning: "Kein Live-Provider — DEMO-DATEN werden angezeigt",
-  newsDemoWarning: "News: DEMO / TEST — NEWS_API_KEY für Live-News setzen",
+  newsDemoWarning: "News: DEMO — Free Oil-RSS prüfen / NEWS_DATA_PROVIDER=oil-rss",
   sources: "Quellen",
   status: "Status",
   confidence: "Konfidenz",

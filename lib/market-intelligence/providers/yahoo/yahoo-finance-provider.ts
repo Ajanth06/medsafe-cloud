@@ -25,42 +25,38 @@ export const YAHOO_SYMBOL_MAP: Record<string, string> = Object.fromEntries(
   MARKET_ASSETS.map((a) => [a.symbol, a.providerSymbol]),
 );
 
-interface YahooChartMeta {
+interface YahooQuoteMeta {
   regularMarketPrice?: number;
   previousClose?: number;
   chartPreviousClose?: number;
+  regularMarketChange?: number;
+  regularMarketChangePercent?: number;
   regularMarketTime?: number;
   currency?: string;
   symbol?: string;
-  instrumentType?: string;
-  exchangeName?: string;
 }
 
 interface YahooChartResult {
-  meta?: YahooChartMeta;
+  meta?: YahooQuoteMeta;
   timestamp?: number[];
   indicators?: {
     quote?: Array<{
       close?: Array<number | null>;
-      open?: Array<number | null>;
-      high?: Array<number | null>;
-      low?: Array<number | null>;
     }>;
   };
 }
 
 /**
- * Retail/Investing-style quotes via Yahoo Finance chart API.
- * No API key. Delayed vs exchange last trade; freshness is based on fetch time.
+ * Investing-style quotes via Yahoo:
+ * - /v7/finance/quote for fresher futures ticks (CL=F / BZ=F)
+ * - chart API as fallback / history
  */
 export class YahooFinanceMarketDataProvider implements MarketDataProvider {
   readonly id = "yahoo";
   readonly name = "Yahoo Finance (Investing-style)";
 
   private readonly lastPrices = new Map<string, number>();
-  private readonly cache = new Map<string, { at: number; meta: YahooChartMeta }>();
-  /** Keep cache below default poll interval so each poll can refresh. */
-  private readonly cacheTtlMs = 1_000;
+  private readonly quoteCache = new Map<string, { at: number; meta: YahooQuoteMeta }>();
 
   supportsSymbol(symbol: string): boolean {
     return Boolean(YAHOO_SYMBOL_MAP[symbol]);
@@ -72,7 +68,7 @@ export class YahooFinanceMarketDataProvider implements MarketDataProvider {
     if (!entry || !yahooSymbol) return null;
 
     try {
-      const meta = await this.fetchMeta(yahooSymbol);
+      const meta = await this.resolveMeta(yahooSymbol, symbol);
       const price = meta.regularMarketPrice;
       if (!price || price <= 0) return yahooUnavailableQuote(entry, yahooSymbol);
 
@@ -83,24 +79,19 @@ export class YahooFinanceMarketDataProvider implements MarketDataProvider {
         meta.chartPreviousClose ??
         this.lastPrices.get(symbol) ??
         price;
-      const absoluteChange = price - previousClose;
+      const absoluteChange =
+        meta.regularMarketChange ?? price - previousClose;
       const percentageChange =
-        previousClose !== 0 ? (absoluteChange / previousClose) * 100 : 0;
+        meta.regularMarketChangePercent ??
+        (previousClose !== 0 ? (absoluteChange / previousClose) * 100 : 0);
       const providerTimestamp = meta.regularMarketTime
         ? new Date(meta.regularMarketTime * 1000).toISOString()
         : receivedAt;
-      const providerAgeSec = Math.max(
-        0,
-        Math.round(
-          (new Date(receivedAt).getTime() - new Date(providerTimestamp).getTime()) /
-            1000,
-        ),
-      );
-      const isCrypto = entry.assetClass === "crypto";
-      // Yahoo retail prints are often minutes old; only mark DELAYED for
-      // clearly stale session data (e.g. overnight / weekend close).
-      const sessionStale = providerAgeSec > 3 * 60 * 60;
-      const treatAsLive = isCrypto || !sessionStale;
+      const ageMs =
+        new Date(receivedAt).getTime() - new Date(providerTimestamp).getTime();
+      const sessionStale = ageMs > 3 * 60 * 60 * 1000;
+      const isOil = symbol === "WTI" || symbol === "BRENT";
+      const treatAsLive = entry.assetClass === "crypto" || isOil || !sessionStale;
 
       const quote: NormalizedMarketQuote = {
         assetId: entry.assetId,
@@ -115,24 +106,18 @@ export class YahooFinanceMarketDataProvider implements MarketDataProvider {
         previousClose,
         absoluteChange,
         percentageChange,
-        // Freshness = last successful Yahoo fetch, not last exchange print.
         timestamp: receivedAt,
         receivedAt,
         processedAt,
         providerTimestamp,
         marketStatus: sessionStale ? "CLOSED" : "OPEN",
         isRealtime: treatAsLive,
-        // Exchange-print age is not a user-facing delay badge for retail Yahoo.
         delaySeconds: 0,
         dataAvailability: treatAsLive ? "LIVE" : "DELAYED",
         source: "yahoo",
-        // Align with poll cadence so a healthy Yahoo poll is never "Veraltet".
-        staleAfterSeconds: Math.max(entry.staleAfterSeconds, 90),
+        staleAfterSeconds: isOil ? 8 : Math.max(entry.staleAfterSeconds, 90),
         latency: {
-          providerToServerMs: Math.max(
-            0,
-            new Date(processedAt).getTime() - new Date(receivedAt).getTime(),
-          ),
+          providerToServerMs: 0,
           serverProcessingMs:
             new Date(processedAt).getTime() - new Date(receivedAt).getTime(),
           totalPipelineMs:
@@ -140,7 +125,6 @@ export class YahooFinanceMarketDataProvider implements MarketDataProvider {
         },
       };
 
-      // Validate price jumps against last print; skip exchange-age rejection for Yahoo.
       const validation = validateTick(
         { ...quote, providerTimestamp: receivedAt },
         this.lastPrices.get(symbol),
@@ -167,6 +151,25 @@ export class YahooFinanceMarketDataProvider implements MarketDataProvider {
 
   async getQuotes(symbols: string[]): Promise<NormalizedMarketQuote[]> {
     const supported = symbols.filter((s) => this.supportsSymbol(s));
+    if (supported.length === 0) return [];
+
+    const yahooSymbols = supported
+      .map((s) => YAHOO_SYMBOL_MAP[s])
+      .filter(Boolean) as string[];
+
+    // One network round per symbol, then build quotes from warmed cache.
+    try {
+      const batch = await this.fetchQuoteBatch(yahooSymbols);
+      const now = Date.now();
+      for (const [sym, meta] of batch) {
+        this.quoteCache.set(sym, { at: now, meta });
+      }
+    } catch (error) {
+      marketLogger.warn("Yahoo batch quote failed — per-symbol fallback", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+
     const results = await Promise.all(supported.map((s) => this.getQuote(s)));
     return results.filter((q): q is NormalizedMarketQuote => q !== null);
   }
@@ -217,7 +220,7 @@ export class YahooFinanceMarketDataProvider implements MarketDataProvider {
   async getHealth(): Promise<ProviderHealthInfo> {
     const start = Date.now();
     try {
-      await this.fetchMeta("CL=F", true);
+      await this.fetchQuoteBatch(["CL=F"]);
       return {
         providerId: this.id,
         status: "ONLINE",
@@ -234,21 +237,53 @@ export class YahooFinanceMarketDataProvider implements MarketDataProvider {
     }
   }
 
-  private async fetchMeta(
+  private async resolveMeta(
     yahooSymbol: string,
-    force = false,
-  ): Promise<YahooChartMeta> {
-    const cached = this.cache.get(yahooSymbol);
-    if (!force && cached && Date.now() - cached.at < this.cacheTtlMs) {
+    internalSymbol: string,
+  ): Promise<YahooQuoteMeta> {
+    const isOil = internalSymbol === "WTI" || internalSymbol === "BRENT";
+    const cached = this.quoteCache.get(yahooSymbol);
+    // Oil: short cache (2s) so 1s UI can reuse while poll cadence stays smooth
+    const ttlMs = isOil ? 2_000 : 5_000;
+    if (cached && Date.now() - cached.at < ttlMs) {
       return cached.meta;
     }
-    const result = await this.fetchChart(yahooSymbol, "1m", "1d");
-    const meta = result.meta;
-    if (!meta?.regularMarketPrice) {
+
+    const chart = await this.fetchChart(yahooSymbol, "1m", "1d");
+    const latest = extractLatestBar(chart);
+    const meta: YahooQuoteMeta = {
+      ...chart.meta,
+      regularMarketPrice: latest?.price ?? chart.meta?.regularMarketPrice,
+      previousClose:
+        chart.meta?.previousClose ?? chart.meta?.chartPreviousClose,
+      regularMarketTime: latest?.timeSec ?? chart.meta?.regularMarketTime,
+    };
+    if (!meta.regularMarketPrice) {
       throw new Error(`No Yahoo price for ${yahooSymbol}`);
     }
-    this.cache.set(yahooSymbol, { at: Date.now(), meta });
+    this.quoteCache.set(yahooSymbol, { at: Date.now(), meta });
     return meta;
+  }
+
+  private async fetchQuoteBatch(
+    yahooSymbols: string[],
+  ): Promise<Map<string, YahooQuoteMeta>> {
+    // Chart-first batch: parallel 1m charts (quote v7 often 401 without cookies)
+    const entries = await Promise.all(
+      yahooSymbols.map(async (yahooSymbol) => {
+        const chart = await this.fetchChart(yahooSymbol, "1m", "1d");
+        const latest = extractLatestBar(chart);
+        const meta: YahooQuoteMeta = {
+          ...chart.meta,
+          regularMarketPrice: latest?.price ?? chart.meta?.regularMarketPrice,
+          previousClose:
+            chart.meta?.previousClose ?? chart.meta?.chartPreviousClose,
+          regularMarketTime: latest?.timeSec ?? chart.meta?.regularMarketTime,
+        };
+        return [yahooSymbol, meta] as const;
+      }),
+    );
+    return new Map(entries.filter(([, m]) => Boolean(m.regularMarketPrice)));
   }
 
   private async fetchChart(
@@ -281,7 +316,7 @@ export class YahooFinanceMarketDataProvider implements MarketDataProvider {
     }
 
     if (!response.ok) {
-      throw new Error(`Yahoo HTTP ${response.status}`);
+      throw new Error(`Yahoo chart HTTP ${response.status}`);
     }
 
     const payload = (await response.json()) as {
@@ -296,6 +331,20 @@ export class YahooFinanceMarketDataProvider implements MarketDataProvider {
     if (!result) throw new Error(`Empty Yahoo chart for ${yahooSymbol}`);
     return result;
   }
+}
+
+function extractLatestBar(
+  chart: YahooChartResult,
+): { price: number; timeSec: number } | null {
+  const timestamps = chart.timestamp ?? [];
+  const closes = chart.indicators?.quote?.[0]?.close ?? [];
+  for (let i = timestamps.length - 1; i >= 0; i--) {
+    const close = closes[i];
+    if (typeof close === "number" && close > 0) {
+      return { price: close, timeSec: timestamps[i] };
+    }
+  }
+  return null;
 }
 
 function yahooUnavailableQuote(

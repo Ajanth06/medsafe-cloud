@@ -111,15 +111,13 @@ async function searchAllProviders(
     }
   }
 
-  // Offizielle RSS-Feeds (EIA, Fed) nur im Live-Modus — sonst englische Headlines im Demo-UI
-  if (config.isConfigured) {
-    try {
-      const officialItems = await official.searchByKeywords(keywords);
-      allItems.push(...officialItems);
-      providerIds.push(official.id);
-    } catch {
-      // official feeds optional
-    }
+  // Offizielle + Oil RSS immer (kostenlos) — nicht nur bei NewsAPI
+  try {
+    const officialItems = await official.searchByKeywords(keywords);
+    allItems.push(...officialItems);
+    providerIds.push(official.id);
+  } catch {
+    // official feeds optional
   }
 
   const deduped = deduplicateByTitle(allItems);
@@ -243,20 +241,41 @@ export async function processNewsFirstEvents(
 }
 
 function clusterToNewsEvent(cluster: IntelligenceEventCluster): NewsEvent {
+  const ageMs = Date.now() - new Date(cluster.firstReportAt).getTime();
+  const fresh = ageMs >= 0 && ageMs < 45 * 60_000;
+  const text = `${cluster.headline} ${cluster.summary}`;
+  const hot = /iran|hormuz|attack|strike|missile|drone|sanctions|opec|war|explosion|pipeline|embargo|angriff|sanktion/i.test(
+    text,
+  );
+  const flash = fresh || hot || cluster.watchMode;
+
   return {
     id: cluster.id,
     timestamp: cluster.firstReportAt,
     title: cluster.headline,
     summary: cluster.summary,
     eventType: cluster.newsEventType,
-    severity: cluster.priority === "CRITICAL" ? "CRITICAL" : cluster.priority === "HIGH" ? "HIGH" : "MEDIUM",
+    severity: hot
+      ? "HIGH"
+      : cluster.priority === "CRITICAL"
+        ? "CRITICAL"
+        : cluster.priority === "HIGH" || flash
+          ? "HIGH"
+          : "MEDIUM",
     sourceVerification: cluster.verification,
     affectedMarkets: cluster.potentiallyAffectedMarkets.map((symbol) => ({
       symbol,
       name: symbol,
       changePercent: 0,
     })),
-    status: cluster.state === "VERIFIED" || cluster.verification.status === "CONFIRMED" ? "CONFIRMED" : cluster.state === "WATCH" ? "MONITORING" : "ACTIVE",
+    status:
+      cluster.state === "VERIFIED" || cluster.verification.status === "CONFIRMED"
+        ? "CONFIRMED"
+        : cluster.state === "WATCH"
+          ? "MONITORING"
+          : "ACTIVE",
+    isFlash: Boolean(flash),
+    url: cluster.sources?.[0]?.url,
   };
 }
 
@@ -388,10 +407,10 @@ export async function runNewsPipeline(
     allClusters = investigated;
   }
 
-  // News-first: ingest breaking news and watch mode
+  // News-first: free Oil RSS breaking + official feeds always (no NewsAPI required)
   try {
-    const breaking = await newsProvider.getBreakingNews(10);
-    const officialNews = config.isConfigured ? await official.fetchLatest(10) : [];
+    const breaking = await newsProvider.getBreakingNews(15);
+    const officialNews = await official.fetchLatest(10);
     const newsFirst = await processNewsFirstEvents([...breaking, ...officialNews]);
     allClusters = mergeClusters(allClusters, newsFirst);
   } catch (error) {
@@ -481,8 +500,8 @@ export async function runNewsPipeline(
     isLive: config.isConfigured,
     primarySource: config.isConfigured
       ? primaryProvider.name
-      : "Demo-News (kein NEWS_API_KEY)",
-    officialSourceLabel: "Official RSS (Fed, EIA u. a.)",
+      : "Demo-News",
+    officialSourceLabel: "Free Oil RSS + Official (EIA, Fed, …)",
   };
 
   return {

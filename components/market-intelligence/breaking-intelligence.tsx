@@ -42,6 +42,11 @@ export function BreakingIntelligence({ events }: BreakingIntelligenceProps) {
               >
                 <CardContent className="space-y-3 p-5">
                   <div className="flex flex-wrap items-center gap-2">
+                    {event.isFlash && (
+                      <span className="rounded-md bg-orange-500 px-2 py-0.5 font-mono text-[9px] font-black uppercase tracking-wider text-white">
+                        Flash
+                      </span>
+                    )}
                     <SeverityBadge severity={event.severity} />
                     <span className="font-mono text-xs text-muted">
                       {formatTime(event.timestamp)} CET
@@ -54,7 +59,18 @@ export function BreakingIntelligence({ events }: BreakingIntelligenceProps) {
 
                   <div>
                     <h3 className="text-base font-semibold text-foreground">
-                      {event.title}
+                      {event.url ? (
+                        <a
+                          href={event.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="hover:text-orange-600 hover:underline"
+                        >
+                          {event.title}
+                        </a>
+                      ) : (
+                        event.title
+                      )}
                     </h3>
                     <p className="mt-1.5 text-sm leading-relaxed text-muted">
                       {event.summary}

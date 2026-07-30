@@ -19,9 +19,9 @@ function resolveMode(props: NewsStatusBadgeProps): {
   const isLive = props.newsHealth?.isLive ?? props.newsEngine === "ACTIVE";
   const primary =
     props.newsHealth?.primarySource ??
-    (isLive ? "NewsAPI.org" : "Demo-News (kein NEWS_API_KEY)");
+    (isLive ? "Oil RSS (Free)" : "Demo-News");
   const official =
-    props.newsHealth?.officialSourceLabel ?? "Official RSS (Fed, EIA u. a.)";
+    props.newsHealth?.officialSourceLabel ?? "Free Oil RSS + Official (EIA, Fed)";
   const source = `${primary} · ${official}`;
 
   if (monitoring === "OFFLINE") {

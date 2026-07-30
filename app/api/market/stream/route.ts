@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/market-intelligence/api/auth";
 import { withUserRateLimit } from "@/lib/market-intelligence/api/rate-limit";
-import { getStreamState, pollMarketData, startMarketStream } from "@/lib/market-intelligence/services/market-stream-service";
+import {
+  getQuotesSnapshotReady,
+  startMarketStream,
+} from "@/lib/market-intelligence/services/market-stream-service";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -26,12 +29,13 @@ export async function GET(request: Request) {
       };
 
       const push = async () => {
-        await pollMarketData();
-        const state = getStreamState();
+        // Serve cache fast; background poll keeps it warm
+        const state = await getQuotesSnapshotReady(1_500);
         send("quotes", {
           quotes: state.quotes,
           lastPollAt: state.lastPollAt,
           isDemo: state.isDemo,
+          refreshing: state.refreshing,
         });
       };
 

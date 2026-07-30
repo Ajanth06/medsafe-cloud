@@ -6,7 +6,7 @@ import {
   getPriceHistoryBuffer,
   resetPriceHistoryBuffer,
 } from "@/lib/market-intelligence/engine/price-history-buffer";
-import { createMarketDataProvider } from "@/lib/market-intelligence/providers/provider-factory";
+import { getSharedMarketDataProvider } from "@/lib/market-intelligence/providers/provider-factory";
 import { fetchQuotesWithFailover } from "@/lib/market-intelligence/providers/provider-failover";
 import {
   recordProviderFailure,
@@ -121,7 +121,7 @@ async function pollMarketData(): Promise<void> {
 
 async function runPollMarketData(): Promise<void> {
   const config = getMarketProviderConfig();
-  const provider = createMarketDataProvider();
+  const provider = getSharedMarketDataProvider();
   const symbols = SYMBOL_REGISTRY.map((e) => e.internalSymbol);
 
   try {
@@ -261,6 +261,58 @@ export function stopMarketStream(): void {
 
 export function getStreamState(): StreamState {
   return streamState;
+}
+
+/**
+ * Fast path for UI: return last quotes immediately.
+ * Kick a background refresh if the cache is older than minAgeMs.
+ */
+export function getQuotesSnapshot(minAgeMs = 1_500): {
+  quotes: EnrichedMarketQuote[];
+  lastPollAt: string | null;
+  isDemo: boolean;
+  error: string | null;
+  refreshing: boolean;
+} {
+  startMarketStream();
+
+  const ageMs = streamState.lastPollAt
+    ? Date.now() - new Date(streamState.lastPollAt).getTime()
+    : Number.POSITIVE_INFINITY;
+
+  let refreshing = false;
+  if (ageMs > minAgeMs && !pollInFlight) {
+    refreshing = true;
+    void pollMarketData();
+  } else if (pollInFlight) {
+    refreshing = true;
+  }
+
+  // Cold start: must wait once
+  if (streamState.quotes.length === 0) {
+    return {
+      quotes: [],
+      lastPollAt: streamState.lastPollAt,
+      isDemo: streamState.isDemo,
+      error: streamState.lastError,
+      refreshing: true,
+    };
+  }
+
+  return {
+    quotes: streamState.quotes,
+    lastPollAt: streamState.lastPollAt,
+    isDemo: streamState.isDemo,
+    error: streamState.lastError,
+    refreshing,
+  };
+}
+
+export async function getQuotesSnapshotReady(minAgeMs = 1_500) {
+  const snap = getQuotesSnapshot(minAgeMs);
+  if (snap.quotes.length > 0) return snap;
+  await pollMarketData();
+  return getQuotesSnapshot(minAgeMs);
 }
 
 function toLegacyDetectionRules() {

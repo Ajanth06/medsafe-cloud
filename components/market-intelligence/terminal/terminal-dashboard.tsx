@@ -6,6 +6,7 @@ import { signOut } from "@/app/auth/actions";
 import { AlertCenter } from "@/components/market-intelligence/alert-center";
 import { AlertHistory } from "@/components/market-intelligence/alert-history";
 import { BreakingIntelligence } from "@/components/market-intelligence/breaking-intelligence";
+import { FlashNewsStrip } from "@/components/market-intelligence/flash-news-strip";
 import { EnablePushAlertsButton } from "@/components/market-intelligence/enable-push-alerts-button";
 import { IntelligenceAlerts } from "@/components/market-intelligence/intelligence-alerts";
 import { IntelligenceEventsSection } from "@/components/market-intelligence/intelligence-events-section";
@@ -27,6 +28,7 @@ import { TerminalMarketPulse } from "@/components/market-intelligence/terminal/t
 import { MorningBriefing } from "@/components/market-intelligence/terminal/morning-briefing";
 import { TerminalSearchBar } from "@/components/market-intelligence/terminal/terminal-search-bar";
 import { WatchlistPanel, loadWatchlistFromStorage } from "@/components/market-intelligence/terminal/watchlist-panel";
+import { useLiveFlashNews } from "@/components/market-intelligence/use-live-flash-news";
 import { useLiveMarketQuotes } from "@/components/market-intelligence/use-live-market-quotes";
 import {
   filterDeliveredAlerts,
@@ -64,7 +66,9 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
   );
 
   const live = useLiveMarketQuotes(data.quotes);
+  const flash = useLiveFlashNews(data.breakingNews);
   const quotes = live.quotes;
+  const breakingNews = flash.events;
   const primaryQuotes = useMemo(
     () => quotes.filter((q) => PRIMARY.has(q.symbol)),
     [quotes],
@@ -162,7 +166,7 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
             />
             <span className="hidden items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-cyan-200 md:inline-flex">
               <Radio className="h-3 w-3 text-cyan-300" aria-hidden="true" />
-              {live.connected ? `Live 1s · ${data.systemHealth.dataSource}` : data.systemHealth.dataSource}
+              {live.connected ? `Live · ${data.systemHealth.dataSource}` : data.systemHealth.dataSource}
             </span>
             {live.lastPollAt && (
               <span className="hidden font-mono text-[9px] text-slate-400 md:inline">
@@ -241,9 +245,10 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
 
           {view === "overview" && (
             <>
+              <FlashNewsStrip events={breakingNews} />
               <MorningBriefing
                 quotes={quotes}
-                breakingNews={data.breakingNews}
+                breakingNews={breakingNews}
                 intelligenceEvents={data.intelligenceEvents}
                 unreadAlertCount={data.unreadAlertCount ?? 0}
               />
@@ -282,11 +287,12 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
 
           {view === "intelligence" && (
             <>
+              <FlashNewsStrip events={breakingNews} />
               {data.intelligenceAlerts.length > 0 && (
                 <IntelligenceAlerts alerts={data.intelligenceAlerts} />
               )}
               <IntelligenceEventsSection events={filteredIntel.length ? filteredIntel : data.intelligenceEvents} />
-              <BreakingIntelligence events={data.breakingNews} />
+              <BreakingIntelligence events={breakingNews} />
               <OilIntelligenceSection
                 wti={primaryQuotes.find((q) => q.symbol === "WTI")}
                 brent={primaryQuotes.find((q) => q.symbol === "BRENT")}

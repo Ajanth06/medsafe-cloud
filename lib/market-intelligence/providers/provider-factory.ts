@@ -17,9 +17,43 @@ export type MarketDataProviderType =
   | "investing"
   | "composite";
 
+/** Reuse one provider instance so Yahoo/Oil caches survive across polls. */
+let sharedProvider: MarketDataProvider | null = null;
+let sharedProviderKey = "";
+
+function providerCacheKey(): string {
+  const market = getMarketProviderConfig();
+  const oil = getOilPriceApiConfig();
+  return [
+    market.provider,
+    market.apiKey ? "poly" : "",
+    oil.isConfigured ? "oil" : "",
+  ].join(":");
+}
+
 /**
- * Default: OilPriceAPI live for WTI/Brent + Yahoo Investing-style for the rest.
- * Pass an explicit type only for single-provider tests.
+ * Singleton market provider — critical for smooth live UI (keeps Yahoo cache).
+ */
+export function getSharedMarketDataProvider(
+  type?: MarketDataProviderType,
+): MarketDataProvider {
+  if (type) return createMarketDataProvider(type);
+
+  const key = providerCacheKey();
+  if (!sharedProvider || sharedProviderKey !== key) {
+    sharedProvider = createMarketDataProvider();
+    sharedProviderKey = key;
+  }
+  return sharedProvider;
+}
+
+export function resetSharedMarketDataProvider(): void {
+  sharedProvider = null;
+  sharedProviderKey = "";
+}
+
+/**
+ * Default: Yahoo Investing-style (CL=F/BZ=F) + OilPriceAPI fallback.
  */
 export function createMarketDataProvider(
   type?: MarketDataProviderType,
@@ -27,7 +61,6 @@ export function createMarketDataProvider(
   const marketConfig = getMarketProviderConfig();
   const oilConfig = getOilPriceApiConfig();
 
-  // Default / yahoo / investing / composite → hybrid (oil live + yahoo rest)
   if (!type) {
     if (marketConfig.isConfigured || oilConfig.isConfigured) {
       return createCompositeMarketDataProvider();
@@ -56,9 +89,8 @@ export function createMarketDataProvider(
     return new PolygonRestMarketDataProvider(marketConfig.apiKey);
   }
 
-  // yahoo / investing alone = Yahoo only (no oil priority)
   if (type === "yahoo" || type === "investing") {
-    marketLogger.info("Using Yahoo Finance only (no OilPriceAPI priority)");
+    marketLogger.info("Using Yahoo Finance only");
     return new YahooFinanceMarketDataProvider();
   }
 
@@ -74,5 +106,5 @@ export function getConfiguredProviderType(): MarketDataProviderType {
 
 export function getProviderForAsset(symbol: string): MarketDataProvider {
   void getSymbolEntry(symbol);
-  return createMarketDataProvider();
+  return getSharedMarketDataProvider();
 }

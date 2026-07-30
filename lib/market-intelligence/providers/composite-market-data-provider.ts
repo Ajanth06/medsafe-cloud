@@ -1,6 +1,5 @@
 import { getOilPriceApiConfig } from "@/lib/market-intelligence/config/oilpriceapi-config";
 import { getMarketProviderConfig } from "@/lib/market-intelligence/config/provider-config";
-import { DevelopmentMarketDataProvider } from "@/lib/market-intelligence/providers/development-market-data-provider";
 import type {
   MarketDataProvider,
   ProviderHealthInfo,
@@ -26,9 +25,10 @@ function isUsable(quote: NormalizedMarketQuote | null | undefined): boolean {
 }
 
 /**
- * Routing:
- * - WTI / Brent → OilPriceAPI first (live oil), Yahoo only if oil fails
- * - All other assets → Yahoo Investing-style first, Polygon optional fallback
+ * Routing (Investing-style movement):
+ * - WTI / Brent → Yahoo CL=F / BZ=F first (ticks like Investing)
+ * - OilPriceAPI only as oil fallback (spot updates slowly)
+ * - Other assets → Yahoo, then Polygon if keyed
  */
 export class CompositeMarketDataProvider implements MarketDataProvider {
   readonly id = "composite";
@@ -46,22 +46,25 @@ export class CompositeMarketDataProvider implements MarketDataProvider {
     this.oil = opts?.oil ?? null;
     this.yahoo = opts?.yahoo ?? new YahooFinanceMarketDataProvider();
     this.polygon = opts?.polygon ?? null;
-    const parts = [
-      this.oil ? "OilPriceAPI (WTI/Brent live)" : null,
-      "Yahoo (Investing-style)",
+    this.name = [
+      "Yahoo (Investing futures/index)",
+      this.oil ? "OilPriceAPI fallback" : null,
       this.polygon ? "Polygon fallback" : null,
-    ].filter(Boolean);
-    this.name = parts.join(" + ");
+    ]
+      .filter(Boolean)
+      .join(" + ");
   }
 
   async getQuote(symbol: string): Promise<NormalizedMarketQuote | null> {
-    if (this.oil?.supportsSymbol(symbol)) {
-      const oil = await this.oil.getQuote(symbol);
-      if (isUsable(oil)) return oil;
-      // Oil failed → Yahoo so oil never goes blank
+    // Oil: Yahoo futures first so prices move like Investing
+    if (symbol === "WTI" || symbol === "BRENT") {
       const yahooOil = await this.yahoo.getQuote(symbol);
       if (isUsable(yahooOil)) return yahooOil;
-      return oil;
+      if (this.oil?.supportsSymbol(symbol)) {
+        const oil = await this.oil.getQuote(symbol);
+        if (isUsable(oil)) return oil;
+      }
+      return yahooOil;
     }
 
     if (this.yahoo.supportsSymbol(symbol)) {
@@ -79,35 +82,31 @@ export class CompositeMarketDataProvider implements MarketDataProvider {
 
   async getQuotes(symbols: string[]): Promise<NormalizedMarketQuote[]> {
     const bySymbol = new Map<string, NormalizedMarketQuote>();
-    const oilSymbols = symbols.filter((s) => this.oil?.supportsSymbol(s));
-    const otherSymbols = symbols.filter((s) => !this.oil?.supportsSymbol(s));
 
-    // 1) Oil live via OilPriceAPI
-    if (this.oil && oilSymbols.length) {
-      const oilQuotes = await this.oil.getQuotes(oilSymbols);
-      for (const q of oilQuotes) {
-        if (isUsable(q)) bySymbol.set(q.symbol, q);
-      }
-    }
-
-    // 2) Missing oil → Yahoo so oil always has a number
-    const missingOil = oilSymbols.filter((s) => !bySymbol.has(s));
-    if (missingOil.length) {
-      const yahooOil = await this.yahoo.getQuotes(missingOil);
-      for (const q of yahooOil) {
-        if (isUsable(q)) bySymbol.set(q.symbol, q);
-      }
-    }
-
-    // 3) Rest → Yahoo Investing-style
-    if (otherSymbols.length) {
-      const yahooQuotes = await this.yahoo.getQuotes(otherSymbols);
+    // 1) Everything via Yahoo first (WTI=CL=F, BRENT=BZ=F, DAX, …)
+    const yahooTargets = symbols.filter((s) => this.yahoo.supportsSymbol(s));
+    if (yahooTargets.length) {
+      const yahooQuotes = await this.yahoo.getQuotes(yahooTargets);
       for (const q of yahooQuotes) {
         if (isUsable(q)) bySymbol.set(q.symbol, q);
       }
     }
 
-    // 4) Still missing non-oil → Polygon if keyed
+    // 2) Missing oil only → OilPriceAPI spot fallback
+    const missingOil = symbols.filter(
+      (s) =>
+        (s === "WTI" || s === "BRENT") &&
+        !bySymbol.has(s) &&
+        this.oil?.supportsSymbol(s),
+    );
+    if (this.oil && missingOil.length) {
+      const oilQuotes = await this.oil.getQuotes(missingOil);
+      for (const q of oilQuotes) {
+        if (isUsable(q)) bySymbol.set(q.symbol, q);
+      }
+    }
+
+    // 3) Still missing → Polygon
     const stillMissing = symbols.filter((s) => !bySymbol.has(s));
     if (this.polygon && stillMissing.length) {
       const polyQuotes = await this.polygon.getQuotes(stillMissing);
@@ -125,12 +124,11 @@ export class CompositeMarketDataProvider implements MarketDataProvider {
     symbol: string,
     interval: string,
   ): Promise<HistoricalPrice[]> {
-    if (this.oil?.supportsSymbol(symbol)) {
-      const rows = await this.oil.getHistoricalPrices(symbol, interval);
-      if (rows.length) return rows;
-    }
     const yahooRows = await this.yahoo.getHistoricalPrices(symbol, interval);
     if (yahooRows.length) return yahooRows;
+    if (this.oil?.supportsSymbol(symbol)) {
+      return this.oil.getHistoricalPrices(symbol, interval);
+    }
     if (this.polygon) return this.polygon.getHistoricalPrices(symbol, interval);
     return yahooRows;
   }
@@ -139,26 +137,25 @@ export class CompositeMarketDataProvider implements MarketDataProvider {
     symbol: string,
     windowMinutes: TimeWindowMinutes,
   ): Promise<WindowReturnDetail | null> {
-    if (this.oil?.supportsSymbol(symbol)) {
-      const detail = await this.oil.getPriceChange(symbol, windowMinutes);
-      if (detail) return detail;
-    }
     const yahooDetail = await this.yahoo.getPriceChange(symbol, windowMinutes);
     if (yahooDetail) return yahooDetail;
+    if (this.oil?.supportsSymbol(symbol)) {
+      return this.oil.getPriceChange(symbol, windowMinutes);
+    }
     if (this.polygon) return this.polygon.getPriceChange(symbol, windowMinutes);
     return yahooDetail;
   }
 
   async getHealth(): Promise<ProviderHealthInfo> {
-    const [oilHealth, yahooHealth, polygonHealth] = await Promise.all([
+    const [yahooHealth, oilHealth, polygonHealth] = await Promise.all([
+      this.yahoo.getHealth(),
       this.oil?.getHealth() ??
         Promise.resolve({
           providerId: "oilpriceapi",
           status: "OFFLINE" as const,
           lastUpdate: null,
-          error: "OILPRICEAPI_KEY missing",
+          error: "not configured",
         }),
-      this.yahoo.getHealth(),
       this.polygon?.getHealth() ??
         Promise.resolve({
           providerId: "polygon",
@@ -173,17 +170,11 @@ export class CompositeMarketDataProvider implements MarketDataProvider {
     if (this.polygon) enabled.push(polygonHealth);
 
     const online = enabled.some((h) => h.status === "ONLINE");
-    // Oil is critical — degrade if oil key exists but oil is offline
-    const oilDegraded = Boolean(this.oil) && oilHealth.status !== "ONLINE";
     const anyOffline = enabled.some((h) => h.status === "OFFLINE");
 
     return {
       providerId: this.id,
-      status: online
-        ? oilDegraded || anyOffline
-          ? "DEGRADED"
-          : "ONLINE"
-        : "OFFLINE",
+      status: online ? (anyOffline ? "DEGRADED" : "ONLINE") : "OFFLINE",
       lastUpdate: enabled.find((h) => h.lastUpdate)?.lastUpdate ?? null,
       latencyMs: enabled.find((h) => h.latencyMs != null)?.latencyMs,
       error:
@@ -207,15 +198,10 @@ export function createCompositeMarketDataProvider(): MarketDataProvider {
     ? new PolygonRestMarketDataProvider(marketConfig.apiKey ?? undefined)
     : null;
 
-  if (!oil) {
-    marketLogger.warn(
-      "OILPRICEAPI_KEY missing — WTI/Brent fall back to Yahoo (delayed)",
-    );
-  } else {
-    marketLogger.info("Oil live via OilPriceAPI; other assets via Yahoo", {
-      oilSymbols: ["WTI", "BRENT"],
-    });
-  }
+  marketLogger.info("Using Investing-style Yahoo for oil + markets", {
+    oilFallback: Boolean(oil),
+    symbols: { WTI: "CL=F", BRENT: "BZ=F", DAX: "^GDAXI" },
+  });
 
   return new CompositeMarketDataProvider({ oil, yahoo, polygon });
 }

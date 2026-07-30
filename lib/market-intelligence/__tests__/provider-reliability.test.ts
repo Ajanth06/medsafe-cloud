@@ -95,8 +95,8 @@ describe("provider reliability", () => {
     });
 
     const provider = new CompositeMarketDataProvider({
-      market: secondary,
-      yahooFallback: primary as never,
+      yahoo: primary as never,
+      polygon: secondary,
     });
 
     const health = await provider.getHealth();

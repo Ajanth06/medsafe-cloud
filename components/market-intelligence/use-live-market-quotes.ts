@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { EnrichedMarketQuote } from "@/lib/types/market";
 
 interface LiveQuotesPayload {
@@ -8,12 +8,20 @@ interface LiveQuotesPayload {
   lastPollAt: string | null;
   isDemo: boolean;
   error?: string | null;
+  refreshing?: boolean;
 }
 
+/** UI reads every 1s; server may refresh Yahoo every ~2s from cache. */
 const LIVE_POLL_MS = 1_000;
 
+function quotesFingerprint(quotes: EnrichedMarketQuote[]): string {
+  return quotes
+    .map((q) => `${q.symbol}:${q.price}:${q.percentageChange}:${q.dataAvailability}`)
+    .join("|");
+}
+
 /**
- * Polls /api/market/quotes every second so the terminal shows live prices.
+ * Smooth live quotes: poll cache every second without waiting on Yahoo.
  */
 export function useLiveMarketQuotes(initialQuotes: EnrichedMarketQuote[]) {
   const [quotes, setQuotes] = useState(initialQuotes);
@@ -21,9 +29,14 @@ export function useLiveMarketQuotes(initialQuotes: EnrichedMarketQuote[]) {
   const [isDemo, setIsDemo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
+  const fingerprintRef = useRef(quotesFingerprint(initialQuotes));
 
   useEffect(() => {
-    setQuotes(initialQuotes);
+    const next = quotesFingerprint(initialQuotes);
+    if (next !== fingerprintRef.current) {
+      fingerprintRef.current = next;
+      setQuotes(initialQuotes);
+    }
   }, [initialQuotes]);
 
   useEffect(() => {
@@ -41,14 +54,22 @@ export function useLiveMarketQuotes(initialQuotes: EnrichedMarketQuote[]) {
         if (!res.ok) {
           if (!cancelled) {
             setConnected(false);
-            setError(res.status === 429 ? "Rate limit — kurz warten" : `HTTP ${res.status}`);
+            setError(
+              res.status === 429 ? "Rate limit — kurz warten" : `HTTP ${res.status}`,
+            );
           }
           return;
         }
         const data = (await res.json()) as LiveQuotesPayload;
         if (cancelled) return;
+
         if (Array.isArray(data.quotes) && data.quotes.length > 0) {
-          setQuotes(data.quotes);
+          const next = quotesFingerprint(data.quotes);
+          // Skip React re-render when prices unchanged → no UI stutter
+          if (next !== fingerprintRef.current) {
+            fingerprintRef.current = next;
+            setQuotes(data.quotes);
+          }
         }
         setLastPollAt(data.lastPollAt);
         setIsDemo(Boolean(data.isDemo));

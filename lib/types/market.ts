@@ -597,6 +597,9 @@ export interface NewsEvent {
   sourceVerification: SourceVerification;
   affectedMarkets: AffectedMarket[];
   status: EventStatus;
+  /** Fresh oil/geopolitical flash item */
+  isFlash?: boolean;
+  url?: string;
 }
 
 export interface NormalizedNewsItem {

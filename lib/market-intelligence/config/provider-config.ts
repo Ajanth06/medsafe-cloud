@@ -56,7 +56,7 @@ export function getMarketProviderConfig(): MarketProviderConfig {
       process.env.MARKET_DATA_REST_URL ?? "https://api.polygon.io",
     websocketUrl:
       process.env.MARKET_DATA_WEBSOCKET_URL ?? "wss://socket.polygon.io",
-    pollIntervalMs: Number(process.env.MARKET_POLL_INTERVAL_MS ?? 1_000),
+    pollIntervalMs: Number(process.env.MARKET_POLL_INTERVAL_MS ?? 2_000),
     websocketEnabled: process.env.MARKET_DATA_WEBSOCKET_ENABLED === "true",
     isConfigured,
     oilConfigured,
