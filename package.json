@@ -12,7 +12,9 @@
     "mi:migrate": "npx tsx scripts/apply-mi-migrations.ts",
     "mi:verify": "npx tsx scripts/verify-mi-supabase.ts",
     "mi:validate": "npx tsx scripts/aaryx-validate.ts",
-    "mi:worker": "npx tsx scripts/aaryx-worker.ts"
+    "mi:worker": "npx tsx scripts/aaryx-worker.ts",
+    "mi:live-check": "npx tsx scripts/go-live-check.ts",
+    "mi:worker-env-check": "npx tsx scripts/worker-env-check.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

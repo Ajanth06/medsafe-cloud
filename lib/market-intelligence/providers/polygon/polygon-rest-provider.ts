@@ -30,6 +30,37 @@ import type {
 } from "@/lib/types/market";
 import { getPriceHistoryBuffer } from "@/lib/market-intelligence/engine/price-history-buffer";
 
+/** Map Massive futures snapshot snake_case payload into normalizer shape. */
+function mapFuturesSnapshot(
+  row: PolygonSnapshotTicker,
+  ticker: string,
+): PolygonSnapshotTicker {
+  const price = row.last_trade?.price ?? row.session?.close ?? row.lastTrade?.p;
+  const tradeTs = row.last_trade?.last_updated ?? row.lastTrade?.t;
+  const bid = row.last_quote?.bid ?? row.lastQuote?.p;
+  const ask = row.last_quote?.ask ?? row.lastQuote?.P;
+  const quoteTs =
+    row.last_quote?.last_updated ??
+    row.last_quote?.bid_timestamp ??
+    row.lastQuote?.t;
+
+  return {
+    ...row,
+    ticker: row.ticker ?? ticker,
+    lastTrade:
+      price != null
+        ? { p: price, t: tradeTs }
+        : row.lastTrade,
+    lastQuote:
+      bid != null || ask != null
+        ? { p: bid, P: ask, t: quoteTs }
+        : row.lastQuote,
+    day: row.day ?? (row.session?.close != null ? { c: row.session.close } : undefined),
+    todaysChangePerc: row.todaysChangePerc ?? row.session?.change_percent,
+    updated: row.updated ?? tradeTs ?? quoteTs,
+  };
+}
+
 export class PolygonRestMarketDataProvider implements MarketDataProvider {
   readonly id = "polygon";
   readonly name = "Polygon.io";
@@ -151,10 +182,13 @@ export class PolygonRestMarketDataProvider implements MarketDataProvider {
 
     try {
       if (market === "futures") {
+        // Correct endpoint: GET /futures/v1/snapshot?ticker=CLU6 (not /snapshot/{ticker})
         const response = await this.client.fetchJson<{
-          results?: PolygonSnapshotTicker;
-        }>(`/futures/v1/snapshot/${encodeURIComponent(ticker)}`);
-        return response.results ?? null;
+          results?: PolygonSnapshotTicker[] | PolygonSnapshotTicker;
+        }>("/futures/v1/snapshot", { ticker });
+        const results = response.results;
+        const row = Array.isArray(results) ? results[0] : results;
+        return row ? mapFuturesSnapshot(row, ticker) : null;
       }
 
       if (market === "forex") {

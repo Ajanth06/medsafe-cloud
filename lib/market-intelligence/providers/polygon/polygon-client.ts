@@ -59,7 +59,10 @@ export interface PolygonFuturesContract {
   ticker: string;
   product_code?: string;
   expiration_date?: string;
+  last_trade_date?: string;
   active?: boolean;
+  type?: string;
+  name?: string;
 }
 
 export interface PolygonSnapshotTicker {
@@ -73,4 +76,14 @@ export interface PolygonSnapshotTicker {
   session?: { change_percent?: number; change?: number; close?: number };
   fmvs?: { fmv?: number };
   updated?: number;
+  /** Futures snapshot snake_case fields */
+  last_trade?: { price?: number; size?: number; last_updated?: number };
+  last_quote?: {
+    ask?: number;
+    bid?: number;
+    ask_timestamp?: number;
+    bid_timestamp?: number;
+    last_updated?: number;
+  };
+  product_code?: string;
 }

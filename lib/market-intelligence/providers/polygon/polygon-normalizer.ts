@@ -25,7 +25,9 @@ export function normalizePolygonQuote(input: NormalizeInput): NormalizedMarketQu
 
   const price =
     snapshot.lastTrade?.p ??
+    snapshot.last_trade?.price ??
     snapshot.lastQuote?.P ??
+    snapshot.last_quote?.ask ??
     snapshot.day?.c ??
     snapshot.session?.close ??
     snapshot.fmvs?.fmv;
@@ -33,13 +35,19 @@ export function normalizePolygonQuote(input: NormalizeInput): NormalizedMarketQu
   if (!price || price <= 0) return null;
 
   const previousClose = snapshot.prevDay?.c ?? snapshot.day?.o ?? price;
-  const absoluteChange = price - previousClose;
+  const absoluteChange =
+    snapshot.session?.change ?? price - previousClose;
   const percentageChange =
     snapshot.todaysChangePerc ??
     snapshot.session?.change_percent ??
     (previousClose !== 0 ? (absoluteChange / previousClose) * 100 : 0);
 
-  const providerTs = snapshot.lastTrade?.t ?? snapshot.lastQuote?.t ?? snapshot.updated;
+  const providerTs =
+    snapshot.lastTrade?.t ??
+    snapshot.last_trade?.last_updated ??
+    snapshot.lastQuote?.t ??
+    snapshot.last_quote?.last_updated ??
+    snapshot.updated;
   const providerTimestamp = providerTs != null ? parsePolygonTimestamp(providerTs) : null;
 
   return {

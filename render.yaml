@@ -1,0 +1,56 @@
+# Render Blueprint — AARYX background worker
+# Docs: https://render.com/docs/background-workers
+#
+# After deploy: copy all server env vars from .env.local into the Render dashboard.
+# NEXT_PUBLIC_SITE_URL should be your live app URL (e.g. https://www.medsafe-cloud.de).
+
+services:
+  - type: worker
+    name: aaryx-worker
+    runtime: docker
+    dockerfilePath: ./Dockerfile.worker
+    plan: starter
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MI_PERSISTENCE_ENABLED
+        value: "true"
+      - key: MARKET_DATA_PROVIDER
+        value: polygon
+      - key: NEWS_DATA_PROVIDER
+        value: newsapi
+      - key: AI_PROVIDER
+        value: openai
+      - key: ALERT_DELIVERY_ENABLED
+        value: "true"
+      - key: BACKGROUND_WORKERS_ENABLED
+        value: "true"
+      - key: MARKET_MONITORING_ENABLED
+        value: "true"
+      - key: NEWS_MONITORING_ENABLED
+        value: "true"
+      - key: AI_ANALYSIS_ENABLED
+        value: "true"
+      - key: WORKER_TICK_INTERVAL_MS
+        value: "15000"
+      - key: WORKER_INSTANCE_ID
+        value: aaryx-worker-render
+      # --- set these in Render dashboard (secrets) ---
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
+      - key: MARKET_DATA_API_KEY
+        sync: false
+      - key: NEWS_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: WORKER_SECRET
+        sync: false
+      - key: CRON_SECRET
+        sync: false
