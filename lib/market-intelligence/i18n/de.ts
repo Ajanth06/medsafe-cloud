@@ -7,7 +7,7 @@ export const miDe = {
   terminalSubtitle: "Marktintelligenz-Kontrollzentrum",
   footerLive: "Live-Marktdaten aktiv.",
   footerDemo:
-    "Entwicklungs-Demo — MARKET_DATA_PROVIDER=polygon und MARKET_DATA_API_KEY für Live-Feeds setzen.",
+    "Entwicklungs-Demo — OILPRICEAPI_KEY für Live-Öl (WTI/Brent) setzen; Polygon optional für andere Assets.",
   footerDisclaimer:
     "Keine Anlageberatung. Keine Kauf-/Verkaufssignale.",
   loadingTerminal: "Terminal wird geladen…",
@@ -41,7 +41,7 @@ export const miDe = {
   liveMarketsEnergy: "Live-Märkte — Energie-Benchmarks",
   globalMarkets: "Globale Märkte",
   dataUnavailable: "Daten nicht verfügbar",
-  configureApiKey: "MARKET_DATA_API_KEY für Live-Kurse konfigurieren",
+  configureApiKey: "OILPRICEAPI_KEY für Live-Ölkurse konfigurieren",
   day: "Tag",
   stale: "Veraltet —",
   updated: "Aktualisiert",

@@ -40,6 +40,110 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+.aaryx-terminal-theme {
+  color-scheme: dark;
+  --background: #0b1520;
+  --foreground: #f8fafc;
+  --muted: #94a3b8;
+  --card: #101c29;
+  --card-foreground: #f8fafc;
+  --primary: #f97316;
+  --border: rgb(255 255 255 / 0.1);
+}
+
+.aaryx-terminal-theme [data-ui="card"] {
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.18),
+    0 12px 32px rgb(0 0 0 / 0.16);
+  backdrop-filter: blur(14px);
+}
+
+/* Mobile-App-Design: eigenständig bis einschließlich 767 px. */
+@media (max-width: 767px) {
+  .aaryx-terminal-theme [data-ui="card"],
+  .aaryx-terminal-theme [class~="bg-card"],
+  .aaryx-terminal-theme [class~="bg-card/60"] {
+    border-color: rgb(255 255 255 / 0.1) !important;
+    background-color: rgb(13 24 36 / 0.98) !important;
+    color: #f8fafc !important;
+  }
+}
+
+/* Web-Design: eigenständig ab 768 px. */
+@media (min-width: 768px) {
+  .aaryx-terminal-theme [data-ui="card"],
+  .aaryx-terminal-theme [class~="bg-card"],
+  .aaryx-terminal-theme [class~="bg-card/60"] {
+    border-color: rgb(255 255 255 / 0.1) !important;
+    background-color: rgb(16 28 41 / 0.9) !important;
+    color: #f8fafc !important;
+  }
+}
+
+.aaryx-terminal-grid {
+  background-image:
+    linear-gradient(rgb(148 163 184 / 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(148 163 184 / 0.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, black 0%, transparent 88%);
+}
+
+.terminal-card-glow::after {
+  position: absolute;
+  width: 8rem;
+  height: 8rem;
+  top: -4rem;
+  right: -4rem;
+  border-radius: 9999px;
+  background: rgb(34 211 238 / 0.14);
+  filter: blur(22px);
+  opacity: 0;
+  content: "";
+  pointer-events: none;
+  transition:
+    opacity 300ms ease,
+    transform 500ms ease;
+}
+
+.terminal-card-glow:hover::after {
+  opacity: 1;
+  transform: translate(-1rem, 1rem) scale(1.15);
+}
+
+@keyframes terminal-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  50% {
+    transform: translate3d(0, -10px, 0) rotate(3deg);
+  }
+}
+
+.terminal-float {
+  animation: terminal-float 7s ease-in-out infinite;
+}
+
+@keyframes market-ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.market-ticker-track {
+  animation: market-ticker 34s linear infinite;
+}
+
+.app-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.app-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 html,
 body {
   background: var(--background);
@@ -188,6 +292,14 @@ body {
   .market-route,
   .market-node-ring,
   .live-dot {
+    animation: none;
+  }
+
+  .terminal-float {
+    animation: none;
+  }
+
+  .market-ticker-track {
     animation: none;
   }
 

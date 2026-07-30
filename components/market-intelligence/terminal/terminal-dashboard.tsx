@@ -23,6 +23,8 @@ import { OilTerminalView } from "@/components/market-intelligence/terminal/oil-t
 import { OperationsConsole } from "@/components/market-intelligence/terminal/operations-console";
 import { ValidationDashboard } from "@/components/market-intelligence/terminal/validation-dashboard";
 import { TerminalNav, useTerminalView } from "@/components/market-intelligence/terminal/terminal-nav";
+import { TerminalMarketPulse } from "@/components/market-intelligence/terminal/terminal-market-pulse";
+import { MorningBriefing } from "@/components/market-intelligence/terminal/morning-briefing";
 import { TerminalSearchBar } from "@/components/market-intelligence/terminal/terminal-search-bar";
 import { WatchlistPanel, loadWatchlistFromStorage } from "@/components/market-intelligence/terminal/watchlist-panel";
 import {
@@ -84,21 +86,21 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
   const watchlistQuotes = data.quotes.filter((q) => watchlist.includes(q.symbol));
 
   return (
-    <div className="space-y-5">
-      <header className="rounded-[1.6rem] border border-[#171717]/10 bg-white/85 p-3.5 text-[#171717] shadow-[0_14px_40px_rgba(23,23,23,0.09)] backdrop-blur-xl sm:p-5">
-        <div className="space-y-4">
+    <div className="space-y-3 md:space-y-5">
+      <header className="group/header rounded-[1.25rem] border border-white/10 bg-[#101c29]/85 p-3 text-white shadow-[0_14px_40px_rgba(0,0,0,0.2)] backdrop-blur-xl md:rounded-[1.6rem] md:p-5">
+        <div className="space-y-3 md:space-y-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#d24b2f]">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 shadow-[0_8px_24px_rgba(249,115,22,0.25)] transition-transform duration-300 group-hover/header:rotate-3 group-hover/header:scale-105 md:h-10 md:w-10">
                 <span className="font-mono text-[9px] font-black tracking-wider text-white">
                   AX
                 </span>
               </div>
               <div className="min-w-0">
-                <p className="font-mono text-[8px] font-bold uppercase tracking-[0.24em] text-[#d24b2f]">
+                <p className="font-mono text-[8px] font-bold uppercase tracking-[0.24em] text-orange-300">
                   AARYX
                 </p>
-                <h1 className="truncate text-lg font-semibold tracking-tight text-[#171717] sm:text-xl">
+                <h1 className="truncate text-base font-semibold tracking-tight text-white md:text-xl">
                   {miDe.terminalTitle}
                 </h1>
               </div>
@@ -109,7 +111,7 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
                 href="/profile"
                 aria-label="Profil öffnen"
                 title="Profil öffnen"
-                className="grid h-10 w-10 place-items-center rounded-xl border border-[#171717]/10 bg-[#f7f3ea] text-[#3f3a32] transition hover:border-cyan-500/40 hover:bg-cyan-50 hover:text-cyan-700"
+                className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/[0.06] text-slate-200 transition hover:border-cyan-300/40 hover:bg-cyan-400/10 hover:text-cyan-200 md:h-10 md:w-10"
               >
                 <UserRound className="h-[18px] w-[18px]" aria-hidden="true" />
               </Link>
@@ -118,7 +120,7 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
                   type="submit"
                   aria-label="Abmelden"
                   title="Abmelden"
-                  className="grid h-10 w-10 place-items-center rounded-xl border border-orange-200 bg-orange-50 text-[#d24b2f] transition hover:border-orange-300 hover:bg-orange-100"
+                  className="grid h-9 w-9 place-items-center rounded-xl border border-orange-300/20 bg-orange-400/10 text-orange-200 transition hover:border-orange-300/40 hover:bg-orange-400/20 md:h-10 md:w-10"
                 >
                   <LogOut className="h-[18px] w-[18px]" aria-hidden="true" />
                 </button>
@@ -126,7 +128,7 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 border-t border-[#171717]/10 pt-3">
+          <div className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
             <LiveIndicator
               isLive={data.systemHealth.isLive}
               dataAvailability={
@@ -135,49 +137,49 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
                   : data.quotes[0]?.dataAvailability ?? "DEMO"
               }
             />
-            <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-cyan-800">
-              <Radio className="h-3 w-3 text-cyan-600" aria-hidden="true" />
+            <span className="hidden items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-cyan-200 md:inline-flex">
+              <Radio className="h-3 w-3 text-cyan-300" aria-hidden="true" />
               {data.systemHealth.dataSource}
             </span>
           </div>
 
           <TerminalNav unreadCount={data.unreadAlertCount} />
+          <TerminalMarketPulse quotes={data.quotes} />
         </div>
       </header>
 
-      <section className="relative overflow-hidden rounded-[1.5rem] border border-orange-200/80 bg-gradient-to-r from-orange-50 via-white to-cyan-50 p-4 shadow-[0_10px_30px_rgba(23,23,23,0.06)] sm:p-5">
+      <section className="group/news relative overflow-hidden rounded-[1.25rem] border border-orange-300/20 bg-gradient-to-r from-orange-400/10 via-[#101c29]/90 to-cyan-400/10 p-3 shadow-[0_10px_30px_rgba(0,0,0,0.16)] backdrop-blur-xl transition duration-300 hover:border-orange-300/30 md:rounded-[1.5rem] md:p-5">
         <div
-          className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl"
+          className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-300/15 blur-3xl"
           aria-hidden="true"
         />
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex flex-col gap-2.5 md:flex-row md:items-center md:justify-between md:gap-4">
           <div className="flex items-start gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#d24b2f] text-white shadow-[0_8px_20px_rgba(210,75,47,0.2)]">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-orange-500 text-white shadow-[0_8px_20px_rgba(249,115,22,0.2)] transition-transform duration-300 group-hover/news:-rotate-3 group-hover/news:scale-105">
               <Newspaper className="h-[18px] w-[18px]" aria-hidden="true" />
             </span>
             <div>
-              <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#d24b2f]">
+              <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-orange-300">
                 News Intelligence
               </p>
-              <h2 className="mt-0.5 text-base font-semibold text-[#171717]">
+              <h2 className="mt-0.5 text-base font-semibold text-white">
                 Nachrichtenlage & Quellenstatus
               </h2>
-              <p className="mt-1 text-xs text-[#3f3a32]/65">
+              <p className="mt-1 hidden text-xs text-slate-300 md:block">
                 Live-News, offizielle Quellen und Ereignis-Korrelation auf einen Blick.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col items-start gap-2 sm:items-end">
+          <div className="flex w-full items-center justify-between gap-2 md:w-auto md:flex-col md:items-end">
             <NewsStatusBadge
               newsHealth={data.systemHealth.newsHealth}
               newsEngine={data.systemHealth.newsEngine}
               operationsHealth={data.systemHealth.operationsHealth}
-              variant="light"
             />
             <Link
               href="/market-intelligence?view=intelligence"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#d24b2f] transition hover:text-orange-700"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-300 transition hover:text-orange-200"
             >
               News öffnen
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -186,8 +188,8 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
         </div>
       </section>
 
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_19rem]">
-        <div className="min-w-0 space-y-6">
+      <div className="grid items-start gap-3 md:gap-5 xl:grid-cols-[minmax(0,1fr)_19rem]">
+        <div className="min-w-0 space-y-4 md:space-y-6">
           {(view === "intelligence" || view === "alerts") && (
             <TerminalSearchBar
               query={query}
@@ -201,6 +203,12 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
 
           {view === "overview" && (
             <>
+              <MorningBriefing
+                quotes={data.quotes}
+                breakingNews={data.breakingNews}
+                intelligenceEvents={data.intelligenceEvents}
+                unreadAlertCount={data.unreadAlertCount ?? 0}
+              />
               <MarketCardsGrid
                 quotes={data.quotes}
                 primaryQuotes={data.primaryQuotes}
@@ -282,7 +290,7 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
         </aside>
       </div>
 
-      <footer className="rounded-2xl border border-[#171717]/10 bg-white/55 p-4 text-center backdrop-blur">
+      <footer className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center backdrop-blur">
         <p className="text-xs text-muted">
           {data.systemHealth.isLive ? miDe.footerLive : miDe.footerDemo}{" "}
           {miDe.footerDisclaimer}

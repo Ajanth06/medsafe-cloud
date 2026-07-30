@@ -33,7 +33,7 @@ export function OilTerminalView({ wti, brent, spread, oilCorrelation }: OilTermi
       </div>
 
       {spread && (
-        <div className="rounded-2xl border border-slate-700 bg-slate-900 p-5 text-slate-100">
+        <div className="rounded-2xl border border-white/10 bg-[#101c29]/90 p-5 text-slate-100">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
             {miDe.brentWtiSpread}
           </p>
@@ -63,7 +63,7 @@ function OilAssetPanel({ quote }: { quote: EnrichedMarketQuote }) {
   const positive = quote.direction === "up";
 
   return (
-    <div className="rounded-2xl border border-slate-700 bg-slate-900 p-5 text-slate-100">
+    <div className="rounded-2xl border border-white/10 bg-[#101c29]/90 p-5 text-slate-100">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
@@ -102,7 +102,7 @@ function MomentumCell({ label, value }: { label: string; value?: number }) {
   if (value === undefined) return null;
   const positive = value > 0;
   return (
-    <div className="rounded-lg bg-slate-800/60 p-2">
+    <div className="rounded-lg bg-white/[0.06] p-2">
       <p className="text-slate-500">{label}</p>
       <p className={cn("font-mono font-semibold", positive ? "text-emerald-400" : value < 0 ? "text-red-400" : "text-slate-400")}>
         {formatChange(value, true)}

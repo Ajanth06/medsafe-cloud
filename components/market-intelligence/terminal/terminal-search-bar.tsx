@@ -49,7 +49,9 @@ export function TerminalSearchBar({
             type="button"
             onClick={() => onScopeChange(s.id)}
             className={`rounded-lg px-2.5 py-1.5 text-xs font-medium ${
-              scope === s.id ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"
+              scope === s.id
+                ? "bg-orange-400/15 text-orange-200 ring-1 ring-orange-300/25"
+                : "bg-white/[0.06] text-slate-300"
             }`}
           >
             {s.label}

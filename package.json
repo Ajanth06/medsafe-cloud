@@ -14,7 +14,8 @@
     "mi:validate": "npx tsx scripts/aaryx-validate.ts",
     "mi:worker": "npx tsx scripts/aaryx-worker.ts",
     "mi:live-check": "npx tsx scripts/go-live-check.ts",
-    "mi:worker-env-check": "npx tsx scripts/worker-env-check.ts"
+    "mi:worker-env-check": "npx tsx scripts/worker-env-check.ts",
+    "mi:deploy-worker": "npx tsx scripts/deploy-render-worker.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

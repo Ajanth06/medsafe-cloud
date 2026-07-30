@@ -101,19 +101,31 @@ async function pollMarketData(): Promise<void> {
     let quotes: NormalizedMarketQuote[];
 
     if (config.isConfigured) {
-      const primary = createMarketDataProvider("polygon");
-      const result = await fetchQuotesWithFailover(primary, symbols);
+      // Composite: OilPriceAPI → WTI/Brent, Polygon → rest (when keyed)
+      const result = await fetchQuotesWithFailover(provider, symbols);
       quotes = result.quotes;
 
       if (result.usedFallback) {
         streamState.isDemo = true;
         quotes = quotes.map(toDemoQuote);
-        recordProviderFailure({ provider: primary.id, providerType: "market", error: "failover" });
-        streamState.lastError =
-          "Polygon-Plan erlaubt diese Daten nicht — Demo-Modus aktiv. Für Live-Futures Plan upgraden oder MARKET_DATA_PROVIDER entfernen.";
+        recordProviderFailure({
+          provider: provider.id,
+          providerType: "market",
+          error: "failover",
+        });
+        streamState.lastError = config.oilConfigured
+          ? "Live-Öl via OilPriceAPI fehlgeschlagen — Demo-Modus. OILPRICEAPI_KEY prüfen."
+          : "Polygon-Plan erlaubt diese Daten nicht — Demo-Modus. OILPRICEAPI_KEY für WTI/Brent setzen.";
         marketLogger.warn("market_provider_failover_active", { attempts: result.attempts });
       } else {
-        streamState.isDemo = false;
+        // Live if any quote came from a real provider (oilpriceapi / polygon)
+        const hasLive = quotes.some(
+          (q) =>
+            q.source === "oilpriceapi" ||
+            q.source === "polygon" ||
+            (q.dataAvailability === "LIVE" && q.source !== "development-mock"),
+        );
+        streamState.isDemo = !hasLive;
         streamState.lastError = null;
         recordProviderSuccess({ provider: result.providerId, providerType: "market" });
       }

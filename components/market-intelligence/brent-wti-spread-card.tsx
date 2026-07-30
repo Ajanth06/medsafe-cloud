@@ -12,7 +12,7 @@ export function BrentWTISpreadCard({ spread }: BrentWTISpreadCardProps) {
   const spreadUp = spread.spreadChange > 0;
 
   return (
-    <Card className="border-slate-700 bg-slate-900 text-slate-100">
+    <Card className="border-white/10 bg-[#101c29]/90 text-slate-100">
       <CardContent className="space-y-3 p-4">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">

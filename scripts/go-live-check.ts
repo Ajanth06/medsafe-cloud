@@ -69,24 +69,36 @@ function check(): Check[] {
   });
 
   checks.push({
+    id: "oilpriceapi-key",
+    label: "OILPRICEAPI_KEY",
+    status: has("OILPRICEAPI_KEY") || has("OIL_PRICE_API_KEY") ? "OK" : "MISSING",
+    detail: "https://www.oilpriceapi.com — Live WTI/Brent (primär)",
+  });
+
+  checks.push({
     id: "polygon-key",
-    label: "MARKET_DATA_API_KEY",
-    status: has("MARKET_DATA_API_KEY") ? "OK" : "MISSING",
-    detail: "Polygon/Massive API key",
+    label: "MARKET_DATA_API_KEY (Polygon, optional)",
+    status: has("MARKET_DATA_API_KEY") ? "OK" : "OPTIONAL",
+    detail: "Andere Assets / später Futures — nicht nötig für Oil-MVP",
   });
 
   checks.push({
     id: "polygon-provider",
     label: "MARKET_DATA_PROVIDER=polygon",
-    status: process.env.MARKET_DATA_PROVIDER === "polygon" ? "OK" : "MISSING",
+    status:
+      process.env.MARKET_DATA_PROVIDER === "polygon"
+        ? "OK"
+        : has("MARKET_DATA_API_KEY")
+          ? "ACTION"
+          : "OPTIONAL",
     detail: process.env.MARKET_DATA_PROVIDER ?? "mock",
   });
 
   checks.push({
     id: "polygon-plan",
-    label: "Polygon Futures Plan (Advanced ~$199)",
-    status: "ACTION",
-    detail: "Upgrade at massive.com/pricing — free tier causes 429 / no realtime",
+    label: "Polygon Futures Plan",
+    status: "OPTIONAL",
+    detail: "Nur für Exchange-Futures (CL/BZ) — Oil-MVP nutzt OilPriceAPI",
   });
 
   checks.push({

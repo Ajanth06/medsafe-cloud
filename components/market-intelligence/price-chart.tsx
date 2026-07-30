@@ -19,7 +19,7 @@ export function PriceChart({
   if (data.length < 2) {
     return (
       <div
-        className={cn("flex items-center justify-center rounded-lg bg-slate-800/40 text-xs text-slate-500", className)}
+        className={cn("flex items-center justify-center rounded-lg bg-white/[0.06] text-xs text-slate-400", className)}
         style={{ height }}
       >
         {miDe.insufficientHistory}

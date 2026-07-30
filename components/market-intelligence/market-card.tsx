@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { DataAvailabilityBadge } from "@/components/market-intelligence/data-availability-badge";
 import { ArrowDown, ArrowUp, Minus } from "lucide-react";
 import { Sparkline } from "@/components/market-intelligence/sparkline";
@@ -10,6 +13,37 @@ import type { EnrichedMarketQuote } from "@/lib/types/market";
 interface MarketCardProps {
   quote: EnrichedMarketQuote;
   featured?: boolean;
+}
+
+function AnimatedPrice({ value, symbol }: { value: number; symbol: string }) {
+  const [displayValue, setDisplayValue] = useState(value);
+  const previousValue = useRef(value);
+
+  useEffect(() => {
+    const startValue = previousValue.current;
+    previousValue.current = value;
+
+    if (startValue === value) return;
+
+    const duration = 650;
+    const startedAt = performance.now();
+    let animationFrame = 0;
+
+    const animate = (time: number) => {
+      const progress = Math.min((time - startedAt) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(startValue + (value - startValue) * eased);
+
+      if (progress < 1) {
+        animationFrame = window.requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = window.requestAnimationFrame(animate);
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [value]);
+
+  return <>{formatPrice(displayValue, symbol)}</>;
 }
 
 function WindowChange({ label, value }: { label: string; value?: number }) {
@@ -34,7 +68,10 @@ function WindowChange({ label, value }: { label: string; value?: number }) {
   );
 }
 
-export function MarketCard({ quote, featured = false }: MarketCardProps) {
+export function MarketCard({
+  quote,
+  featured = false,
+}: MarketCardProps) {
   const unavailable = quote.dataAvailability === "UNAVAILABLE" || quote.price <= 0;
   const positive = quote.direction === "up";
   const negative = quote.direction === "down";
@@ -42,8 +79,8 @@ export function MarketCard({ quote, featured = false }: MarketCardProps) {
   return (
     <Card
       className={cn(
-        "group relative overflow-hidden border-[#171717]/10 bg-white/80 shadow-[0_8px_30px_rgba(23,23,23,0.06)] backdrop-blur transition-all hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(23,23,23,0.11)]",
-        featured && "border-orange-300/50 ring-1 ring-orange-300/20",
+        "terminal-card-glow group relative overflow-hidden border-white/10 bg-[#101c29]/90 shadow-[0_8px_30px_rgba(0,0,0,0.16)] backdrop-blur transition-all duration-300 hover:-translate-y-1.5 hover:rotate-[0.15deg] hover:border-cyan-300/20 hover:shadow-[0_18px_45px_rgba(0,0,0,0.24)]",
+        featured && "border-orange-400/40 ring-1 ring-orange-400/20",
         unavailable && "opacity-80",
       )}
     >
@@ -51,11 +88,11 @@ export function MarketCard({ quote, featured = false }: MarketCardProps) {
         className={cn(
           "absolute inset-x-0 top-0 h-0.5 opacity-80",
           featured
-            ? "bg-gradient-to-r from-[#d24b2f] via-orange-400 to-cyan-400"
+            ? "bg-gradient-to-r from-orange-500 via-orange-400 to-cyan-500"
             : "bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent",
         )}
       />
-      <CardContent className="space-y-3 p-4">
+      <CardContent className="space-y-2.5 p-3 md:space-y-3 md:p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-foreground">{quote.name}</p>
@@ -91,8 +128,8 @@ export function MarketCard({ quote, featured = false }: MarketCardProps) {
           <>
             <div className="flex items-end justify-between gap-2">
               <div>
-                <p className="font-mono text-xl font-semibold tracking-tight text-foreground">
-                  {formatPrice(quote.price, quote.symbol)}
+                <p className="font-mono text-lg font-semibold tracking-tight text-foreground md:text-xl">
+                  <AnimatedPrice value={quote.price} symbol={quote.symbol} />
                 </p>
                 <div
                   className={cn(
@@ -113,7 +150,7 @@ export function MarketCard({ quote, featured = false }: MarketCardProps) {
               )}
             </div>
 
-            <div className="grid grid-cols-3 gap-2 rounded-xl bg-background/60 p-2">
+            <div className="hidden grid-cols-3 gap-2 rounded-xl bg-background/60 p-2 md:grid">
               <WindowChange label="5M" value={quote.returns.m5} />
               <WindowChange label="15M" value={quote.returns.m15} />
               <WindowChange label="1H" value={quote.returns.m60} />
@@ -121,7 +158,7 @@ export function MarketCard({ quote, featured = false }: MarketCardProps) {
           </>
         )}
 
-        <p className="text-[10px] text-muted">
+        <p className="hidden text-[10px] text-muted md:block">
           {quote.isStale ? `${miDe.stale} ` : `${miDe.updated} `}
           {formatTime(quote.timestamp)} CET
           {quote.delaySeconds ? ` · ${tDelayedMinutes(Math.round(quote.delaySeconds / 60))}` : ""}

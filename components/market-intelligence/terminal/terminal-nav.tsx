@@ -55,7 +55,7 @@ export function TerminalNav({ unreadCount = 0 }: TerminalNavProps) {
 
   return (
     <nav
-      className="flex gap-1 overflow-x-auto rounded-2xl border border-white/10 bg-black/20 p-1.5 backdrop-blur-xl"
+      className="app-scroll flex gap-1 overflow-x-auto rounded-xl border border-white/10 bg-black/20 p-1 backdrop-blur-xl md:rounded-2xl md:p-1.5"
       aria-label="Terminal-Navigation"
     >
       {VIEWS.map(({ id, label, icon: Icon }) => (
@@ -64,16 +64,22 @@ export function TerminalNav({ unreadCount = 0 }: TerminalNavProps) {
           type="button"
           onClick={() => setView(id)}
           className={cn(
-            "relative flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all",
+            "relative flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-[10px] font-semibold transition-all duration-200 hover:-translate-y-0.5 md:rounded-xl md:px-3 md:py-2.5 md:text-xs",
             active === id
-              ? "bg-gradient-to-r from-[#d24b2f] to-orange-500 text-white shadow-[0_8px_20px_rgba(210,75,47,0.25)]"
-              : "text-slate-400 hover:bg-white/10 hover:text-cyan-100",
+              ? "bg-gradient-to-r from-orange-600 to-orange-400 text-white shadow-[0_8px_20px_rgba(249,115,22,0.25)]"
+              : "text-slate-300 hover:bg-white/10 hover:text-white",
           )}
         >
-          <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-          <span className="hidden sm:inline">{label}</span>
+          <Icon
+            className={cn(
+              "h-3.5 w-3.5 transition-transform duration-300",
+              active === id && "scale-110",
+            )}
+            aria-hidden="true"
+          />
+          <span>{label}</span>
           {id === "alerts" && unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-cyan-400 px-1 text-[9px] font-bold text-[#07111a]">
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-500 px-1 text-[9px] font-bold text-white">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}

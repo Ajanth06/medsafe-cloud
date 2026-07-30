@@ -28,7 +28,7 @@ export function MarketIntelligenceDashboard({ data }: MarketIntelligenceDashboar
       <header className="space-y-3 border-b border-border pb-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 shadow-sm">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100 shadow-sm">
               <Activity className="h-5 w-5 text-white" aria-hidden="true" />
             </div>
             <div className="min-w-0">

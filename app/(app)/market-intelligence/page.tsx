@@ -14,7 +14,7 @@ export default async function MarketIntelligencePage() {
   const data = await getMarketIntelligenceData();
 
   return (
-    <main className="mx-auto max-w-[1500px] px-3 py-3 sm:px-6 sm:py-6 lg:px-8">
+    <main className="mx-auto max-w-[1500px] px-3 py-3 md:px-6 md:py-6 lg:px-8">
       <TerminalDashboard data={data} />
     </main>
   );

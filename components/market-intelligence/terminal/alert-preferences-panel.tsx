@@ -83,7 +83,9 @@ export function AlertPreferencesPanel() {
                 type="button"
                 onClick={() => void save({ minimumSeverity: s })}
                 className={`rounded-lg px-3 py-1 text-xs font-medium ${
-                  prefs.minimumSeverity === s ? "bg-slate-900 text-white" : "bg-slate-100"
+                  prefs.minimumSeverity === s
+                    ? "bg-orange-400/15 text-orange-200 ring-1 ring-orange-300/25"
+                    : "bg-white/[0.06] text-slate-300"
                 }`}
               >
                 {tSeverity(s)}

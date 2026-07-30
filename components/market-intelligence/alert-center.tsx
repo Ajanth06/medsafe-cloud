@@ -68,7 +68,9 @@ export function AlertCenter({ alerts, unreadCount = 0 }: AlertCenterProps) {
               onClick={() => setTab(t.id)}
               className={cn(
                 "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
-                tab === t.id ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200",
+                tab === t.id
+                  ? "bg-orange-400/15 text-orange-200 ring-1 ring-orange-300/25"
+                  : "bg-white/[0.06] text-slate-300 hover:bg-white/10 hover:text-white",
               )}
             >
               {t.label}

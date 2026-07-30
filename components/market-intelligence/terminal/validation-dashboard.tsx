@@ -71,7 +71,7 @@ export function ValidationDashboard() {
         <button
           type="button"
           onClick={() => void runCheck()}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-medium text-white"
+          className="rounded-lg bg-gradient-to-r from-orange-600 to-orange-400 px-4 py-2 text-xs font-medium text-white transition hover:brightness-110"
         >
           {miDe.runHealthCheck}
         </button>

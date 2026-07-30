@@ -15,7 +15,10 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 # AARYX persistence (required for 24/7 + multi-instance)
 MI_PERSISTENCE_ENABLED=true
 
-# Market data (optional — without: demo mode)
+# Market data
+# Primary oil (WTI/Brent): OilPriceAPI
+OILPRICEAPI_KEY=your_oilpriceapi_key
+# Other assets / optional futures: Polygon
 MARKET_DATA_PROVIDER=polygon
 MARKET_DATA_API_KEY=your_polygon_key
 

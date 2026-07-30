@@ -50,7 +50,7 @@ export function NewsStatusBadge(props: NewsStatusBadgeProps) {
         "inline-flex max-w-full flex-col gap-0.5 rounded-2xl border px-3 py-1.5",
         tone === "live" &&
           (light
-            ? "border-emerald-200 bg-emerald-50"
+            ? "border-cyan-200 bg-cyan-50"
             : "border-emerald-300/40 bg-emerald-500/10"),
         tone === "demo" &&
           (light
@@ -67,7 +67,7 @@ export function NewsStatusBadge(props: NewsStatusBadgeProps) {
         <Newspaper
           className={cn(
             "h-3.5 w-3.5 shrink-0",
-            tone === "live" && (light ? "text-emerald-600" : "text-emerald-300"),
+            tone === "live" && (light ? "text-cyan-600" : "text-emerald-300"),
             tone === "demo" && (light ? "text-amber-600" : "text-amber-300"),
             tone === "offline" && (light ? "text-red-600" : "text-red-300"),
           )}
@@ -76,7 +76,7 @@ export function NewsStatusBadge(props: NewsStatusBadgeProps) {
         <span
           className={cn(
             "text-[11px] font-semibold uppercase tracking-widest",
-            tone === "live" && (light ? "text-emerald-800" : "text-emerald-100"),
+            tone === "live" && (light ? "text-cyan-800" : "text-emerald-100"),
             tone === "demo" && (light ? "text-amber-800" : "text-amber-100"),
             tone === "offline" && (light ? "text-red-800" : "text-red-100"),
           )}
@@ -94,7 +94,7 @@ export function NewsStatusBadge(props: NewsStatusBadgeProps) {
       </span>
       <span
         className={cn(
-          "truncate pl-5 text-[10px] leading-tight",
+          "hidden truncate pl-5 text-[10px] leading-tight md:block",
           light ? "text-slate-600" : "text-slate-300",
         )}
       >

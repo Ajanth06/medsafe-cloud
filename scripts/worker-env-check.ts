@@ -28,13 +28,14 @@ const REQUIRED = [
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
   "NEXT_PUBLIC_SITE_URL",
-  "MARKET_DATA_API_KEY",
   "NEWS_API_KEY",
   "OPENAI_API_KEY",
   "WORKER_SECRET",
 ] as const;
 
 const RECOMMENDED = [
+  "OILPRICEAPI_KEY",
+  "MARKET_DATA_API_KEY",
   "MI_PERSISTENCE_ENABLED",
   "MARKET_DATA_PROVIDER",
   "NEWS_DATA_PROVIDER",
@@ -69,6 +70,14 @@ if (missing > 0) {
   console.log(`\n${missing} required value(s) missing locally — fix before deploy.`);
   process.exit(1);
 }
+
+const hasOil = has("OILPRICEAPI_KEY") || has("OIL_PRICE_API_KEY");
+const hasPolygon = has("MARKET_DATA_API_KEY");
+if (!hasOil && !hasPolygon) {
+  console.log("\n✗ Need OILPRICEAPI_KEY (oil MVP) and/or MARKET_DATA_API_KEY (Polygon).");
+  process.exit(1);
+}
+console.log(`\nMarket feed: OilPriceAPI=${hasOil ? "yes" : "no"}  Polygon=${hasPolygon ? "yes" : "no"}`);
 
 console.log("\nAll required worker env vars present locally.");
 console.log("Copy the same keys/values into your external worker host (Render → Environment).");

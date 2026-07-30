@@ -50,7 +50,7 @@ export function OilIntelligenceSection({
       >
         {miDe.oilIntelligence}
       </h2>
-      <Card className="border-slate-700 bg-slate-900 text-slate-100">
+      <Card className="border-white/10 bg-[#101c29]/90 text-slate-100">
         <CardContent className="grid gap-6 p-5 lg:grid-cols-3">
           {wti && (
             <div className="space-y-2">

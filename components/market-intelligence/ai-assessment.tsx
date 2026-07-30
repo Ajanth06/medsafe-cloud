@@ -16,7 +16,7 @@ const sentimentColor: Record<string, string> = {
 
 export function AIAssessment({ analysis }: AIAssessmentProps) {
   return (
-    <Card className="border-slate-800 bg-slate-900 text-slate-100">
+    <Card className="border-white/10 bg-[#101c29]/90 text-slate-100">
       <CardContent className="space-y-4 p-5">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
@@ -50,7 +50,7 @@ export function AIAssessment({ analysis }: AIAssessmentProps) {
           {analysis.assessments.map((item) => (
             <div
               key={item.asset}
-              className="flex items-center justify-between rounded-lg bg-slate-800/60 px-3 py-2"
+              className="flex items-center justify-between rounded-lg bg-white/[0.06] px-3 py-2"
             >
               <span className="text-sm text-slate-300">{item.asset}</span>
               <span

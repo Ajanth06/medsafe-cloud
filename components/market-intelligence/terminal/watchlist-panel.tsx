@@ -74,8 +74,8 @@ export function WatchlistPanel({ initialSymbols, onChange }: WatchlistPanelProps
               className={cn(
                 "rounded-lg border px-3 py-1.5 font-mono text-xs font-medium transition-colors",
                 active
-                  ? "border-slate-900 bg-slate-900 text-white"
-                  : "border-border bg-card text-muted hover:border-slate-400",
+                  ? "border-orange-300/30 bg-orange-400/15 text-orange-200"
+                  : "border-border bg-white/[0.04] text-slate-300 hover:border-cyan-300/30",
               )}
             >
               {asset.symbol}
