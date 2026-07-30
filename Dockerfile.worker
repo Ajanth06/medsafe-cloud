@@ -1,10 +1,11 @@
 # AARYX 24/7 operations worker (market + news + alerts pipeline)
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci
+# npm install (not ci): lockfile may lag package.json slightly
+RUN npm install
 
 COPY . .
 
