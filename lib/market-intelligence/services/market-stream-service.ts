@@ -94,8 +94,8 @@ function toDemoQuote(quote: NormalizedMarketQuote): NormalizedMarketQuote {
 }
 
 function fallbackErrorMessage(config: ReturnType<typeof getMarketProviderConfig>): string {
-  if (config.provider === "composite") {
-    return "OilPriceAPI/Polygon fehlgeschlagen — Demo-Modus.";
+  if (!config.oilConfigured) {
+    return "OILPRICEAPI_KEY fehlt — Öl fällt auf verzögertes Yahoo zurück.";
   }
   if (config.provider === "polygon") {
     return "Polygon/Massive-Kurse fehlgeschlagen — Demo-Modus. MARKET_DATA_API_KEY prüfen.";
@@ -103,7 +103,7 @@ function fallbackErrorMessage(config: ReturnType<typeof getMarketProviderConfig>
   if (config.provider === "oilpriceapi") {
     return "Live-Öl via OilPriceAPI fehlgeschlagen — Demo-Modus. OILPRICEAPI_KEY prüfen.";
   }
-  return "Yahoo-Kurse fehlgeschlagen — Demo-Modus.";
+  return "Live-Kurse fehlgeschlagen — Demo-Modus.";
 }
 
 async function pollMarketData(): Promise<void> {
@@ -129,7 +129,7 @@ async function runPollMarketData(): Promise<void> {
     let nextLastError: string | null = null;
 
     if (config.isConfigured) {
-      // Default: Yahoo-only. Polygon/Oil only if MARKET_DATA_PROVIDER selects them.
+      // Hybrid: OilPriceAPI live for WTI/Brent, Yahoo Investing-style for the rest
       const result = await fetchQuotesWithFailover(provider, symbols);
       quotes = result.quotes;
 
@@ -194,9 +194,12 @@ async function runPollMarketData(): Promise<void> {
 
     const nowMs = Date.now();
     for (const quote of quotes) {
-      // Yahoo freshness uses fetch time (timestamp/receivedAt), not last exchange print.
+      // Poll-based feeds: freshness = last successful fetch, not source print time.
+      // OilPriceAPI/Yahoo updated_at can lag minutes while the feed is healthy.
       const freshnessTs =
-        quote.source === "yahoo" ? (quote.receivedAt ?? quote.timestamp) : quote.timestamp;
+        quote.source === "yahoo" || quote.source === "oilpriceapi"
+          ? (quote.receivedAt ?? quote.timestamp)
+          : quote.timestamp;
       if (quote.staleAfterSeconds && isStale(freshnessTs, quote.staleAfterSeconds, nowMs)) {
         quote.dataAvailability = "STALE";
       }

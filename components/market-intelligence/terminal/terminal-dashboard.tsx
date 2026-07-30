@@ -27,6 +27,7 @@ import { TerminalMarketPulse } from "@/components/market-intelligence/terminal/t
 import { MorningBriefing } from "@/components/market-intelligence/terminal/morning-briefing";
 import { TerminalSearchBar } from "@/components/market-intelligence/terminal/terminal-search-bar";
 import { WatchlistPanel, loadWatchlistFromStorage } from "@/components/market-intelligence/terminal/watchlist-panel";
+import { useLiveMarketQuotes } from "@/components/market-intelligence/use-live-market-quotes";
 import {
   filterDeliveredAlerts,
   filterIntelligenceEvents,
@@ -50,6 +51,8 @@ interface TerminalDashboardProps {
   data: MarketIntelligenceDashboardData;
 }
 
+const PRIMARY = new Set(["WTI", "BRENT"]);
+
 function TerminalDashboardContent({ data }: TerminalDashboardProps) {
   const view = useTerminalView();
   const [query, setQuery] = useState("");
@@ -59,6 +62,14 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
   const [watchlist, setWatchlist] = useState<string[]>(
     () => [...DEFAULT_TERMINAL_PREFERENCES.watchlistSymbols],
   );
+
+  const live = useLiveMarketQuotes(data.quotes);
+  const quotes = live.quotes;
+  const primaryQuotes = useMemo(
+    () => quotes.filter((q) => PRIMARY.has(q.symbol)),
+    [quotes],
+  );
+  const isLive = live.connected && !live.isDemo;
 
   useEffect(() => {
     const hydrationSync = window.setTimeout(() => {
@@ -90,7 +101,7 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
     [data.liveFeed, searchInput],
   );
 
-  const watchlistQuotes = data.quotes.filter((q) => watchlist.includes(q.symbol));
+  const watchlistQuotes = quotes.filter((q) => watchlist.includes(q.symbol));
 
   return (
     <div className="space-y-3 md:space-y-5">
@@ -137,21 +148,31 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
 
           <div className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
             <LiveIndicator
-              isLive={data.systemHealth.isLive}
+              isLive={isLive || data.systemHealth.isLive}
               dataAvailability={
-                data.systemHealth.isLive
-                  ? "LIVE"
-                  : data.quotes[0]?.dataAvailability ?? "DEMO"
+                isLive || data.systemHealth.isLive
+                  ? (primaryQuotes.some((q) => q.dataAvailability === "LIVE") ||
+                    quotes.some((q) => q.dataAvailability === "LIVE")
+                      ? "LIVE"
+                      : quotes.some((q) => q.dataAvailability === "DELAYED")
+                        ? "DELAYED"
+                        : "LIVE")
+                  : quotes[0]?.dataAvailability ?? "DEMO"
               }
             />
             <span className="hidden items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-cyan-200 md:inline-flex">
               <Radio className="h-3 w-3 text-cyan-300" aria-hidden="true" />
-              {data.systemHealth.dataSource}
+              {live.connected ? `Live 1s · ${data.systemHealth.dataSource}` : data.systemHealth.dataSource}
             </span>
+            {live.lastPollAt && (
+              <span className="hidden font-mono text-[9px] text-slate-400 md:inline">
+                {new Date(live.lastPollAt).toLocaleTimeString("de-DE")}
+              </span>
+            )}
           </div>
 
           <TerminalNav unreadCount={data.unreadAlertCount} />
-          <TerminalMarketPulse quotes={data.quotes} />
+          <TerminalMarketPulse quotes={quotes} />
         </div>
       </header>
 
@@ -221,14 +242,14 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
           {view === "overview" && (
             <>
               <MorningBriefing
-                quotes={data.quotes}
+                quotes={quotes}
                 breakingNews={data.breakingNews}
                 intelligenceEvents={data.intelligenceEvents}
                 unreadAlertCount={data.unreadAlertCount ?? 0}
               />
               <MarketCardsGrid
-                quotes={data.quotes}
-                primaryQuotes={data.primaryQuotes}
+                quotes={quotes}
+                primaryQuotes={primaryQuotes}
                 brentWtiSpread={data.brentWtiSpread}
               />
               <LiveIntelligenceFeed entries={filteredFeed.length ? filteredFeed : data.liveFeed} />
@@ -243,8 +264,8 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
             <>
               <WatchlistPanel initialSymbols={watchlist} onChange={setWatchlist} />
               <MarketCardsGrid
-                quotes={watchlistQuotes.length ? watchlistQuotes : data.quotes}
-                primaryQuotes={data.primaryQuotes.filter((q) => watchlist.includes(q.symbol))}
+                quotes={watchlistQuotes.length ? watchlistQuotes : quotes}
+                primaryQuotes={primaryQuotes.filter((q) => watchlist.includes(q.symbol))}
                 brentWtiSpread={data.brentWtiSpread}
               />
             </>
@@ -252,8 +273,8 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
 
           {view === "oil" && (
             <OilTerminalView
-              wti={data.primaryQuotes.find((q) => q.symbol === "WTI")}
-              brent={data.primaryQuotes.find((q) => q.symbol === "BRENT")}
+              wti={primaryQuotes.find((q) => q.symbol === "WTI")}
+              brent={primaryQuotes.find((q) => q.symbol === "BRENT")}
               spread={data.brentWtiSpread}
               oilCorrelation={data.oilCorrelation}
             />
@@ -267,8 +288,8 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
               <IntelligenceEventsSection events={filteredIntel.length ? filteredIntel : data.intelligenceEvents} />
               <BreakingIntelligence events={data.breakingNews} />
               <OilIntelligenceSection
-                wti={data.primaryQuotes.find((q) => q.symbol === "WTI")}
-                brent={data.primaryQuotes.find((q) => q.symbol === "BRENT")}
+                wti={primaryQuotes.find((q) => q.symbol === "WTI")}
+                brent={primaryQuotes.find((q) => q.symbol === "BRENT")}
                 spread={data.brentWtiSpread}
                 oilCorrelation={data.oilCorrelation}
               />

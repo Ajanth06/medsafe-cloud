@@ -37,8 +37,8 @@ export function resetRateLimits(): void {
 
 /** Standard limits for Phase 8 */
 export const RATE_LIMITS = {
-  quotes: { limit: 60, windowMs: 60_000 },
-  stream: { limit: 10, windowMs: 60_000 },
+  quotes: { limit: 120, windowMs: 60_000 },
+  stream: { limit: 30, windowMs: 60_000 },
   aiAnalyze: { limit: 20, windowMs: 60_000 },
   alerts: { limit: 120, windowMs: 60_000 },
   replay: { limit: 10, windowMs: 60_000 },

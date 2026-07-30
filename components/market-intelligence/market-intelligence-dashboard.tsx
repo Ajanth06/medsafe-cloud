@@ -52,7 +52,12 @@ export function MarketIntelligenceDashboard({ data }: MarketIntelligenceDashboar
             isLive={data.systemHealth.isLive}
             dataAvailability={
               data.systemHealth.isLive
-                ? "LIVE"
+                ? (data.primaryQuotes.some((q) => q.dataAvailability === "LIVE") ||
+                  data.quotes.some((q) => q.dataAvailability === "LIVE")
+                    ? "LIVE"
+                    : data.quotes.some((q) => q.dataAvailability === "DELAYED")
+                      ? "DELAYED"
+                      : "LIVE")
                 : data.quotes[0]?.dataAvailability ?? "DEMO"
             }
           />

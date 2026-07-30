@@ -60,7 +60,12 @@ function enrichQuote(
 ): EnrichedMarketQuote {
   const snapshots = buffer.getSnapshots(quote.symbol);
   const returns = calculateAllWindowReturns(snapshots, SUPPORTED_WINDOWS, nowMs);
-  const ageMs = nowMs - new Date(quote.timestamp).getTime();
+  // Prefer receivedAt for poll-based providers so source print lag ≠ "Veraltet"
+  const freshnessTs =
+    quote.source === "yahoo" || quote.source === "oilpriceapi"
+      ? (quote.receivedAt ?? quote.timestamp)
+      : quote.timestamp;
+  const ageMs = nowMs - new Date(freshnessTs).getTime();
 
   const staleThresholdMs = quote.staleAfterSeconds
     ? quote.staleAfterSeconds * 1000

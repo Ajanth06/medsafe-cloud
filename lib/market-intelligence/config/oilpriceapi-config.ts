@@ -15,6 +15,6 @@ export function getOilPriceApiConfig(): OilPriceApiConfig {
     apiKey,
     baseUrl: process.env.OILPRICEAPI_BASE_URL ?? "https://api.oilpriceapi.com/v1",
     isConfigured: Boolean(apiKey),
-    pollIntervalMs: Number(process.env.OILPRICEAPI_POLL_INTERVAL_MS ?? 60_000),
+    pollIntervalMs: Number(process.env.OILPRICEAPI_POLL_INTERVAL_MS ?? 1_000),
   };
 }

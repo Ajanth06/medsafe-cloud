@@ -38,7 +38,7 @@ export async function GET(request: Request) {
       await push();
       const interval = setInterval(() => {
         void push();
-      }, 5_000);
+      }, 1_000);
 
       request.signal.addEventListener("abort", () => {
         clearInterval(interval);

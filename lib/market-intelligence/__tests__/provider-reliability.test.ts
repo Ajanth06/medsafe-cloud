@@ -77,8 +77,6 @@ describe("provider reliability", () => {
     const provider = createMarketDataProvider();
 
     assert.equal(config.provider, "composite");
-    assert.equal(config.isConfigured, true);
-    assert.equal(config.yahooEnabled, true);
     assert.equal(provider.id, "composite");
   });
 

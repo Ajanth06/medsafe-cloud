@@ -18,21 +18,28 @@ export type MarketDataProviderType =
   | "composite";
 
 /**
- * Default: hybrid feed.
- * OilPriceAPI for WTI/Brent, Polygon for the rest, Yahoo only as fallback.
+ * Default: OilPriceAPI live for WTI/Brent + Yahoo Investing-style for the rest.
+ * Pass an explicit type only for single-provider tests.
  */
 export function createMarketDataProvider(
   type?: MarketDataProviderType,
 ): MarketDataProvider {
   const marketConfig = getMarketProviderConfig();
   const oilConfig = getOilPriceApiConfig();
-  const providerType = (type ?? marketConfig.provider) as MarketDataProviderType;
 
-  if (providerType === "mock") {
+  // Default / yahoo / investing / composite → hybrid (oil live + yahoo rest)
+  if (!type) {
+    if (marketConfig.isConfigured || oilConfig.isConfigured) {
+      return createCompositeMarketDataProvider();
+    }
     return new DevelopmentMarketDataProvider();
   }
 
-  if (providerType === "oilpriceapi") {
+  if (type === "mock") {
+    return new DevelopmentMarketDataProvider();
+  }
+
+  if (type === "oilpriceapi") {
     if (!oilConfig.apiKey) {
       marketLogger.warn("OilPriceAPI selected but OILPRICEAPI_KEY missing — using DEMO");
       return new DevelopmentMarketDataProvider();
@@ -40,7 +47,7 @@ export function createMarketDataProvider(
     return new OilPriceApiProvider(oilConfig.apiKey);
   }
 
-  if (providerType === "polygon") {
+  if (type === "polygon") {
     if (!marketConfig.apiKey) {
       marketLogger.warn("Polygon selected but MARKET_DATA_API_KEY missing — using DEMO");
       return new DevelopmentMarketDataProvider();
@@ -49,24 +56,20 @@ export function createMarketDataProvider(
     return new PolygonRestMarketDataProvider(marketConfig.apiKey);
   }
 
-  if (providerType === "composite") {
-    marketLogger.info("Using hybrid market data provider");
-    return createCompositeMarketDataProvider();
+  // yahoo / investing alone = Yahoo only (no oil priority)
+  if (type === "yahoo" || type === "investing") {
+    marketLogger.info("Using Yahoo Finance only (no OilPriceAPI priority)");
+    return new YahooFinanceMarketDataProvider();
   }
 
-  marketLogger.info("Using Yahoo Finance market data");
-  return new YahooFinanceMarketDataProvider();
+  return createCompositeMarketDataProvider();
 }
 
 export function getConfiguredProviderType(): MarketDataProviderType {
   const marketConfig = getMarketProviderConfig();
-  if (!marketConfig.isConfigured) return "mock";
-  if (marketConfig.provider === "polygon") return "polygon";
-  if (marketConfig.provider === "oilpriceapi") return "oilpriceapi";
-  if (marketConfig.provider === "composite") return "composite";
-  return marketConfig.provider === "yahoo" || marketConfig.provider === "investing"
-    ? "yahoo"
-    : "composite";
+  const oilConfig = getOilPriceApiConfig();
+  if (!marketConfig.isConfigured && !oilConfig.isConfigured) return "mock";
+  return "composite";
 }
 
 export function getProviderForAsset(symbol: string): MarketDataProvider {

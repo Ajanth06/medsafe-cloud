@@ -25,7 +25,7 @@ function AnimatedPrice({ value, symbol }: { value: number; symbol: string }) {
 
     if (startValue === value) return;
 
-    const duration = 650;
+    const duration = 280;
     const startedAt = performance.now();
     let animationFrame = 0;
 
@@ -161,8 +161,12 @@ export function MarketCard({
         <p className="hidden text-[10px] text-muted md:block">
           {quote.isStale ? `${miDe.stale} ` : `${miDe.updated} `}
           {formatTime(quote.timestamp)} CET
-          {quote.delaySeconds ? ` · ${tDelayedMinutes(Math.round(quote.delaySeconds / 60))}` : ""}
+          {quote.delaySeconds && quote.delaySeconds >= 60
+            ? ` · ${tDelayedMinutes(Math.round(quote.delaySeconds / 60))}`
+            : ""}
           {quote.latency?.providerToServerMs != null &&
+            quote.latency.providerToServerMs > 0 &&
+            quote.latency.providerToServerMs < 60_000 &&
             ` · ${quote.latency.providerToServerMs}ms`}
         </p>
       </CardContent>

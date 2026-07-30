@@ -60,7 +60,7 @@ export class YahooFinanceMarketDataProvider implements MarketDataProvider {
   private readonly lastPrices = new Map<string, number>();
   private readonly cache = new Map<string, { at: number; meta: YahooChartMeta }>();
   /** Keep cache below default poll interval so each poll can refresh. */
-  private readonly cacheTtlMs = 4_000;
+  private readonly cacheTtlMs = 1_000;
 
   supportsSymbol(symbol: string): boolean {
     return Boolean(YAHOO_SYMBOL_MAP[symbol]);
@@ -96,9 +96,11 @@ export class YahooFinanceMarketDataProvider implements MarketDataProvider {
             1000,
         ),
       );
-      // Crypto is near-continuous; other Yahoo symbols are retail/delayed.
       const isCrypto = entry.assetClass === "crypto";
-      const delaySeconds = isCrypto ? Math.min(providerAgeSec, 15) : Math.max(providerAgeSec, 15);
+      // Yahoo retail prints are often minutes old; only mark DELAYED for
+      // clearly stale session data (e.g. overnight / weekend close).
+      const sessionStale = providerAgeSec > 3 * 60 * 60;
+      const treatAsLive = isCrypto || !sessionStale;
 
       const quote: NormalizedMarketQuote = {
         assetId: entry.assetId,
@@ -118,16 +120,19 @@ export class YahooFinanceMarketDataProvider implements MarketDataProvider {
         receivedAt,
         processedAt,
         providerTimestamp,
-        marketStatus: "OPEN",
-        isRealtime: isCrypto && providerAgeSec <= 30,
-        delaySeconds,
-        dataAvailability: isCrypto && providerAgeSec <= 30 ? "LIVE" : "DELAYED",
+        marketStatus: sessionStale ? "CLOSED" : "OPEN",
+        isRealtime: treatAsLive,
+        // Exchange-print age is not a user-facing delay badge for retail Yahoo.
+        delaySeconds: 0,
+        dataAvailability: treatAsLive ? "LIVE" : "DELAYED",
         source: "yahoo",
         // Align with poll cadence so a healthy Yahoo poll is never "Veraltet".
         staleAfterSeconds: Math.max(entry.staleAfterSeconds, 90),
         latency: {
-          providerToServerMs:
-            new Date(receivedAt).getTime() - new Date(providerTimestamp).getTime(),
+          providerToServerMs: Math.max(
+            0,
+            new Date(processedAt).getTime() - new Date(receivedAt).getTime(),
+          ),
           serverProcessingMs:
             new Date(processedAt).getTime() - new Date(receivedAt).getTime(),
           totalPipelineMs:

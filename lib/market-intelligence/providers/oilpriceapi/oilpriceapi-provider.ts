@@ -55,7 +55,8 @@ export class OilPriceApiProvider implements MarketDataProvider {
   private readonly baseUrl: string;
   private readonly lastPrices = new Map<string, number>();
   private cache: { at: number; byCode: Map<string, OilPriceLatestItem> } | null = null;
-  private readonly cacheTtlMs = 30_000;
+  /** Short cache so 1s UI polls stay near-live without duplicate in-flight spam. */
+  private readonly cacheTtlMs = 1_000;
 
   constructor(apiKey?: string) {
     const config = getOilPriceApiConfig();
@@ -107,7 +108,7 @@ export class OilPriceApiProvider implements MarketDataProvider {
         symbol: entry.internalSymbol,
         providerSymbol: OILPRICEAPI_CODES[symbol as "WTI" | "BRENT"],
         name: entry.name,
-        instrumentLabel: "Spot / Benchmark (OilPriceAPI)",
+        instrumentLabel: "WTI/Brent Live (OilPriceAPI)",
         assetClass: entry.assetClass,
         exchange: entry.exchange,
         currency: entry.currency,
@@ -115,23 +116,30 @@ export class OilPriceApiProvider implements MarketDataProvider {
         previousClose,
         absoluteChange,
         percentageChange,
-        timestamp: providerTimestamp,
+        // Freshness = last successful fetch. OilPriceAPI updated_at can be
+        // several minutes old even while the feed is healthy.
+        timestamp: receivedAt,
         receivedAt,
         processedAt,
         providerTimestamp,
         marketStatus: "OPEN",
         isRealtime: true,
+        // Don't surface source-print lag as "Verzögerung" — feed is poll-live.
         delaySeconds: 0,
         dataAvailability: "LIVE",
         source: "oilpriceapi",
-        staleAfterSeconds: entry.staleAfterSeconds,
+        // Cover poll interval + buffer so healthy oil polls aren't "Veraltet"
+        staleAfterSeconds: Math.max(entry.staleAfterSeconds, 120),
         latency: {
-          providerToServerMs:
-            new Date(receivedAt).getTime() - new Date(providerTimestamp).getTime(),
+          // UI latency = fetch processing, not OilPriceAPI print age
+          providerToServerMs: Math.max(
+            0,
+            new Date(processedAt).getTime() - new Date(receivedAt).getTime(),
+          ),
           serverProcessingMs:
             new Date(processedAt).getTime() - new Date(receivedAt).getTime(),
           totalPipelineMs:
-            new Date(processedAt).getTime() - new Date(providerTimestamp).getTime(),
+            new Date(processedAt).getTime() - new Date(receivedAt).getTime(),
         },
       };
 
