@@ -7,7 +7,7 @@ export const miDe = {
   terminalSubtitle: "Marktintelligenz-Kontrollzentrum",
   footerLive: "Live-Marktdaten aktiv.",
   footerDemo:
-    "Entwicklungs-Demo — OILPRICEAPI_KEY für Live-Öl (WTI/Brent) setzen; Polygon optional für andere Assets.",
+    "Entwicklungs-Demo — Live-Kurse kommen standardmäßig Investing-Style via Yahoo (CL=F / BZ=F / DAX).",
   footerDisclaimer:
     "Keine Anlageberatung. Keine Kauf-/Verkaufssignale.",
   loadingTerminal: "Terminal wird geladen…",
@@ -41,7 +41,7 @@ export const miDe = {
   liveMarketsEnergy: "Live-Märkte — Energie-Benchmarks",
   globalMarkets: "Globale Märkte",
   dataUnavailable: "Daten nicht verfügbar",
-  configureApiKey: "OILPRICEAPI_KEY für Live-Ölkurse konfigurieren",
+  configureApiKey: "Live-Kurse: MARKET_DATA_PROVIDER=yahoo (Investing-Style)",
   day: "Tag",
   stale: "Veraltet —",
   updated: "Aktualisiert",

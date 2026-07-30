@@ -113,14 +113,17 @@ async function pollMarketData(): Promise<void> {
           providerType: "market",
           error: "failover",
         });
-        streamState.lastError = config.oilConfigured
-          ? "Live-Öl via OilPriceAPI fehlgeschlagen — Demo-Modus. OILPRICEAPI_KEY prüfen."
-          : "Polygon-Plan erlaubt diese Daten nicht — Demo-Modus. OILPRICEAPI_KEY für WTI/Brent setzen.";
+        streamState.lastError = config.yahooEnabled
+          ? "Investing-Style Kurse (Yahoo) fehlgeschlagen — Demo-Modus."
+          : config.oilConfigured
+            ? "Live-Öl via OilPriceAPI fehlgeschlagen — Demo-Modus. OILPRICEAPI_KEY prüfen."
+            : "Kein Live-Feed — Demo-Modus. MARKET_DATA_PROVIDER=yahoo setzen.";
         marketLogger.warn("market_provider_failover_active", { attempts: result.attempts });
       } else {
         // Live if any quote came from a real provider (oilpriceapi / polygon)
         const hasLive = quotes.some(
           (q) =>
+            q.source === "yahoo" ||
             q.source === "oilpriceapi" ||
             q.source === "polygon" ||
             (q.dataAvailability === "LIVE" && q.source !== "development-mock"),

@@ -5,21 +5,40 @@ import { createCompositeMarketDataProvider } from "@/lib/market-intelligence/pro
 import { DevelopmentMarketDataProvider } from "@/lib/market-intelligence/providers/development-market-data-provider";
 import { OilPriceApiProvider } from "@/lib/market-intelligence/providers/oilpriceapi/oilpriceapi-provider";
 import { PolygonRestMarketDataProvider } from "@/lib/market-intelligence/providers/polygon/polygon-rest-provider";
+import { YahooFinanceMarketDataProvider } from "@/lib/market-intelligence/providers/yahoo/yahoo-finance-provider";
 import type { MarketDataProvider } from "@/lib/market-intelligence/providers/market-data-provider";
 import { marketLogger } from "@/lib/market-intelligence/services/market-logger";
 
-export type MarketDataProviderType = "mock" | "polygon" | "oilpriceapi" | "composite";
+export type MarketDataProviderType =
+  | "mock"
+  | "polygon"
+  | "oilpriceapi"
+  | "yahoo"
+  | "investing"
+  | "composite";
 
 /**
- * Default: OilPriceAPI for WTI/Brent (when keyed) + Polygon for other assets.
- * Pass an explicit type only when you need a single backend.
+ * Default: Yahoo Investing-style quotes (CL=F, BZ=F, ^GDAXI…),
+ * with OilPriceAPI / Polygon as fallbacks via composite.
  */
 export function createMarketDataProvider(
   type?: MarketDataProviderType,
 ): MarketDataProvider {
   const marketConfig = getMarketProviderConfig();
   const oilConfig = getOilPriceApiConfig();
-  const providerType = type ?? "composite";
+
+  // Default path: Investing-style Yahoo first, then Oil/Polygon fallbacks
+  if (!type) {
+    if (marketConfig.isConfigured) return createCompositeMarketDataProvider();
+    return new DevelopmentMarketDataProvider();
+  }
+
+  const providerType = type;
+
+  if (providerType === "yahoo" || providerType === "investing") {
+    marketLogger.info("Using Yahoo Finance (Investing-style) market data");
+    return new YahooFinanceMarketDataProvider();
+  }
 
   if (providerType === "oilpriceapi") {
     if (!oilConfig.apiKey) {
@@ -38,12 +57,8 @@ export function createMarketDataProvider(
     return new PolygonRestMarketDataProvider(marketConfig.apiKey);
   }
 
-  if (providerType === "composite" || providerType === "mock") {
-    // Prefer composite whenever any live key is present
-    if (oilConfig.isConfigured || marketConfig.isConfigured) {
-      return createCompositeMarketDataProvider();
-    }
-    return new DevelopmentMarketDataProvider();
+  if (providerType === "composite") {
+    return createCompositeMarketDataProvider();
   }
 
   return new DevelopmentMarketDataProvider();
@@ -51,9 +66,11 @@ export function createMarketDataProvider(
 
 export function getConfiguredProviderType(): MarketDataProviderType {
   const marketConfig = getMarketProviderConfig();
-  const oilConfig = getOilPriceApiConfig();
-  if (oilConfig.isConfigured || marketConfig.isConfigured) return "composite";
-  return "mock";
+  if (!marketConfig.isConfigured) return "mock";
+  if (marketConfig.provider === "yahoo" || marketConfig.provider === "investing") {
+    return "yahoo";
+  }
+  return "composite";
 }
 
 export function getProviderForAsset(symbol: string): MarketDataProvider {

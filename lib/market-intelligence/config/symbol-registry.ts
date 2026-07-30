@@ -26,21 +26,21 @@ export interface SymbolRegistryEntry {
 /**
  * Central symbol mapping — provider-specific symbols must NOT leak into UI.
  *
- * WTI:  NYMEX WTI Crude Oil Futures (product CL) — NOT a CFD
- * Brent: ICE Brent Crude Futures (product BZ) — NOT a CFD
- * Gold:  COMEX Gold Futures (product GC) — documented as futures, not spot
- * NDX:   NASDAQ-100 Index (I:NDX) — cash index; futures alternative: NQ
- * SPX:   S&P 500 Index (I:SPX) — cash index; futures alternative: ES
- * DAX:   DAX Index (I:GDAXI) — cash index; limited overnight coverage
- * EURUSD: Forex pair C:EURUSD
- * BTC:   Crypto X:BTCUSD — 24/7
+ * WTI:  NYMEX WTI continuous futures (CL=F) — Investing-style
+ * Brent: ICE Brent continuous futures (BZ=F) — Investing-style
+ * Gold:  COMEX Gold Futures (GC=F)
+ * NDX:   NASDAQ-100 Index (^NDX)
+ * SPX:   S&P 500 Index (^GSPC)
+ * DAX:   DAX Index (^GDAXI) — Investing-style cash index
+ * EURUSD: Forex pair EURUSD=X
+ * BTC:   Crypto BTC-USD
  */
 export const SYMBOL_REGISTRY: SymbolRegistryEntry[] = [
   {
     internalSymbol: "WTI",
     assetId: "wti",
     name: "WTI Crude Oil",
-    instrumentLabel: "Front Month Futures (NYMEX CL)",
+    instrumentLabel: "WTI Futures (CL=F)",
     assetClass: "commodity",
     exchange: "NYMEX/CME",
     currency: "USD",
@@ -56,7 +56,7 @@ export const SYMBOL_REGISTRY: SymbolRegistryEntry[] = [
     internalSymbol: "BRENT",
     assetId: "brent",
     name: "Brent Crude Oil",
-    instrumentLabel: "Front Month Futures (ICE BZ)",
+    instrumentLabel: "Brent Futures (BZ=F)",
     assetClass: "commodity",
     exchange: "ICE",
     currency: "USD",
@@ -120,7 +120,7 @@ export const SYMBOL_REGISTRY: SymbolRegistryEntry[] = [
     internalSymbol: "DAX",
     assetId: "dax",
     name: "DAX",
-    instrumentLabel: "Cash Index (I:GDAXI)",
+    instrumentLabel: "DAX Cash Index (^GDAXI)",
     assetClass: "index",
     exchange: "XETRA",
     currency: "EUR",
