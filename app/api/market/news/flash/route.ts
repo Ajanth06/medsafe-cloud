@@ -39,6 +39,7 @@ function toFlashEvent(item: NormalizedNewsItem): NewsEvent {
     url: item.url,
     flashTopic,
     language: item.language,
+    imageUrl: item.imageUrl,
   };
 }
 

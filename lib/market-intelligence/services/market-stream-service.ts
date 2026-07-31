@@ -32,12 +32,18 @@ import { PRIMARY_SYMBOLS } from "@/lib/market-intelligence/config/symbol-registr
 import { ANOMALY_DETECTION_RULES } from "@/lib/market-intelligence/config/detection-rules";
 import { seedBufferFromHistory } from "@/lib/market-intelligence/engine/event-pipeline";
 import { buildSystemHealth } from "@/lib/market-intelligence/providers/provider-health";
-import { runNewsPipeline } from "@/lib/market-intelligence/services/news-intelligence-orchestrator";
+import { runNewsPipeline, type NewsPipelineResult } from "@/lib/market-intelligence/services/news-intelligence-orchestrator";
 import { buildOperationsHealth } from "@/lib/market-intelligence/operations/system-watchdog";
-import { getInAppAlerts, getUnreadAlertCount } from "@/lib/market-intelligence/operations/in-app-alert-store";
+import { getInAppAlerts } from "@/lib/market-intelligence/operations/in-app-alert-store";
 import { processAlertsForDelivery } from "@/lib/market-intelligence/operations/alert-delivery-engine";
 import { buildLiveMarketAlerts } from "@/lib/market-intelligence/operations/alert-history-mapper";
-import { hydrateOperationsFromDb, getAlertsForApi } from "@/lib/market-intelligence/persistence/hydrate";
+import {
+  filterOilDeliveredAlerts,
+  filterOilIntelligenceAlerts,
+  filterOilMarketAlerts,
+  filterOilMarketEvents,
+} from "@/lib/market-intelligence/operations/oil-alert-scope";
+import { hydrateOperationsFromDb } from "@/lib/market-intelligence/persistence/hydrate";
 import { isMiPersistenceEnabled } from "@/lib/market-intelligence/persistence/config";
 import { persistMarketEvents } from "@/lib/market-intelligence/persistence/events-repository";
 import {
@@ -69,6 +75,8 @@ let streamState: StreamState = {
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 let lastHistoryPersistAt = 0;
 let pollInFlight: Promise<void> | null = null;
+let lastNewsResult: NewsPipelineResult | null = null;
+let newsRefreshInFlight: Promise<void> | null = null;
 const tickFilter = new DuplicateTickFilter();
 
 function seedDemoHistory(): void {
@@ -311,10 +319,20 @@ export function getQuotesSnapshot(minAgeMs = 1_500): {
   };
 }
 
+/**
+ * Cold-start helper: return cache if present, otherwise wait briefly for first poll.
+ * Prefer getQuotesSnapshot for UI polling — never block the hot path.
+ */
 export async function getQuotesSnapshotReady(minAgeMs = 1_500) {
   const snap = getQuotesSnapshot(minAgeMs);
   if (snap.quotes.length > 0) return snap;
-  await pollMarketData();
+
+  await Promise.race([
+    pollMarketData(),
+    new Promise<void>((resolve) => {
+      setTimeout(resolve, 600);
+    }),
+  ]);
   return getQuotesSnapshot(minAgeMs);
 }
 
@@ -333,63 +351,69 @@ function toLegacyDetectionRules() {
   );
 }
 
+function emptyNewsResult(pipeline: PipelineResult): NewsPipelineResult {
+  return {
+    intelligenceEvents: [],
+    breakingNews: [],
+    timeline: [],
+    liveFeed: pipeline.liveFeed,
+    intelligenceAlerts: pipeline.intelligenceAlerts,
+    searchHistory: [],
+    newsHealth: {
+      newsEngine: "ACTIVE",
+      providers: [],
+      officialSources: "READY",
+      verificationEngine: "ACTIVE",
+      eventCorrelation: "ACTIVE",
+      lastNewsAt: null,
+      averageNewsLatencyMs: null,
+      isLive: true,
+      primarySource: "Oil RSS",
+      officialSourceLabel: "Free Oil RSS",
+    },
+  };
+}
+
+function refreshNewsInBackground(pipeline: PipelineResult): void {
+  if (newsRefreshInFlight) return;
+  newsRefreshInFlight = runNewsPipeline(pipeline, { fast: true })
+    .then((result) => {
+      lastNewsResult = result;
+      const oilAlerts = filterOilIntelligenceAlerts(result.intelligenceAlerts);
+      if (getOperationsConfig().alertDeliveryEnabled && oilAlerts.length > 0) {
+        void processAlertsForDelivery({
+          alerts: oilAlerts,
+          clusters: result.intelligenceEvents,
+          latency: {
+            marketEventCreatedAt: pipeline.marketEvents[0]?.detectedAt,
+          },
+        });
+      }
+    })
+    .catch((error) => {
+      marketLogger.warn("Background news refresh failed", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    })
+    .finally(() => {
+      newsRefreshInFlight = null;
+    });
+}
+
 export async function getMarketIntelligenceDataFromStream(): Promise<MarketIntelligenceDashboardData> {
+  // Instant shell — never await Yahoo/RSS on the page critical path
   startMarketStream();
 
-  if (!streamState.pipeline || streamState.quotes.length === 0) {
-    await pollMarketData();
-  }
-
   if (isMiPersistenceEnabled()) {
-    // Don't block first paint on DB hydrate — fill alerts shortly after
     void hydrateOperationsFromDb();
   }
 
-  const pipeline = streamState.pipeline!;
+  const pipeline =
+    streamState.pipeline ?? runEventPipeline([], getPriceHistoryBuffer());
 
-  // Prefer instant paint: race news vs short timeout; Flash poll fills later
-  const newsResult = await Promise.race([
-    runNewsPipeline(pipeline, { fast: true }),
-    new Promise<Awaited<ReturnType<typeof runNewsPipeline>>>((resolve) => {
-      setTimeout(() => {
-        resolve({
-          intelligenceEvents: [],
-          breakingNews: [],
-          timeline: [],
-          liveFeed: pipeline.liveFeed,
-          intelligenceAlerts: pipeline.intelligenceAlerts,
-          searchHistory: [],
-          newsHealth: {
-            newsEngine: "ACTIVE",
-            providers: [],
-            officialSources: "READY",
-            verificationEngine: "ACTIVE",
-            eventCorrelation: "ACTIVE",
-            lastNewsAt: null,
-            averageNewsLatencyMs: null,
-            isLive: true,
-            primarySource: "Oil RSS",
-            officialSourceLabel: "Free Oil RSS",
-          },
-        });
-      }, 1_400);
-    }),
-  ]);
-
-  // Don't block page on alert delivery
-  if (getOperationsConfig().alertDeliveryEnabled && newsResult.intelligenceAlerts.length > 0) {
-    void processAlertsForDelivery({
-      alerts: newsResult.intelligenceAlerts,
-      clusters: newsResult.intelligenceEvents,
-      latency: {
-        marketEventCreatedAt: pipeline.marketEvents[0]?.detectedAt,
-      },
-    }).catch((error) => {
-      marketLogger.warn("Live alert delivery failed", {
-        error: error instanceof Error ? error.message : String(error),
-      });
-    });
-  }
+  // News: serve cache instantly; refresh in background (Flash client poll fills gaps)
+  const newsResult = lastNewsResult ?? emptyNewsResult(pipeline);
+  refreshNewsInBackground(pipeline);
 
   const systemHealth = await buildSystemHealth({
     ...streamState,
@@ -401,10 +425,21 @@ export async function getMarketIntelligenceDataFromStream(): Promise<MarketIntel
   }
   systemHealth.operationsHealth = buildOperationsHealth();
 
-  const deliveredAlerts = isMiPersistenceEnabled()
-    ? await getAlertsForApi()
-    : getInAppAlerts({ tab: "ALL" });
-  const unreadAlertCount = getUnreadAlertCount();
+  // In-memory alerts only on first paint — DB hydrate is already backgrounded
+  const deliveredAlerts = filterOilDeliveredAlerts(getInAppAlerts({ tab: "ALL" }));
+  const intelligenceAlerts = filterOilIntelligenceAlerts(
+    newsResult.intelligenceAlerts.length
+      ? newsResult.intelligenceAlerts
+      : pipeline.intelligenceAlerts,
+  );
+  const marketEvents = filterOilMarketEvents(pipeline.marketEvents);
+  const unreadAlertCount = deliveredAlerts.filter(
+    (a) =>
+      a.readStatus === "UNREAD" &&
+      (a.severity === "HIGH" ||
+        a.severity === "CRITICAL" ||
+        a.severity === "MEDIUM"),
+  ).length;
 
   const primaryQuotes = pipeline.quotes.filter((q) =>
     (PRIMARY_SYMBOLS as readonly string[]).includes(q.symbol),
@@ -418,21 +453,35 @@ export async function getMarketIntelligenceDataFromStream(): Promise<MarketIntel
 
   const timeline = [
     ...newsResult.timeline,
-    ...(streamState.isDemo ? MOCK_TIMELINE.filter((t) => !newsResult.timeline.some((n) => n.category === t.category)) : []),
-  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    ...(streamState.isDemo
+      ? MOCK_TIMELINE.filter(
+          (t) => !newsResult.timeline.some((n) => n.category === t.category),
+        )
+      : []),
+  ].sort(
+    (a, b) =>
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+  );
 
-  const liveAlerts = buildLiveMarketAlerts({
-    intelligenceAlerts: newsResult.intelligenceAlerts,
-    deliveredAlerts,
-    marketEvents: pipeline.marketEvents,
-  });
+  const liveAlerts = filterOilMarketAlerts(
+    buildLiveMarketAlerts({
+      intelligenceAlerts,
+      deliveredAlerts,
+      marketEvents,
+    }),
+  );
 
   return {
     quotes: sortedQuotes,
     primaryQuotes,
     brentWtiSpread: pipeline.brentWtiSpread,
-    marketEvents: pipeline.marketEvents,
-    breakingNews: newsResult.breakingNews.length > 0 ? newsResult.breakingNews : streamState.isDemo ? MOCK_BREAKING_NEWS : [],
+    marketEvents,
+    breakingNews:
+      newsResult.breakingNews.length > 0
+        ? newsResult.breakingNews
+        : streamState.isDemo
+          ? MOCK_BREAKING_NEWS
+          : [],
     intelligenceEvents: newsResult.intelligenceEvents,
     timeline,
     liveFeed: newsResult.liveFeed,
@@ -440,9 +489,9 @@ export async function getMarketIntelligenceDataFromStream(): Promise<MarketIntel
       liveAlerts.length > 0
         ? liveAlerts
         : streamState.isDemo
-          ? MOCK_ALERTS
+          ? filterOilMarketAlerts(MOCK_ALERTS)
           : [],
-    intelligenceAlerts: newsResult.intelligenceAlerts,
+    intelligenceAlerts,
     detectionRules: toLegacyDetectionRules(),
     crossAssetEvents: pipeline.crossAssetEvents,
     oilCorrelation: pipeline.oilCorrelation,

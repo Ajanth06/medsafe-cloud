@@ -16,7 +16,8 @@ export function PriceChart({
   className,
   label,
 }: PriceChartProps) {
-  if (data.length < 2) {
+  const series = Array.isArray(data) ? data : [];
+  if (series.length < 2) {
     return (
       <div
         className={cn("flex items-center justify-center rounded-lg bg-white/[0.06] text-xs text-slate-400", className)}
@@ -27,15 +28,15 @@ export function PriceChart({
     );
   }
 
-  const min = Math.min(...data);
-  const max = Math.max(...data);
+  const min = Math.min(...series);
+  const max = Math.max(...series);
   const range = max - min || 1;
   const width = 400;
   const pad = 4;
 
-  const points = data
+  const points = series
     .map((value, index) => {
-      const x = (index / (data.length - 1)) * width;
+      const x = (index / (series.length - 1)) * width;
       const y = height - pad - ((value - min) / range) * (height - pad * 2);
       return `${x},${y}`;
     })

@@ -141,7 +141,8 @@ export async function getUserProfile(): Promise<UserProfile | null> {
 
   if (!user) return null;
 
-  await ensureProfileSynced(supabase, user);
+  // Don't block first paint on profile upsert
+  void ensureProfileSynced(supabase, user);
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -192,6 +193,23 @@ export async function getUserOrRedirect() {
     userId: profile.id,
     profile,
   };
+}
+
+/**
+ * Layout gate only — auth.getUser, no profile upsert/select.
+ * Use this when the page doesn't need profile fields.
+ */
+export async function requireSessionOrRedirect() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  return { userId: user.id, email: user.email ?? null };
 }
 
 /** @deprecated Onboarding removed — AARYX uses login-only access. */

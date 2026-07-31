@@ -1,7 +1,7 @@
 import {
   OIL_RSS_FEEDS,
   classifyFlashTopic,
-  isAlJazeeraRelevantText,
+  isWorldFeedIranRelevantText,
   topicEntity,
   type OilRssFeed,
 } from "@/lib/market-intelligence/config/oil-rss-feeds";
@@ -28,16 +28,16 @@ let feedCache: { at: number; items: NormalizedNewsItem[] } | null = null;
 const CACHE_TTL_MS = 90_000;
 /** Serve stale up to 10m while a background refresh runs. */
 const STALE_MAX_MS = 10 * 60_000;
-const FEED_TIMEOUT_MS = 2_200;
-/** Cold start / page paint: only the highest-signal oil feeds. */
+const FEED_TIMEOUT_MS = 1_100;
+/** Cold start: Iran-front sources (AJ/BBC/US) + DE photos. */
 const FAST_FEED_IDS = new Set([
-  "google-oil-de",
-  "google-iran-de",
-  "google-trump-iran-de",
-  "reuters-oil-iran",
-  "tagesschau-wirtschaft",
-  "eia",
+  "aljazeera",
+  "bbc-iran-gn",
+  "google-iran-en",
+  "tagesschau-ausland",
 ]);
+
+const BROAD_FEED_IDS = new Set(["aljazeera", "bbc-middle-east"]);
 
 let refreshInFlight: Promise<void> | null = null;
 
@@ -114,14 +114,33 @@ export class OilRssNewsProvider implements NewsProvider {
       for (const id of keep) seenIds.add(id);
     }
 
-    // Keep topic diversity but don't starve the feed (up to 8 per topic)
+    // Keep topic diversity; Iran gets more slots (AJ/BBC/US + DE)
     const picked: typeof ranked = [];
     const perTopic = new Map<string, number>();
+    const perSource = new Map<string, number>();
     const byScore = [...ranked].sort((a, b) => b.score - a.score);
+
+    function sourceKey(item: NormalizedNewsItem): string {
+      const s = `${item.sourceName ?? item.source}`.toLowerCase();
+      if (s.includes("al jazeera")) return "aljazeera";
+      if (s.includes("bbc")) return "bbc";
+      if (s.includes("reuters")) return "reuters";
+      if (s.includes("cnn")) return "cnn";
+      if (s.includes("ap ·") || s.includes("associated press")) return "ap";
+      if (s.includes("nyt") || s.includes("new york times")) return "nyt";
+      if (s.includes("tagesschau")) return "tagesschau";
+      return s.slice(0, 24);
+    }
+
     for (const r of byScore) {
+      const topicCap = r.topic === "iran" ? 12 : 8;
       const count = perTopic.get(r.topic) ?? 0;
-      if (count >= 8) continue;
+      if (count >= topicCap) continue;
+      const sk = sourceKey(r.item);
+      const sc = perSource.get(sk) ?? 0;
+      if (sc >= 4) continue;
       perTopic.set(r.topic, count + 1);
+      perSource.set(sk, sc + 1);
       picked.push(r);
       if (picked.length >= limit) break;
     }
@@ -143,11 +162,10 @@ export class OilRssNewsProvider implements NewsProvider {
         const src = `${r.item.source} ${r.item.sourceName ?? ""}`.toLowerCase();
         return (
           r.item.language === "en" ||
-          src.includes("al jazeera") ||
-          src.includes("reuters")
+          /al jazeera|bbc|reuters|cnn|ap ·|nyt ·|google news us/.test(src)
         );
       })
-      .slice(0, 16)
+      .slice(0, 20)
       .map((r) => ({
         id: r.item.id,
         title: r.item.title,
@@ -164,6 +182,11 @@ export class OilRssNewsProvider implements NewsProvider {
       const src = `${r.item.source} ${r.item.sourceName ?? ""}`.toLowerCase();
       const isReuters = src.includes("reuters");
       const isAj = src.includes("al jazeera");
+      const isBbc = src.includes("bbc");
+      const isUsWire =
+        /\bcnn\b|\bap ·|associated press|nyt ·|new york times|google news us/.test(
+          src,
+        );
       return {
         ...r.item,
         title,
@@ -177,6 +200,8 @@ export class OilRssNewsProvider implements NewsProvider {
           ...(r.hot ? ["HOT"] : []),
           ...(tr?.translated ? ["TRANSLATED"] : []),
           ...(isAj ? ["ALJAZEERA"] : []),
+          ...(isBbc ? ["BBC"] : []),
+          ...(isUsWire ? ["US_MEDIA"] : []),
           ...(isReuters ? ["REUTERS"] : []),
         ],
       };
@@ -216,7 +241,20 @@ export class OilRssNewsProvider implements NewsProvider {
       }
     }
 
-    await this.refreshFeeds({ fast: true });
+    // Cold start: never block >800ms on RSS — return what we have, finish in bg
+    if (!refreshInFlight) {
+      refreshInFlight = this.refreshFeeds({ fast: true }).finally(() => {
+        refreshInFlight = null;
+        // After fast snapshot, warm full feed set in background
+        void this.refreshFeedsInBackground();
+      });
+    }
+    await Promise.race([
+      refreshInFlight,
+      new Promise<void>((resolve) => {
+        setTimeout(resolve, 800);
+      }),
+    ]);
     return (feedCache?.items ?? []).slice(0, limit);
   }
 
@@ -236,7 +274,10 @@ export class OilRssNewsProvider implements NewsProvider {
       feeds.map(async (feed) => {
         try {
           const limit =
-            feed.id === "aljazeera" || feed.id.startsWith("reuters")
+            feed.id === "aljazeera" ||
+            feed.id === "bbc-middle-east" ||
+            feed.id.startsWith("reuters") ||
+            feed.id.includes("iran")
               ? 40
               : 20;
           return await fetchFeed(feed, limit);
@@ -317,7 +358,10 @@ function parseRss(
       null;
     const pubDate = extractTag(block, "pubDate") ?? extractTag(block, "published");
     const description = decodeXml(
-      extractTag(block, "description") ?? extractTag(block, "summary") ?? "",
+      extractTag(block, "description") ??
+        extractTag(block, "summary") ??
+        extractTag(block, "content:encoded") ??
+        "",
     );
 
     if (!title) continue;
@@ -329,14 +373,17 @@ function parseRss(
 
     const summary = stripHtml(description).slice(0, 280);
     const text = `${title} ${summary}`;
-    if (feed.id === "aljazeera" && !isAlJazeeraRelevantText(text)) {
+    if (BROAD_FEED_IDS.has(feed.id) && !isWorldFeedIranRelevantText(text)) {
       continue;
     }
-    const cleanTitle = title
+    const cleanTitle = decodeXml(title)
       .replace(/\s*-\s*Reuters\s*$/i, "")
       .replace(/\s*\|\s*Reuters\s*$/i, "")
+      .replace(/\s+/g, " ")
+      .trim()
       .slice(0, 220);
     const topic = classifyFlashTopic(`${cleanTitle} ${summary}`);
+    const imageUrl = extractRssImage(block, description);
     items.push(
       normalizeNewsItem(
         {
@@ -354,6 +401,7 @@ function parseRss(
           dataAvailability: "LIVE",
           language: feed.language,
           entities: [topicEntity(topic)],
+          imageUrl: imageUrl ?? undefined,
         },
         "oil-rss",
       ),
@@ -377,6 +425,7 @@ function parseRss(
       const url = cleanUrl(link);
       const summary = stripHtml(description).slice(0, 280);
       const topic = classifyFlashTopic(`${title} ${summary}`);
+      const imageUrl = extractRssImage(block, description);
       items.push(
         normalizeNewsItem(
           {
@@ -395,6 +444,7 @@ function parseRss(
             dataAvailability: "LIVE",
             language: feed.language,
             entities: [topicEntity(topic)],
+            imageUrl: imageUrl ?? undefined,
           },
           "oil-rss",
         ),
@@ -431,18 +481,90 @@ function extractHref(block: string): string | undefined {
   return match?.[1];
 }
 
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-}
+/** Pull lead image from media:/enclosure tags or <img> in description HTML. */
+function extractRssImage(
+  block: string,
+  descriptionHtml: string,
+): string | null {
+  const media =
+    block.match(
+      /<(?:media:content|media:thumbnail|media:group)[^>]+(?:url|href)=["']([^"']+)["']/i,
+    ) ??
+    block.match(
+      /<(?:media:content|media:thumbnail)[^>]*>[\s\S]*?<(?:url|media:url)[^>]*>([^<]+)</i,
+    );
+  if (media?.[1] && isLikelyImageUrl(media[1])) {
+    return cleanImageUrl(media[1]);
+  }
 
-function decodeXml(text: string): string {
-  return text
-    .replace(/&amp;/g, "&")
+  const enclosure = block.match(
+    /<enclosure[^>]+(?:type=["']image\/[^"']*["'][^>]+url=["']([^"']+)["']|url=["']([^"']+)["'][^>]+type=["']image\/[^"']*["'])/i,
+  );
+  const enclosureUrl = enclosure?.[1] ?? enclosure?.[2];
+  if (enclosureUrl && isLikelyImageUrl(enclosureUrl)) {
+    return cleanImageUrl(enclosureUrl);
+  }
+
+  const decoded = descriptionHtml
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'");
+    .replace(/&amp;/g, "&");
+  const img =
+    decoded.match(/<img[^>]+src=["']([^"']+)["']/i) ??
+    block.match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (img?.[1] && isLikelyImageUrl(img[1])) {
+    return cleanImageUrl(img[1]);
+  }
+
+  return null;
+}
+
+function isLikelyImageUrl(url: string): boolean {
+  const lower = url.toLowerCase();
+  if (!lower.startsWith("http")) return false;
+  if (/logo|favicon|sprite|1x1|pixel|spacer|tracking/i.test(lower)) return false;
+  return (
+    /\.(jpe?g|png|webp|gif)(\?|#|$)/i.test(lower) ||
+    /\/image\//i.test(lower) ||
+    /images\./i.test(lower) ||
+    /mediadata|cdn\.|img\./i.test(lower)
+  );
+}
+
+function cleanImageUrl(raw: string): string {
+  return decodeXml(raw).replace(/&amp;/g, "&").trim();
+}
+
+function stripHtml(html: string): string {
+  return decodeXml(html.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+}
+
+/** Decode HTML/XML entities that leak from RSS (e.g. &nbsp; → space). */
+function decodeXml(text: string): string {
+  let out = text;
+  // Double-encoded entities first (&amp;nbsp; → &nbsp;)
+  for (let i = 0; i < 2; i++) {
+    out = out
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&apos;/g, "'")
+      .replace(/&#x0*a0;/gi, " ")
+      .replace(/&#0*160;/g, " ")
+      .replace(/&#x([0-9a-f]+);/gi, (_, hex: string) => {
+        const code = Number.parseInt(hex, 16);
+        return Number.isFinite(code) ? String.fromCodePoint(code) : "";
+      })
+      .replace(/&#(\d+);/g, (_, dec: string) => {
+        const code = Number.parseInt(dec, 10);
+        return Number.isFinite(code) ? String.fromCodePoint(code) : "";
+      });
+  }
+  return out.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
 }
 
 function cleanUrl(raw?: string | null): string | null {

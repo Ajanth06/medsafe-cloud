@@ -33,7 +33,7 @@ export function EventDetailView({
 
   return (
     <div className="space-y-6">
-      <Link href="/market-intelligence?view=intelligence" className="text-sm text-blue-600 hover:underline">
+      <Link href="/market-intelligence?view=oil&oilView=geo" className="text-sm text-blue-600 hover:underline">
         {miDe.backToIntel}
       </Link>
 

@@ -1,6 +1,6 @@
 import { BottomNav } from "@/components/app/bottom-nav";
 import { SessionTimeoutGuard } from "@/components/app/session-timeout-guard";
-import { getUserOrRedirect } from "@/lib/auth";
+import { requireSessionOrRedirect } from "@/lib/auth";
 import { Suspense } from "react";
 
 export default async function AppLayout({
@@ -8,10 +8,10 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await getUserOrRedirect();
+  await requireSessionOrRedirect();
 
   return (
-    <div className="aaryx-terminal-theme relative min-h-dvh overflow-hidden bg-[#0b1520] pb-[calc(6.5rem+env(safe-area-inset-bottom))] text-slate-100 md:pb-8">
+    <div className="aaryx-terminal-theme mobile-app-surface relative min-h-dvh overflow-x-hidden bg-[#0b1520] pb-[calc(6.75rem+env(safe-area-inset-bottom))] text-slate-100 xl:pb-8">
       <div
         className="pointer-events-none fixed inset-0"
         aria-hidden="true"

@@ -86,6 +86,13 @@ export function useLiveMarketQuotes(initialQuotes: EnrichedMarketQuote[]) {
     }
 
     void tick();
+    // Cold start: retry quickly until first quotes land
+    const burst = window.setInterval(() => {
+      void tick();
+    }, 900);
+    const stopBurst = window.setTimeout(() => {
+      window.clearInterval(burst);
+    }, 6_000);
     const interval = window.setInterval(() => {
       void tick();
     }, LIVE_POLL_MS);
@@ -93,6 +100,8 @@ export function useLiveMarketQuotes(initialQuotes: EnrichedMarketQuote[]) {
     return () => {
       cancelled = true;
       window.clearInterval(interval);
+      window.clearInterval(burst);
+      window.clearTimeout(stopBurst);
     };
   }, []);
 

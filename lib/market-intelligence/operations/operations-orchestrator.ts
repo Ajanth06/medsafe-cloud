@@ -1,5 +1,6 @@
 import { getOperationsConfig } from "@/lib/market-intelligence/config/operations-config";
 import { processAlertsForDelivery } from "@/lib/market-intelligence/operations/alert-delivery-engine";
+import { filterOilIntelligenceAlerts } from "@/lib/market-intelligence/operations/oil-alert-scope";
 import { recordHeartbeat } from "@/lib/market-intelligence/operations/heartbeat";
 import { claimJob, claimJobAsync, completeJob, failJob } from "@/lib/market-intelligence/operations/job-queue";
 import { hydrateOperationsFromDb } from "@/lib/market-intelligence/persistence/hydrate";
@@ -107,7 +108,9 @@ export async function runOperationsTick(): Promise<OperationsTickResult> {
     }
   }
 
-  // Market-only alerts still deliver when news monitoring is off
+  // Market-only alerts still deliver when news monitoring is off — oil scope only
+  newsAlerts = filterOilIntelligenceAlerts(newsAlerts);
+
   if (config.alertDeliveryEnabled && newsAlerts.length > 0) {
     recordHeartbeat("alert-delivery", "alert");
     const delivery = await processAlertsForDelivery({

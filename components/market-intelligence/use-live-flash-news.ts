@@ -9,11 +9,15 @@ interface FlashPayload {
   error?: string;
 }
 
-/** Flash poll — RSS cache is ~90s; keep UI snappy on mobile. */
-const FLASH_POLL_MS = 75_000;
+/** Steady-state poll — RSS cache is ~90s. */
+const FLASH_POLL_MS = 90_000;
+/** First live pull after paint so photos/headlines appear quickly. */
+const FLASH_WARMUP_MS = 1_200;
 
 function flashFingerprint(events: NewsEvent[]): string {
-  return events.map((e) => `${e.id}:${e.isFlash ? 1 : 0}`).join("|");
+  return events
+    .map((e) => `${e.id}:${e.isFlash ? 1 : 0}:${e.imageUrl ? 1 : 0}`)
+    .join("|");
 }
 
 /**
@@ -75,20 +79,21 @@ export function useLiveFlashNews(initialEvents: NewsEvent[]) {
       }
     }
 
-    // Use SSR payload first; refresh later so mobile first paint stays light
+    // Empty SSR → fetch immediately; otherwise quick warmup for photos
     const hasInitial = initialEvents.length > 0;
     if (!hasInitial) void tick();
+    const warmup = window.setTimeout(
+      () => void tick(),
+      hasInitial ? FLASH_WARMUP_MS : FLASH_WARMUP_MS + 800,
+    );
     const interval = window.setInterval(() => {
       void tick();
     }, FLASH_POLL_MS);
-    const warmup = hasInitial
-      ? window.setTimeout(() => void tick(), Math.min(15_000, FLASH_POLL_MS))
-      : null;
 
     return () => {
       cancelled = true;
       window.clearInterval(interval);
-      if (warmup) window.clearTimeout(warmup);
+      window.clearTimeout(warmup);
     };
   }, []);
 

@@ -9,12 +9,16 @@ import {
   type FlashNewsTopic,
 } from "@/lib/market-intelligence/config/oil-rss-feeds";
 import { formatTime } from "@/lib/market-intelligence/format";
+import { decodeHtmlEntities } from "@/lib/market-intelligence/format/decode-html";
 import { cn } from "@/lib/utils";
 import type { NewsEvent } from "@/lib/types/market";
 
 interface FlashNewsStripProps {
   events: NewsEvent[];
   oilMovePercent?: number;
+  /** Limit to these topics (e.g. oil + iran for Öl-View) */
+  allowedTopics?: FlashNewsTopic[];
+  heading?: string;
 }
 
 type TopicFilter = "all" | FlashNewsTopic;
@@ -37,6 +41,8 @@ function topicRank(topic: FlashNewsTopic): number {
 export function FlashNewsStrip({
   events,
   oilMovePercent = 0,
+  allowedTopics,
+  heading = "Iran zuerst · AJ · BBC · US · Öl",
 }: FlashNewsStripProps) {
   const [now, setNow] = useState(() => Date.now());
   const [topic, setTopic] = useState<TopicFilter>("all");
@@ -54,6 +60,11 @@ export function FlashNewsStrip({
         return age >= -60_000 && age < 36 * 60 * 60_000;
       })
       .map((e) => ({ ...e, flashTopic: resolveTopic(e) }))
+      .filter((e) =>
+        allowedTopics?.length
+          ? allowedTopics.includes(e.flashTopic)
+          : true,
+      )
       .sort((a, b) => {
         const tr = topicRank(a.flashTopic) - topicRank(b.flashTopic);
         if (tr !== 0) return tr;
@@ -61,7 +72,7 @@ export function FlashNewsStrip({
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
         );
       });
-  }, [events, now]);
+  }, [events, now, allowedTopics]);
 
   const counts = useMemo(() => {
     const map = Object.fromEntries(
@@ -72,6 +83,14 @@ export function FlashNewsStrip({
     }
     return map;
   }, [flashItems]);
+
+  const topicOrder = useMemo(
+    () =>
+      allowedTopics?.length
+        ? FLASH_TOPIC_ORDER.filter((t) => allowedTopics.includes(t))
+        : FLASH_TOPIC_ORDER,
+    [allowedTopics],
+  );
 
   const visible = useMemo(() => {
     const filtered =
@@ -87,18 +106,18 @@ export function FlashNewsStrip({
       return [{ topic: topic as FlashNewsTopic, items: visible }];
     }
     const groups: { topic: FlashNewsTopic; items: typeof visible }[] = [];
-    for (const t of FLASH_TOPIC_ORDER) {
+    for (const t of topicOrder) {
       const items = visible.filter((e) => e.flashTopic === t);
       if (items.length) groups.push({ topic: t, items });
     }
     return groups;
-  }, [visible, topic]);
+  }, [visible, topic, topicOrder]);
 
   if (flashItems.length === 0) return null;
 
   const tabs: { id: TopicFilter; label: string; count: number }[] = [
     { id: "all", label: "Alle", count: flashItems.length },
-    ...FLASH_TOPIC_ORDER.filter((t) => counts[t] > 0).map((t) => ({
+    ...topicOrder.filter((t) => counts[t] > 0).map((t) => ({
       id: t as TopicFilter,
       label: FLASH_TOPIC_LABELS_DE[t],
       count: counts[t],
@@ -117,7 +136,7 @@ export function FlashNewsStrip({
         </span>
         <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider text-orange-200">
           <Radio className="h-3 w-3 animate-pulse" aria-hidden="true" />
-          Alle aktuellen · Öl · Iran · OPEC
+          {heading}
         </span>
         <span className="ml-auto font-mono text-[9px] text-slate-500">
           {flashItems.length} Meldungen
@@ -200,14 +219,16 @@ export function FlashNewsStrip({
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="line-clamp-2 text-sm font-semibold leading-snug text-white">
-                        {event.title}
+                        {decodeHtmlEntities(event.title)}
                       </p>
                       <p className="mt-0.5 line-clamp-2 text-xs text-slate-400 sm:line-clamp-1">
-                        {event.summary}
+                        {decodeHtmlEntities(event.summary)}
                       </p>
                       <p className="mt-1 font-mono text-[9px] text-slate-500">
                         {formatTime(event.timestamp)} CET ·{" "}
-                        {event.sourceVerification.sources.slice(0, 1).join(", ")}
+                        {decodeHtmlEntities(
+                          event.sourceVerification.sources.slice(0, 1).join(", "),
+                        )}
                         {event.language === "en" ? " · EN" : ""}
                       </p>
                     </div>

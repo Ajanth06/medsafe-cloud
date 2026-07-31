@@ -12,8 +12,8 @@ export const FLASH_TOPIC_LABELS_DE: Record<FlashNewsTopic, string> = {
 };
 
 export const FLASH_TOPIC_ORDER: FlashNewsTopic[] = [
-  "oil",
   "iran",
+  "oil",
   "opec",
   "inventory",
   "macro",
@@ -33,10 +33,82 @@ export interface OilRssFeed {
 }
 
 /**
- * Free public RSS — DE first, Reuters via Google News (+ DE translate), Al Jazeera, Official.
- * Title + summary + link only.
+ * Free public RSS — Iran-first (AJ, BBC, US wires), DE, Reuters, Official.
+ * Title + summary + link; images when the feed provides them (e.g. Tagesschau).
  */
 export const OIL_RSS_FEEDS: OilRssFeed[] = [
+  {
+    id: "aljazeera",
+    name: "Al Jazeera",
+    url: "https://www.aljazeera.com/xml/rss/all.xml",
+    sourceType: "MAJOR_MEDIA",
+    weight: 99,
+    language: "en",
+    defaultTopic: "iran",
+  },
+  {
+    id: "aljazeera-iran-gn",
+    name: "Al Jazeera · Iran",
+    url: "https://news.google.com/rss/search?q=when:3d+site:aljazeera.com+(Iran+OR+Tehran+OR+Hormuz+OR+IRGC+OR+sanctions+OR+oil)&hl=en&gl=US&ceid=US:en",
+    sourceType: "MAJOR_MEDIA",
+    weight: 100,
+    language: "en",
+    defaultTopic: "iran",
+  },
+  {
+    id: "bbc-middle-east",
+    name: "BBC · Middle East",
+    url: "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml",
+    sourceType: "MAJOR_MEDIA",
+    weight: 97,
+    language: "en",
+    defaultTopic: "iran",
+  },
+  {
+    id: "bbc-iran-gn",
+    name: "BBC · Iran",
+    url: "https://news.google.com/rss/search?q=when:3d+site:bbc.com+(Iran+OR+Tehran+OR+Hormuz+OR+oil+OR+sanctions)+OR+site:bbc.co.uk+(Iran+OR+Tehran)&hl=en&gl=GB&ceid=GB:en",
+    sourceType: "MAJOR_MEDIA",
+    weight: 98,
+    language: "en",
+    defaultTopic: "iran",
+  },
+  {
+    id: "google-iran-en",
+    name: "Google News US · Iran",
+    url: "https://news.google.com/rss/search?q=when:3d+Iran+(oil+OR+Hormuz+OR+sanctions+OR+Trump+OR+strike+OR+Tehran+OR+IRGC)&hl=en&gl=US&ceid=US:en",
+    sourceType: "MAJOR_MEDIA",
+    weight: 96,
+    language: "en",
+    defaultTopic: "iran",
+  },
+  {
+    id: "cnn-iran",
+    name: "CNN · Iran",
+    url: "https://news.google.com/rss/search?q=when:3d+site:cnn.com+(Iran+OR+Tehran+OR+Hormuz+OR+oil+sanctions)&hl=en&gl=US&ceid=US:en",
+    sourceType: "MAJOR_MEDIA",
+    weight: 95,
+    language: "en",
+    defaultTopic: "iran",
+  },
+  {
+    id: "ap-iran",
+    name: "AP · Iran",
+    url: "https://news.google.com/rss/search?q=when:3d+site:apnews.com+(Iran+OR+Tehran+OR+Hormuz+OR+oil)&hl=en&gl=US&ceid=US:en",
+    sourceType: "NEWS_WIRE",
+    weight: 97,
+    language: "en",
+    defaultTopic: "iran",
+  },
+  {
+    id: "nyt-iran",
+    name: "NYT · Iran",
+    url: "https://news.google.com/rss/search?q=when:3d+site:nytimes.com+(Iran+OR+Tehran+OR+Hormuz+OR+oil)&hl=en&gl=US&ceid=US:en",
+    sourceType: "MAJOR_MEDIA",
+    weight: 94,
+    language: "en",
+    defaultTopic: "iran",
+  },
   {
     id: "google-oil-de",
     name: "Google News DE · Öl",
@@ -108,6 +180,15 @@ export const OIL_RSS_FEEDS: OilRssFeed[] = [
     language: "de",
   },
   {
+    id: "tagesschau-ausland",
+    name: "Tagesschau Ausland",
+    url: "https://www.tagesschau.de/ausland/index~rss2.xml",
+    sourceType: "MAJOR_MEDIA",
+    weight: 93,
+    language: "de",
+    defaultTopic: "iran",
+  },
+  {
     id: "reuters-oil-iran",
     name: "Reuters · Oil/Iran",
     url: "https://news.google.com/rss/search?q=when:2d+site:reuters.com+(oil+OR+Iran+OR+crude+OR+OPEC+OR+Hormuz+OR+Trump)&hl=en&gl=US&ceid=US:en",
@@ -122,15 +203,6 @@ export const OIL_RSS_FEEDS: OilRssFeed[] = [
     url: "https://news.google.com/rss/search?q=when:2d+site:reuters.com+(Iran+(US+OR+USA+OR+Trump+OR+Pentagon+OR+strike))&hl=en&gl=US&ceid=US:en",
     sourceType: "NEWS_WIRE",
     weight: 99,
-    language: "en",
-    defaultTopic: "iran",
-  },
-  {
-    id: "aljazeera",
-    name: "Al Jazeera",
-    url: "https://www.aljazeera.com/xml/rss/all.xml",
-    sourceType: "MAJOR_MEDIA",
-    weight: 90,
     language: "en",
     defaultTopic: "iran",
   },
@@ -264,11 +336,13 @@ export function isOilRelevantText(text: string): boolean {
   return OIL_FLASH_KEYWORDS.some((k) => lower.includes(k));
 }
 
-/** Stricter gate for broad world feeds like Al Jazeera. */
-export function isAlJazeeraRelevantText(text: string): boolean {
+/** Stricter gate for broad world feeds (Al Jazeera, BBC Middle East). */
+export function isWorldFeedIranRelevantText(text: string): boolean {
   const lower = text.toLowerCase();
   const keys = [
     "iran",
+    "tehran",
+    "teheran",
     "oil",
     "crude",
     "opec",
@@ -278,15 +352,25 @@ export function isAlJazeeraRelevantText(text: string): boolean {
     "drone",
     "gaza",
     "israel",
-    " pentagon",
+    "pentagon",
     "trump",
     "refinery",
     "tanker",
     "pipeline",
     "brent",
     "wti",
+    "irgc",
+    "khamenei",
+    "strait",
+    "persian gulf",
+    "gulf",
   ];
-  return keys.some((k) => lower.includes(k.trim()));
+  return keys.some((k) => lower.includes(k));
+}
+
+/** @deprecated use isWorldFeedIranRelevantText */
+export function isAlJazeeraRelevantText(text: string): boolean {
+  return isWorldFeedIranRelevantText(text);
 }
 
 export function isFlashHotText(text: string): boolean {

@@ -5,6 +5,7 @@ import {
   SOURCE_CREDIBILITY_WEIGHTS,
   SYNDICATION_ORIGINS,
 } from "@/lib/market-intelligence/config/news-sources";
+import { decodeHtmlEntities } from "@/lib/market-intelligence/format/decode-html";
 import { isOfficialSource } from "@/lib/market-intelligence/services/source-verification";
 import type {
   GeopoliticalEventType,
@@ -17,13 +18,15 @@ export function normalizeNewsItem(
   provider: string,
 ): NormalizedNewsItem {
   const now = new Date().toISOString();
-  const sourceName = item.sourceName ?? item.source;
+  const sourceName = decodeHtmlEntities(item.sourceName ?? item.source);
   const sourceDomain = item.sourceDomain ?? extractDomain(item.url);
+  const title = decodeHtmlEntities(item.title);
+  const summary = decodeHtmlEntities(item.summary);
 
   return {
     id: item.id,
-    title: item.title.trim(),
-    summary: item.summary.trim(),
+    title,
+    summary,
     source: sourceName,
     sourceName,
     sourceDomain,
@@ -33,7 +36,9 @@ export function normalizeNewsItem(
     isOfficialSource: item.isOfficialSource ?? isOfficialSource(sourceName),
     provider,
     providerEventId: item.providerEventId,
-    bodySnippet: item.bodySnippet?.slice(0, 280),
+    bodySnippet: item.bodySnippet
+      ? decodeHtmlEntities(item.bodySnippet).slice(0, 280)
+      : undefined,
     sourceType: item.sourceType ?? classifySourceType(sourceName, sourceDomain),
     sourceOrigin: item.sourceOrigin ?? resolveSyndicationOrigin(sourceName),
     syndicationGroup: item.syndicationGroup ?? resolveSyndicationOrigin(sourceName),
@@ -41,13 +46,14 @@ export function normalizeNewsItem(
     aaryxReceivedAt: item.aaryxReceivedAt ?? now,
     processedAt: item.processedAt ?? now,
     language: item.language ?? "en",
-    geopoliticalType: item.geopoliticalType ?? classifyGeopoliticalType(item.title, item.summary),
-    entities: item.entities ?? extractEntities(`${item.title} ${item.summary}`),
+    geopoliticalType: item.geopoliticalType ?? classifyGeopoliticalType(title, summary),
+    entities: item.entities ?? extractEntities(`${title} ${summary}`),
     rawKeywords: item.rawKeywords,
     credibilityScore: item.credibilityScore ?? scoreCredibility(sourceName, item.sourceType),
     dataAvailability: item.dataAvailability ?? "LIVE",
     hasConflictingReports: item.hasConflictingReports,
     isRetracted: item.isRetracted,
+    imageUrl: item.imageUrl,
   };
 }
 

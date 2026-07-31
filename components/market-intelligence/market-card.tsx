@@ -145,7 +145,7 @@ export function MarketCard({
                   <span>{miDe.day} {formatChange(quote.percentageChange, true)}</span>
                 </div>
               </div>
-              {quote.sparkline.length >= 2 && (
+              {(quote.sparkline?.length ?? 0) >= 2 && (
                 <Sparkline data={quote.sparkline} positive={positive} />
               )}
             </div>

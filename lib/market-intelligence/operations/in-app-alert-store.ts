@@ -1,4 +1,5 @@
 import type { AlertReadStatus, DeliveredAlert } from "@/lib/types/market";
+import { isOilScopedAlert } from "@/lib/market-intelligence/operations/oil-alert-scope";
 import { isMiPersistenceEnabled } from "@/lib/market-intelligence/persistence/config";
 import {
   persistDeliveredAlert,
@@ -14,6 +15,9 @@ function nextAlertId(): string {
 }
 
 export function addInAppAlert(alert: DeliveredAlert): DeliveredAlert {
+  if (!isOilScopedAlert(alert)) {
+    return alert;
+  }
   const stored = alerts.has(alert.id) ? alert : { ...alert, id: alert.id || nextAlertId() };
   alerts.set(stored.id, stored);
   if (isMiPersistenceEnabled()) void persistDeliveredAlert(stored);
@@ -24,6 +28,11 @@ export function getInAppAlerts(filter?: {
   tab?: "ACTIVE" | "HIGH_PRIORITY" | "ALL" | "RESOLVED";
   readStatus?: AlertReadStatus;
 }): DeliveredAlert[] {
+  // Drop parked non-oil alerts left over from earlier terminal scope
+  for (const [id, alert] of alerts) {
+    if (!isOilScopedAlert(alert)) alerts.delete(id);
+  }
+
   let result = [...alerts.values()].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
@@ -51,8 +60,12 @@ export function getInAppAlerts(filter?: {
 }
 
 export function getUnreadAlertCount(): number {
-  return [...alerts.values()].filter(
-    (a) => a.readStatus === "UNREAD" && (a.severity === "HIGH" || a.severity === "CRITICAL" || a.severity === "MEDIUM"),
+  return getInAppAlerts().filter(
+    (a) =>
+      a.readStatus === "UNREAD" &&
+      (a.severity === "HIGH" ||
+        a.severity === "CRITICAL" ||
+        a.severity === "MEDIUM"),
   ).length;
 }
 

@@ -123,6 +123,7 @@ function buildCluster(
     watchMode: false,
     auditTrail: [],
     dataAvailability,
+    imageUrl: sorted.find((item) => item.imageUrl)?.imageUrl,
   };
 }
 
@@ -143,21 +144,11 @@ function inferRegion(entities: string[], title: string): string | undefined {
 }
 
 function inferAffectedMarkets(geoType: GeopoliticalEventType, entities: string[]): string[] {
-  const markets = new Set<string>();
-  if (isOilRelevantEvent(geoType) || entities.some((e) => /oil|brent|wti|opec|hormuz/i.test(e))) {
-    markets.add("WTI");
-    markets.add("BRENT");
-    markets.add("GOLD");
+  // Oil-terminal scope: only WTI/Brent
+  if (isOilRelevantEvent(geoType) || entities.some((e) => /oil|brent|wti|opec|hormuz|iran|crude/i.test(e))) {
+    return ["WTI", "BRENT"];
   }
-  if (geoType.includes("CENTRAL_BANK") || geoType.includes("INFLATION") || geoType.includes("GDP")) {
-    markets.add("SPX");
-    markets.add("NDX");
-    markets.add("EURUSD");
-    markets.add("GOLD");
-  }
-  if (/dax|europe|ecb/i.test(entities.join(" "))) markets.add("DAX");
-  if (/crypto|bitcoin/i.test(entities.join(" "))) markets.add("BTC");
-  return [...markets];
+  return [];
 }
 
 function buildMarketRelevance(
@@ -168,13 +159,7 @@ function buildMarketRelevance(
   const markets = inferAffectedMarkets(geoType, entities);
 
   for (const m of markets) {
-    if (["WTI", "BRENT"].includes(m) && isOilRelevantEvent(geoType)) {
-      relevance[m] = "HIGH";
-    } else if (["GOLD", "SPX", "NDX"].includes(m)) {
-      relevance[m] = "MEDIUM";
-    } else {
-      relevance[m] = "POSSIBLE";
-    }
+    relevance[m] = isOilRelevantEvent(geoType) ? "HIGH" : "MEDIUM";
   }
   return relevance;
 }

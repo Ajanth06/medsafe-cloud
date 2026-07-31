@@ -1,8 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import {
   DEFAULT_TERMINAL_PREFERENCES,
   type UserTerminalPreferences,
@@ -10,29 +8,46 @@ import {
 import { miDe, tSeverity } from "@/lib/market-intelligence/i18n/de";
 import type { AlertSeverity } from "@/lib/types/market";
 
-const SEVERITIES: AlertSeverity[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
+const SEVERITIES: AlertSeverity[] = ["MEDIUM", "HIGH", "CRITICAL"];
 
-export function AlertPreferencesPanel() {
+interface AlertPreferencesPanelProps {
+  onPreferencesChange?: (preferences: UserTerminalPreferences) => void;
+}
+
+export function AlertPreferencesPanel({
+  onPreferencesChange,
+}: AlertPreferencesPanelProps) {
   const [prefs, setPrefs] = useState<UserTerminalPreferences>(DEFAULT_TERMINAL_PREFERENCES);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/market/preferences");
-      if (res.ok) {
-        const data = (await res.json()) as { preferences: UserTerminalPreferences };
-        setPrefs(data.preferences);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    void load();
-  }, [load]);
+    const controller = new AbortController();
+    fetch("/api/market/preferences", { signal: controller.signal })
+      .then(async (res) => {
+        if (!res.ok) return null;
+        return (await res.json()) as {
+          preferences: UserTerminalPreferences;
+        };
+      })
+      .then((data) => {
+        if (!data) return;
+        const preferences = {
+          ...data.preferences,
+          minimumSeverity:
+            data.preferences.minimumSeverity === "LOW"
+              ? ("MEDIUM" as const)
+              : data.preferences.minimumSeverity,
+        };
+        setPrefs(preferences);
+        onPreferencesChange?.(preferences);
+      })
+      .catch(() => {
+        // Defaults remain visible if preferences cannot be loaded.
+      })
+      .finally(() => setLoading(false));
+    return () => controller.abort();
+  }, [onPreferencesChange]);
 
   async function save(patch: Partial<UserTerminalPreferences>) {
     const next = { ...prefs, ...patch };
@@ -47,6 +62,7 @@ export function AlertPreferencesPanel() {
       if (res.ok) {
         const data = (await res.json()) as { preferences: UserTerminalPreferences };
         setPrefs(data.preferences);
+        onPreferencesChange?.(data.preferences);
       }
     } finally {
       setSaving(false);
@@ -58,34 +74,53 @@ export function AlertPreferencesPanel() {
   }
 
   return (
-    <Card>
-      <CardContent className="space-y-4 p-5">
+    <section className="rounded-2xl border border-white/10 bg-[#101c29]/90 p-5">
+      <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-foreground">{miDe.alertPreferences}</h3>
-          {saving && <span className="text-xs text-muted">{miDe.saving}</span>}
+          <div>
+            <h3 className="text-sm font-semibold text-white">
+              Intelligence-Alert-Einstellungen
+            </h3>
+            <p className="mt-1 text-xs text-slate-500">
+              Änderungen werden automatisch gespeichert.
+            </p>
+          </div>
+          {saving && (
+            <span className="font-mono text-[9px] uppercase text-cyan-300">
+              {miDe.saving}
+            </span>
+          )}
         </div>
 
-        <label className="flex items-center justify-between gap-4 text-sm">
-          <span>{miDe.pauseAllAlerts}</span>
+        <label className="flex min-h-12 items-center justify-between gap-4 rounded-xl border border-white/8 bg-white/[0.04] px-3 text-sm text-slate-200">
+          <span>
+            <span className="block font-medium">{miDe.pauseAllAlerts}</span>
+            <span className="block text-[10px] text-slate-500">
+              Blendet alle Intelligence Alerts aus.
+            </span>
+          </span>
           <input
             type="checkbox"
             checked={prefs.alertsPaused}
             onChange={(e) => void save({ alertsPaused: e.target.checked })}
+            className="h-4 w-4 accent-orange-500"
           />
         </label>
 
         <div>
-          <p className="mb-2 text-xs font-medium text-muted">{miDe.minSeverity}</p>
-          <div className="flex flex-wrap gap-2">
+          <p className="mb-2 text-xs font-medium text-slate-400">
+            Mindestpriorität
+          </p>
+          <div className="grid grid-cols-3 gap-2">
             {SEVERITIES.map((s) => (
               <button
                 key={s}
                 type="button"
                 onClick={() => void save({ minimumSeverity: s })}
-                className={`rounded-lg px-3 py-1 text-xs font-medium ${
+                className={`app-touch min-h-11 rounded-xl px-3 py-2 text-xs font-medium transition ${
                   prefs.minimumSeverity === s
-                    ? "bg-orange-400/15 text-orange-200 ring-1 ring-orange-300/25"
-                    : "bg-white/[0.06] text-slate-300"
+                    ? "bg-orange-500/15 text-orange-100 ring-1 ring-orange-400/30"
+                    : "bg-white/[0.05] text-slate-400 hover:bg-white/[0.08]"
                 }`}
               >
                 {tSeverity(s)}
@@ -99,24 +134,23 @@ export function AlertPreferencesPanel() {
             [
               ["oilAlerts", miDe.categories.oil],
               ["geopoliticalAlerts", miDe.categories.geo],
-              ["macroAlerts", miDe.categories.macro],
             ] as const
           ).map(([key, label]) => (
-            <label key={key} className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2 text-sm">
-              <span>{label}</span>
+            <label
+              key={key}
+              className="flex min-h-12 items-center justify-between gap-2 rounded-xl border border-white/8 bg-white/[0.04] px-3 py-2 text-sm text-slate-200"
+            >
+              <span className="font-medium">{label}</span>
               <input
                 type="checkbox"
                 checked={prefs[key]}
                 onChange={(e) => void save({ [key]: e.target.checked })}
+                className="h-4 w-4 accent-orange-500"
               />
             </label>
           ))}
         </div>
-
-        <Button type="button" variant="outline" size="sm" onClick={() => void load()}>
-          {miDe.refresh}
-        </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }

@@ -63,6 +63,51 @@ body {
 
 /* Mobile-App-Design: eigenständig bis einschließlich 767 px. */
 @media (max-width: 767px) {
+  .mobile-app-surface {
+    min-height: 100svh;
+    background:
+      radial-gradient(circle at 12% -8%, rgb(249 115 22 / 0.18), transparent 32%),
+      linear-gradient(180deg, #0d1926 0%, #08131e 100%);
+    isolation: isolate;
+  }
+
+  .mobile-app-surface .aaryx-terminal-grid {
+    background-size: 28px 28px;
+    opacity: 0.32;
+  }
+
+  .mobile-app-surface .terminal-float {
+    display: none;
+  }
+
+  .mobile-app-header {
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.04) inset,
+      0 12px 30px rgb(0 0 0 / 0.22);
+  }
+
+  .mobile-native-card {
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.035) inset,
+      0 9px 24px rgb(0 0 0 / 0.16);
+  }
+
+  .mobile-bottom-nav {
+    padding-bottom: max(0.375rem, env(safe-area-inset-bottom));
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+  }
+
+  .app-horizontal-scroll {
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: 0.625rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .app-horizontal-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
   .aaryx-terminal-theme [data-ui="card"],
   .aaryx-terminal-theme [class~="bg-card"],
   .aaryx-terminal-theme [class~="bg-card/60"] {
@@ -160,6 +205,12 @@ body {
     touch-action: manipulation;
   }
 
+  button,
+  [role="button"],
+  a.app-touch {
+    min-height: 44px;
+  }
+
   button:active,
   .app-touch:active {
     filter: brightness(1.14);
@@ -171,6 +222,34 @@ body {
   select,
   textarea {
     font-size: 16px !important;
+  }
+}
+
+@media (display-mode: standalone) and (max-width: 767px) {
+  body {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"] {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .market-ticker-track,
+  .terminal-float {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
   }
 }
 

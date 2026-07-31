@@ -93,15 +93,25 @@ export function scoreFlashItem(input: {
   if (hot) score += 30;
   if (fresh) score += 15;
   if (input.item.isOfficialSource) score += 12;
-  if (isDe) score += 25;
-  else score -= 8;
   if (input.feedWeight) score += Math.round(input.feedWeight / 12);
-  if (topic === "iran") score += 14;
+  if (topic === "iran") score += 22;
   if (topic === "oil") score += 10;
   if (topic === "opec") score += 8;
   const src = `${input.item.source} ${input.item.sourceName ?? ""}`.toLowerCase();
-  if (src.includes("reuters")) score += 22;
-  if (src.includes("al jazeera")) score += 8;
+  const priorityEn =
+    /al jazeera|\bbbc\b|reuters|\bcnn\b|\bap ·|associated press|nyt ·|new york times|google news us/.test(
+      src,
+    );
+  if (isDe) score += 12;
+  else if (priorityEn) score += 20;
+  else score -= 4;
+  if (src.includes("al jazeera")) score += 26;
+  if (/\bbbc\b/.test(src)) score += 22;
+  if (src.includes("reuters")) score += 20;
+  if (/\bcnn\b/.test(src)) score += 16;
+  if (/\bap ·|associated press/.test(src)) score += 16;
+  if (/nyt ·|new york times/.test(src)) score += 14;
+  if (src.includes("google news us")) score += 12;
 
   return { score, hot, fresh, topic };
 }

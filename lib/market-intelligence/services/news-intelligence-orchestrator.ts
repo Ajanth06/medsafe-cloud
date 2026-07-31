@@ -280,6 +280,7 @@ function clusterToNewsEvent(cluster: IntelligenceEventCluster): NewsEvent {
     isFlash: Boolean(flash),
     url: cluster.sources?.[0]?.url,
     flashTopic,
+    imageUrl: cluster.imageUrl,
   };
 }
 

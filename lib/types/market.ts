@@ -611,6 +611,8 @@ export interface NewsEvent {
   /** Topic bucket for Flash News filters */
   flashTopic?: FlashNewsTopic;
   language?: string;
+  /** Optional lead image from RSS (Tagesschau, AJ, …) */
+  imageUrl?: string;
 }
 
 export interface NormalizedNewsItem {
@@ -642,6 +644,8 @@ export interface NormalizedNewsItem {
   dataAvailability?: NewsDataAvailability;
   hasConflictingReports?: boolean;
   isRetracted?: boolean;
+  /** Lead image when the feed provides one */
+  imageUrl?: string;
 }
 
 export interface NewsSourceEntry {
@@ -723,6 +727,8 @@ export interface IntelligenceEventCluster {
   auditTrail: AuditEntry[];
   dataAvailability: NewsDataAvailability;
   oilReaction?: OilNewsReaction;
+  /** Lead image from a clustered source when available */
+  imageUrl?: string;
 }
 
 export interface OilNewsReaction {
