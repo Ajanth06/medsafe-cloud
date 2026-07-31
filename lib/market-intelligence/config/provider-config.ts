@@ -15,18 +15,19 @@ export interface MarketProviderConfig {
 }
 
 /**
- * Hybrid feed (default):
- * - WTI/Brent → OilPriceAPI (live)
- * - Rest → Yahoo Investing-style
- * - Polygon optional fallback when keyed
+ * Default: Yahoo Investing-style quotes. OilPriceAPI optional oil fallback.
+ * Polygon only if POLYGON_AS_FALLBACK=true (or provider=polygon).
  */
 export function getMarketProviderConfig(): MarketProviderConfig {
   const apiKey = process.env.MARKET_DATA_API_KEY ?? null;
   const provider = (process.env.MARKET_DATA_PROVIDER ?? "composite").toLowerCase();
   const oilConfigured = getOilPriceApiConfig().isConfigured;
-  const polygonConfigured = Boolean(apiKey);
+  // Polygon only when explicitly selected or POLYGON_AS_FALLBACK=true
+  const polygonConfigured =
+    Boolean(apiKey) &&
+    (provider === "polygon" || process.env.POLYGON_AS_FALLBACK === "true");
 
-  // Yahoo is used for non-oil Investing-style quotes in the hybrid path
+  // Yahoo is used for Investing-style quotes (no paid key required)
   const yahooEnabled = provider !== "mock" && provider !== "oilpriceapi";
 
   let isConfigured = false;

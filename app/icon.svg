@@ -1,7 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="8" fill="#2563eb" />
-  <path
-    d="M16 26s7-3.2 7-9V8.5L16 6 9 8.5v8.5c0 5.8 7 9 7 9z"
-    fill="#ffffff"
-  />
+  <defs>
+    <linearGradient id="bg" x1="3" y1="2" x2="29" y2="30" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FB923C" />
+      <stop offset="1" stop-color="#EA580C" />
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="#0B1520" />
+  <rect x="5" y="5" width="22" height="22" rx="6" fill="url(#bg)" />
+  <text x="16" y="19.5" fill="white" font-family="monospace" font-size="8" font-weight="900" text-anchor="middle">AX</text>
 </svg>

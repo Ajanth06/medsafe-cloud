@@ -587,6 +587,14 @@ export interface AIAnalysis {
   disclaimer: string;
 }
 
+export type FlashNewsTopic =
+  | "oil"
+  | "iran"
+  | "opec"
+  | "inventory"
+  | "macro"
+  | "other";
+
 export interface NewsEvent {
   id: string;
   timestamp: string;
@@ -600,6 +608,9 @@ export interface NewsEvent {
   /** Fresh oil/geopolitical flash item */
   isFlash?: boolean;
   url?: string;
+  /** Topic bucket for Flash News filters */
+  flashTopic?: FlashNewsTopic;
+  language?: string;
 }
 
 export interface NormalizedNewsItem {

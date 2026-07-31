@@ -12,7 +12,7 @@ export const AI_PROMPT_VERSION = "market-analysis-v1";
 
 export const AI_TRIGGER_THRESHOLDS = {
   minMarketSeverity: "HIGH" as const,
-  minPriorityScore: 60,
+  minPriorityScore: 75,
   minEventSignificance: "MODERATE" as const,
 };
 

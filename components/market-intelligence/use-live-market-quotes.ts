@@ -11,8 +11,8 @@ interface LiveQuotesPayload {
   refreshing?: boolean;
 }
 
-/** UI reads every 1s; server may refresh Yahoo every ~2s from cache. */
-const LIVE_POLL_MS = 1_000;
+/** UI polls every 2.5s — server Yahoo refresh stays ~2s from cache. */
+const LIVE_POLL_MS = 2_500;
 
 function quotesFingerprint(quotes: EnrichedMarketQuote[]): string {
   return quotes

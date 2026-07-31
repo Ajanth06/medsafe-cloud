@@ -10,7 +10,6 @@ import { FlashNewsStrip } from "@/components/market-intelligence/flash-news-stri
 import { EnablePushAlertsButton } from "@/components/market-intelligence/enable-push-alerts-button";
 import { IntelligenceAlerts } from "@/components/market-intelligence/intelligence-alerts";
 import { IntelligenceEventsSection } from "@/components/market-intelligence/intelligence-events-section";
-import { IntelligenceTimeline } from "@/components/market-intelligence/intelligence-timeline";
 import { LiveIndicator } from "@/components/market-intelligence/live-indicator";
 import { LiveIntelligenceFeed } from "@/components/market-intelligence/live-intelligence-feed";
 import { NewsStatusBadge } from "@/components/market-intelligence/news-status-badge";
@@ -20,8 +19,12 @@ import { OilIntelligenceSection } from "@/components/market-intelligence/oil-int
 import { ReplayValidationSection } from "@/components/market-intelligence/replay-validation-section";
 import { SystemStatus } from "@/components/market-intelligence/system-status";
 import { AlertPreferencesPanel } from "@/components/market-intelligence/terminal/alert-preferences-panel";
+import { AiShortAssessment } from "@/components/market-intelligence/terminal/ai-short-assessment";
+import { EventStoryCard } from "@/components/market-intelligence/terminal/event-story-card";
+import { IranUsHeader } from "@/components/market-intelligence/terminal/iran-us-header";
 import { OilTerminalView } from "@/components/market-intelligence/terminal/oil-terminal-view";
 import { OperationsConsole } from "@/components/market-intelligence/terminal/operations-console";
+import { SystemHealthPill } from "@/components/market-intelligence/terminal/system-health-pill";
 import { ValidationDashboard } from "@/components/market-intelligence/terminal/validation-dashboard";
 import { TerminalNav, useTerminalView } from "@/components/market-intelligence/terminal/terminal-nav";
 import { TerminalMarketPulse } from "@/components/market-intelligence/terminal/terminal-market-pulse";
@@ -73,6 +76,11 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
     () => quotes.filter((q) => PRIMARY.has(q.symbol)),
     [quotes],
   );
+  const oilMovePercent = useMemo(() => {
+    const oils = primaryQuotes.filter((q) => q.price > 0);
+    if (!oils.length) return 0;
+    return Math.max(...oils.map((q) => Math.abs(q.percentageChange)));
+  }, [primaryQuotes]);
   const isLive = live.connected && !live.isDemo;
 
   useEffect(() => {
@@ -133,7 +141,7 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
                 href="/profile"
                 aria-label="Profil öffnen"
                 title="Profil öffnen"
-                className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/[0.06] text-slate-200 transition hover:border-cyan-300/40 hover:bg-cyan-400/10 hover:text-cyan-200 md:h-10 md:w-10"
+                className="app-touch grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/[0.06] text-slate-200 transition hover:border-cyan-300/40 hover:bg-cyan-400/10 hover:text-cyan-200 md:h-10 md:w-10"
               >
                 <UserRound className="h-[18px] w-[18px]" aria-hidden="true" />
               </Link>
@@ -142,7 +150,7 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
                   type="submit"
                   aria-label="Abmelden"
                   title="Abmelden"
-                  className="grid h-9 w-9 place-items-center rounded-xl border border-orange-300/20 bg-orange-400/10 text-orange-200 transition hover:border-orange-300/40 hover:bg-orange-400/20 md:h-10 md:w-10"
+                  className="app-touch grid h-11 w-11 place-items-center rounded-xl border border-orange-300/20 bg-orange-400/10 text-orange-200 transition hover:border-orange-300/40 hover:bg-orange-400/20 md:h-10 md:w-10"
                 >
                   <LogOut className="h-[18px] w-[18px]" aria-hidden="true" />
                 </button>
@@ -211,7 +219,7 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
             />
             <Link
               href="/market-intelligence?view=intelligence"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-300 transition hover:text-orange-200"
+              className="app-touch inline-flex min-h-11 items-center gap-1.5 rounded-lg px-1 text-xs font-semibold text-orange-300 transition hover:text-orange-200 md:min-h-0"
             >
               News öffnen
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -225,7 +233,7 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
           {view === "intelligence" && (
             <Link
               href="/market-intelligence"
-              className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-semibold text-slate-200 shadow-sm transition hover:-translate-x-0.5 hover:border-orange-300/25 hover:bg-orange-400/10 hover:text-orange-100"
+              className="app-touch inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-semibold text-slate-200 shadow-sm transition hover:-translate-x-0.5 hover:border-orange-300/25 hover:bg-orange-400/10 hover:text-orange-100"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Zurück zur Übersicht
@@ -245,7 +253,21 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
 
           {view === "overview" && (
             <>
-              <FlashNewsStrip events={breakingNews} />
+              <SystemHealthPill health={data.systemHealth} />
+              <IranUsHeader events={breakingNews} />
+              <FlashNewsStrip
+                events={breakingNews}
+                oilMovePercent={oilMovePercent}
+              />
+              <EventStoryCard
+                quotes={quotes}
+                breakingNews={breakingNews}
+                marketEvents={data.marketEvents}
+                intelligenceEvents={data.intelligenceEvents}
+              />
+              <AiShortAssessment
+                intelligenceEvents={data.intelligenceEvents}
+              />
               <MorningBriefing
                 quotes={quotes}
                 breakingNews={breakingNews}
@@ -258,10 +280,7 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
                 brentWtiSpread={data.brentWtiSpread}
               />
               <LiveIntelligenceFeed entries={filteredFeed.length ? filteredFeed : data.liveFeed} />
-              <div className="grid gap-6 2xl:grid-cols-2">
-                <MarketEvents events={filteredMarketEvents.length ? filteredMarketEvents : data.marketEvents} />
-                <IntelligenceTimeline events={data.timeline} />
-              </div>
+              <MarketEvents events={filteredMarketEvents.length ? filteredMarketEvents : data.marketEvents} />
             </>
           )}
 
@@ -287,12 +306,34 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
 
           {view === "intelligence" && (
             <>
-              <FlashNewsStrip events={breakingNews} />
+              <IranUsHeader events={breakingNews} />
+              <FlashNewsStrip
+                events={breakingNews}
+                oilMovePercent={oilMovePercent}
+              />
+              <EventStoryCard
+                quotes={quotes}
+                breakingNews={breakingNews}
+                marketEvents={data.marketEvents}
+                intelligenceEvents={
+                  filteredIntel.length ? filteredIntel : data.intelligenceEvents
+                }
+              />
+              <AiShortAssessment
+                intelligenceEvents={
+                  filteredIntel.length ? filteredIntel : data.intelligenceEvents
+                }
+              />
               {data.intelligenceAlerts.length > 0 && (
                 <IntelligenceAlerts alerts={data.intelligenceAlerts} />
               )}
               <IntelligenceEventsSection events={filteredIntel.length ? filteredIntel : data.intelligenceEvents} />
-              <BreakingIntelligence events={breakingNews} />
+              <BreakingIntelligence
+                events={breakingNews}
+                intelligenceEvents={
+                  filteredIntel.length ? filteredIntel : data.intelligenceEvents
+                }
+              />
               <OilIntelligenceSection
                 wti={primaryQuotes.find((q) => q.symbol === "WTI")}
                 brent={primaryQuotes.find((q) => q.symbol === "BRENT")}

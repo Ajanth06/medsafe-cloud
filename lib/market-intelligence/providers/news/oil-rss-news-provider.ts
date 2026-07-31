@@ -1,9 +1,18 @@
 import {
   OIL_RSS_FEEDS,
-  isFlashHotText,
-  isOilRelevantText,
+  classifyFlashTopic,
+  isAlJazeeraRelevantText,
+  topicEntity,
   type OilRssFeed,
 } from "@/lib/market-intelligence/config/oil-rss-feeds";
+import {
+  dedupeFlashItems,
+  isFlashCandidate,
+  isNoiseFlashText,
+  scoreFlashItem,
+  sortFlashByTopicThenTime,
+} from "@/lib/market-intelligence/services/flash-relevance";
+import { applyCachedTranslationsAndPrefetch } from "@/lib/market-intelligence/services/news-translate";
 import { normalizeNewsItem } from "@/lib/market-intelligence/services/news-normalizer";
 import { marketLogger } from "@/lib/market-intelligence/services/market-logger";
 import type { NewsProvider } from "@/lib/market-intelligence/providers/news/news-provider-types";
@@ -14,9 +23,17 @@ import type {
 import type { NormalizedNewsItem, NewsProviderHealthInfo } from "@/lib/types/market";
 
 const seenIds = new Set<string>();
-const FLASH_WINDOW_MS = 45 * 60_000;
 let feedCache: { at: number; items: NormalizedNewsItem[] } | null = null;
-const CACHE_TTL_MS = 30_000;
+/** Longer cache = fewer RSS storms; Flash poll is ~60–90s anyway. */
+const CACHE_TTL_MS = 90_000;
+const FEED_TIMEOUT_MS = 4_000;
+
+function feedWeightForItem(item: NormalizedNewsItem): number {
+  const feed = OIL_RSS_FEEDS.find(
+    (f) => f.name === item.sourceName || f.name === item.source,
+  );
+  return feed?.weight ?? 70;
+}
 
 /**
  * Free multi-source oil news via public RSS.
@@ -55,47 +72,102 @@ export class OilRssNewsProvider implements NewsProvider {
     });
   }
 
-  async getBreakingNews(limit = 12): Promise<NormalizedNewsItem[]> {
-    const items = await this.fetchAll(60);
-    const now = Date.now();
+  async getBreakingNews(limit = 30): Promise<NormalizedNewsItem[]> {
+    const items = await this.fetchAll(100);
 
     const ranked = items
+      .filter((item) => isFlashCandidate(item))
       .map((item) => {
-        const age = now - new Date(item.publishedAt).getTime();
         const isNew = !seenIds.has(item.id);
-        const hot = isFlashHotText(`${item.title} ${item.summary}`);
-        const fresh = age >= 0 && age <= FLASH_WINDOW_MS;
-        let score = 0;
-        if (isNew) score += 40;
-        if (hot) score += 35;
-        if (fresh) score += 25;
-        if (item.isOfficialSource) score += 15;
-        if (age < 15 * 60_000) score += 20;
-        return { item, score, isNew, hot, fresh };
-      })
-      .filter((r) => r.fresh || r.isNew || r.hot)
-      .sort((a, b) => b.score - a.score);
+        const scored = scoreFlashItem({
+          item,
+          isNew,
+          feedWeight: feedWeightForItem(item),
+        });
+        return {
+          item,
+          ...scored,
+          isNew,
+          publishedAt: item.publishedAt,
+        };
+      });
 
     for (const r of ranked) {
       seenIds.add(r.item.id);
     }
-    // Cap memory
     if (seenIds.size > 2_000) {
       const keep = [...seenIds].slice(-1_000);
       seenIds.clear();
       for (const id of keep) seenIds.add(id);
     }
 
-    return ranked.slice(0, limit).map((r) => ({
-      ...r.item,
-      // Mark flash via category + entities for downstream UI
-      categories: r.hot || r.isNew ? (["GEOPOLITICAL"] as const) : r.item.categories,
-      entities: [
-        ...(r.item.entities ?? []),
-        ...(r.isNew || r.hot ? ["FLASH"] : []),
-        ...(r.hot ? ["HOT"] : []),
-      ],
-    }));
+    // Keep topic diversity but don't starve the feed (up to 8 per topic)
+    const picked: typeof ranked = [];
+    const perTopic = new Map<string, number>();
+    const byScore = [...ranked].sort((a, b) => b.score - a.score);
+    for (const r of byScore) {
+      const count = perTopic.get(r.topic) ?? 0;
+      if (count >= 8) continue;
+      perTopic.set(r.topic, count + 1);
+      picked.push(r);
+      if (picked.length >= limit) break;
+    }
+    if (picked.length < limit) {
+      const pickedIds = new Set(picked.map((p) => p.item.id));
+      for (const r of byScore) {
+        if (pickedIds.has(r.item.id)) continue;
+        picked.push(r);
+        if (picked.length >= limit) break;
+      }
+    }
+
+    // Final order: topic groups (Iran, Öl, OPEC…) then newest — like the tabs
+    const ordered = sortFlashByTopicThenTime(picked);
+
+    // Cache-only translations (instant). Missing DE fills in background for next poll.
+    const toTranslate = ordered
+      .filter((r) => {
+        const src = `${r.item.source} ${r.item.sourceName ?? ""}`.toLowerCase();
+        return (
+          r.item.language === "en" ||
+          src.includes("al jazeera") ||
+          src.includes("reuters")
+        );
+      })
+      .slice(0, 16)
+      .map((r) => ({
+        id: r.item.id,
+        title: r.item.title,
+        summary: r.item.summary,
+        language: r.item.language,
+      }));
+
+    const translations = applyCachedTranslationsAndPrefetch(toTranslate);
+
+    return ordered.map((r) => {
+      const tr = translations.get(r.item.id);
+      const title = tr?.translated ? tr.title : r.item.title;
+      const summary = tr?.translated ? tr.summary : r.item.summary;
+      const src = `${r.item.source} ${r.item.sourceName ?? ""}`.toLowerCase();
+      const isReuters = src.includes("reuters");
+      const isAj = src.includes("al jazeera");
+      return {
+        ...r.item,
+        title,
+        summary,
+        language: tr?.translated ? "de" : r.item.language,
+        categories: r.hot || r.fresh ? (["GEOPOLITICAL"] as const) : r.item.categories,
+        entities: [
+          ...(r.item.entities ?? []).filter((e) => !e.startsWith("TOPIC_")),
+          topicEntity(r.topic),
+          "FLASH",
+          ...(r.hot ? ["HOT"] : []),
+          ...(tr?.translated ? ["TRANSLATED"] : []),
+          ...(isAj ? ["ALJAZEERA"] : []),
+          ...(isReuters ? ["REUTERS"] : []),
+        ],
+      };
+    });
   }
 
   async getProviderHealth(): Promise<NewsProviderHealthInfo> {
@@ -125,7 +197,11 @@ export class OilRssNewsProvider implements NewsProvider {
     const results = await Promise.all(
       OIL_RSS_FEEDS.map(async (feed) => {
         try {
-          return await fetchFeed(feed, 15);
+          const limit =
+            feed.id === "aljazeera" || feed.id.startsWith("reuters")
+              ? 40
+              : 20;
+          return await fetchFeed(feed, limit);
         } catch (error) {
           marketLogger.warn("Oil RSS feed failed", {
             feed: feed.id,
@@ -136,12 +212,24 @@ export class OilRssNewsProvider implements NewsProvider {
       }),
     );
 
-    const merged = dedupeByUrlOrTitle(results.flat())
-      .filter((item) => isOilRelevantText(`${item.title} ${item.summary}`))
-      .sort(
-        (a, b) =>
-          new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+    const merged = dedupeFlashItems(
+      results
+        .flat()
+        .filter((item) => {
+          const text = `${item.title} ${item.summary}`;
+          return (
+            isFlashCandidate(item) ||
+            (item.isOfficialSource && !isNoiseFlashText(text))
+          );
+        }),
+    ).sort((a, b) => {
+      const langBoost =
+        (a.language === "de" ? 1 : 0) - (b.language === "de" ? 1 : 0);
+      if (langBoost !== 0) return -langBoost;
+      return (
+        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
       );
+    });
 
     feedCache = { at: Date.now(), items: merged };
     return merged.slice(0, limit);
@@ -158,7 +246,7 @@ async function fetchFeed(
       "User-Agent": "AARYX/1.0 (+https://aaryx.app; oil-intelligence)",
     },
     cache: "no-store",
-    signal: AbortSignal.timeout(10_000),
+    signal: AbortSignal.timeout(FEED_TIMEOUT_MS),
   });
 
   if (!response.ok) {
@@ -197,12 +285,22 @@ function parseRss(
       ? new Date(pubDate).toISOString()
       : new Date().toISOString();
 
+    const summary = stripHtml(description).slice(0, 280);
+    const text = `${title} ${summary}`;
+    if (feed.id === "aljazeera" && !isAlJazeeraRelevantText(text)) {
+      continue;
+    }
+    const cleanTitle = title
+      .replace(/\s*-\s*Reuters\s*$/i, "")
+      .replace(/\s*\|\s*Reuters\s*$/i, "")
+      .slice(0, 220);
+    const topic = classifyFlashTopic(`${cleanTitle} ${summary}`);
     items.push(
       normalizeNewsItem(
         {
-          id: `oil-rss-${hashId(`${feed.id}:${url ?? title}`)}`,
-          title: title.slice(0, 220),
-          summary: stripHtml(description).slice(0, 280),
+          id: `oil-rss-${hashId(`${feed.id}:${url ?? cleanTitle}`)}`,
+          title: cleanTitle,
+          summary,
           source: feed.name,
           sourceName: feed.name,
           sourceDomain: url ? safeHostname(url) : undefined,
@@ -212,7 +310,8 @@ function parseRss(
           isOfficialSource: feed.sourceType.startsWith("OFFICIAL"),
           sourceType: feed.sourceType,
           dataAvailability: "LIVE",
-          language: feed.id.includes("de") ? "de" : "en",
+          language: feed.language,
+          entities: [topicEntity(topic)],
         },
         "oil-rss",
       ),
@@ -234,13 +333,16 @@ function parseRss(
       );
       if (!title) continue;
       const url = cleanUrl(link);
+      const summary = stripHtml(description).slice(0, 280);
+      const topic = classifyFlashTopic(`${title} ${summary}`);
       items.push(
         normalizeNewsItem(
           {
             id: `oil-rss-${hashId(`${feed.id}:${url ?? title}`)}`,
             title: title.slice(0, 220),
-            summary: stripHtml(description).slice(0, 280),
+            summary,
             source: feed.name,
+            sourceName: feed.name,
             publishedAt: pubDate
               ? new Date(pubDate).toISOString()
               : new Date().toISOString(),
@@ -249,6 +351,8 @@ function parseRss(
             isOfficialSource: feed.sourceType.startsWith("OFFICIAL"),
             sourceType: feed.sourceType,
             dataAvailability: "LIVE",
+            language: feed.language,
+            entities: [topicEntity(topic)],
           },
           "oil-rss",
         ),
@@ -270,18 +374,6 @@ function filterByKeywords(
   });
 }
 
-function dedupeByUrlOrTitle(items: NormalizedNewsItem[]): NormalizedNewsItem[] {
-  const seen = new Set<string>();
-  const out: NormalizedNewsItem[] = [];
-  for (const item of items) {
-    const key = (item.url ?? item.title).toLowerCase().slice(0, 160);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push(item);
-  }
-  return out;
-}
-
 function extractTag(block: string, tag: string): string | undefined {
   const match = block.match(
     new RegExp(
@@ -294,17 +386,6 @@ function extractTag(block: string, tag: string): string | undefined {
 
 function extractHref(block: string): string | undefined {
   const match = block.match(/<link[^>]+href=["']([^"']+)["']/i);
-  return match?.[1];
-}
-
-function extractAttr(
-  block: string,
-  tag: string,
-  attr: string,
-): string | undefined {
-  const match = block.match(
-    new RegExp(`<${tag}[^>]*${attr}=["']([^"']+)["'][^>]*>`, "i"),
-  );
   return match?.[1];
 }
 

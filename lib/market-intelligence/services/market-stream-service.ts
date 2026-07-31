@@ -338,11 +338,13 @@ export async function getMarketIntelligenceDataFromStream(): Promise<MarketIntel
   }
 
   if (isMiPersistenceEnabled()) {
-    await hydrateOperationsFromDb();
+    // Don't block first paint on DB hydrate — fill alerts shortly after
+    void hydrateOperationsFromDb();
   }
 
   const pipeline = streamState.pipeline!;
-  const newsResult = await runNewsPipeline(pipeline);
+  // Fast path for UI: RSS + quotes, no blocking AI / deep investigation
+  const newsResult = await runNewsPipeline(pipeline, { fast: true });
   const systemHealth = await buildSystemHealth(streamState);
   if (newsResult.newsHealth) {
     systemHealth.newsHealth = newsResult.newsHealth;

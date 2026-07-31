@@ -47,7 +47,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         type={type}
         disabled={disabled}
         className={cn(
-          "inline-flex items-center justify-center rounded-2xl font-medium transition-colors",
+          "app-touch inline-flex items-center justify-center rounded-2xl font-medium transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-card",
           "disabled:pointer-events-none disabled:opacity-50",
           variantStyles[variant],

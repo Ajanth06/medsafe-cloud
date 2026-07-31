@@ -16,7 +16,7 @@ export async function GET() {
   const limited = await withUserRateLimit(auth.userId, "quotes");
   if (limited) return limited;
 
-  const state = await getQuotesSnapshotReady(1_500);
+  const state = await getQuotesSnapshotReady(2_000);
 
   return NextResponse.json({
     quotes: state.quotes,

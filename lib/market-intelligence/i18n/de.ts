@@ -50,7 +50,6 @@ export const miDe = {
   elevatedVolatility: "ERHÖHTE VOLATILITÄT",
   liveFeed: "Live-Intelligence-Feed",
   marketEvents: "Marktereignisse",
-  intelTimeline: "Intelligence-Zeitachse",
   intelEvents: "Intelligence-Ereignisse",
   breakingIntel: "Eilmeldungen",
   activeAlerts: "Aktive Intelligence-Alerts",

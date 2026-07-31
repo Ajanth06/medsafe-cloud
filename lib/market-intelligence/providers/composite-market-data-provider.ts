@@ -200,6 +200,7 @@ export function createCompositeMarketDataProvider(): MarketDataProvider {
 
   marketLogger.info("Using Investing-style Yahoo for oil + markets", {
     oilFallback: Boolean(oil),
+    polygonFallback: Boolean(polygon),
     symbols: { WTI: "CL=F", BRENT: "BZ=F", DAX: "^GDAXI" },
   });
 

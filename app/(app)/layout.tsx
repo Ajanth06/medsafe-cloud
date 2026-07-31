@@ -10,7 +10,7 @@ export default async function AppLayout({
   await getUserOrRedirect();
 
   return (
-    <div className="aaryx-terminal-theme relative min-h-dvh overflow-hidden bg-[#0b1520] pb-28 text-slate-100 md:pb-8">
+    <div className="aaryx-terminal-theme relative min-h-dvh overflow-hidden bg-[#0b1520] pb-[calc(6.5rem+env(safe-area-inset-bottom))] text-slate-100 md:pb-8">
       <div
         className="pointer-events-none fixed inset-0"
         aria-hidden="true"

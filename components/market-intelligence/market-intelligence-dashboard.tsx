@@ -7,7 +7,6 @@ import { LiveIndicator } from "@/components/market-intelligence/live-indicator";
 import { NewsStatusBadge } from "@/components/market-intelligence/news-status-badge";
 import { AlertHistory } from "@/components/market-intelligence/alert-history";
 import { BreakingIntelligence } from "@/components/market-intelligence/breaking-intelligence";
-import { IntelligenceTimeline } from "@/components/market-intelligence/intelligence-timeline";
 import { LiveIntelligenceFeed } from "@/components/market-intelligence/live-intelligence-feed";
 import { MarketCardsGrid } from "@/components/market-intelligence/market-cards-grid";
 import { MarketEvents } from "@/components/market-intelligence/market-events";
@@ -84,10 +83,7 @@ export function MarketIntelligenceDashboard({ data }: MarketIntelligenceDashboar
 
       <LiveIntelligenceFeed entries={data.liveFeed} />
 
-      <div className="grid gap-8 xl:grid-cols-2">
-        <MarketEvents events={data.marketEvents} />
-        <IntelligenceTimeline events={data.timeline} />
-      </div>
+      <MarketEvents events={data.marketEvents} />
 
       {data.intelligenceAlerts.length > 0 && (
         <IntelligenceAlerts alerts={data.intelligenceAlerts} />

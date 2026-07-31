@@ -1,19 +1,24 @@
-import { AIMarketAssessment } from "@/components/market-intelligence/ai-market-assessment";
 import { AIAssessment } from "@/components/market-intelligence/ai-assessment";
+import { AIMarketAssessment } from "@/components/market-intelligence/ai-market-assessment";
 import { SeverityBadge } from "@/components/market-intelligence/severity-badge";
 import { SourceVerificationBadge } from "@/components/market-intelligence/source-verification-badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { FLASH_TOPIC_LABELS_DE } from "@/lib/market-intelligence/config/oil-rss-feeds";
 import { buildDemoAnalysis } from "@/lib/market-intelligence/services/ai-analysis";
 import { formatChange, formatTime } from "@/lib/market-intelligence/format";
 import { miDe, tEventStatus, tVerification } from "@/lib/market-intelligence/i18n/de";
 import { cn } from "@/lib/utils";
-import type { NewsEvent } from "@/lib/types/market";
+import type { IntelligenceEventCluster, NewsEvent } from "@/lib/types/market";
 
 interface BreakingIntelligenceProps {
   events: NewsEvent[];
+  intelligenceEvents?: IntelligenceEventCluster[];
 }
 
-export function BreakingIntelligence({ events }: BreakingIntelligenceProps) {
+export function BreakingIntelligence({
+  events,
+  intelligenceEvents = [],
+}: BreakingIntelligenceProps) {
   return (
     <section aria-labelledby="breaking-intelligence-heading">
       <h2
@@ -24,20 +29,26 @@ export function BreakingIntelligence({ events }: BreakingIntelligenceProps) {
       </h2>
       <div className="space-y-4">
         {events.map((event) => {
-          const analysis = buildDemoAnalysis(event);
-          const isCritical = event.severity === "CRITICAL";
+          const cluster = intelligenceEvents.find((c) => c.id === event.id);
+          const liveAi = cluster?.aiAnalysisResult;
+          const showAi =
+            event.severity === "CRITICAL" ||
+            event.severity === "HIGH" ||
+            Boolean(liveAi);
+          const fallback = buildDemoAnalysis(event);
 
           return (
             <div
               key={event.id}
               className={cn(
                 "grid gap-4",
-                isCritical ? "lg:grid-cols-2" : "lg:grid-cols-1",
+                showAi ? "lg:grid-cols-2" : "lg:grid-cols-1",
               )}
             >
               <Card
                 className={cn(
-                  isCritical && "border-red-300 bg-red-50/30 ring-1 ring-red-200",
+                  event.severity === "CRITICAL" &&
+                    "border-red-300 bg-red-50/30 ring-1 ring-red-200",
                 )}
               >
                 <CardContent className="space-y-3 p-5">
@@ -45,6 +56,11 @@ export function BreakingIntelligence({ events }: BreakingIntelligenceProps) {
                     {event.isFlash && (
                       <span className="rounded-md bg-orange-500 px-2 py-0.5 font-mono text-[9px] font-black uppercase tracking-wider text-white">
                         Flash
+                      </span>
+                    )}
+                    {event.flashTopic && (
+                      <span className="rounded-md bg-slate-800 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider text-slate-200">
+                        {FLASH_TOPIC_LABELS_DE[event.flashTopic]}
                       </span>
                     )}
                     <SeverityBadge severity={event.severity} />
@@ -89,7 +105,8 @@ export function BreakingIntelligence({ events }: BreakingIntelligenceProps) {
                     <span
                       className={cn(
                         "rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase",
-                        event.sourceVerification.status === "UNVERIFIED" || event.sourceVerification.status === "SINGLE_SOURCE"
+                        event.sourceVerification.status === "UNVERIFIED" ||
+                          event.sourceVerification.status === "SINGLE_SOURCE"
                           ? "bg-amber-50 text-amber-700"
                           : event.sourceVerification.status === "CONFLICTING"
                             ? "bg-red-50 text-red-700"
@@ -125,7 +142,12 @@ export function BreakingIntelligence({ events }: BreakingIntelligenceProps) {
                 </CardContent>
               </Card>
 
-              {isCritical && <AIAssessment analysis={analysis} />}
+              {showAi &&
+                (liveAi ? (
+                  <AIMarketAssessment analysis={liveAi} />
+                ) : (
+                  <AIAssessment analysis={fallback} />
+                ))}
             </div>
           );
         })}

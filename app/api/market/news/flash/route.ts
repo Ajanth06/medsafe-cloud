@@ -1,3 +1,7 @@
+import {
+  classifyFlashTopic,
+  parseTopicEntity,
+} from "@/lib/market-intelligence/config/oil-rss-feeds";
 import { NextResponse } from "next/server";
 import { requireApiUserOrWorker } from "@/lib/market-intelligence/api/auth";
 import { createNewsProvider } from "@/lib/market-intelligence/providers/news/news-provider-factory";
@@ -9,6 +13,9 @@ export const runtime = "nodejs";
 function toFlashEvent(item: NormalizedNewsItem): NewsEvent {
   const hot = item.entities?.includes("HOT") ?? false;
   const flash = item.entities?.includes("FLASH") ?? false;
+  const flashTopic =
+    parseTopicEntity(item.entities) ??
+    classifyFlashTopic(`${item.title} ${item.summary}`);
   return {
     id: item.id,
     timestamp: item.publishedAt,
@@ -30,6 +37,8 @@ function toFlashEvent(item: NormalizedNewsItem): NewsEvent {
     status: "ACTIVE",
     isFlash: flash || hot,
     url: item.url,
+    flashTopic,
+    language: item.language,
   };
 }
 
@@ -43,7 +52,7 @@ export async function GET(request: Request) {
 
   try {
     const provider = createNewsProvider();
-    const items = await provider.getBreakingNews(12);
+    const items = await provider.getBreakingNews(20);
     const breakingNews = items.map(toFlashEvent);
 
     return Response.json({

@@ -9,8 +9,8 @@ interface FlashPayload {
   error?: string;
 }
 
-/** Match Oil-RSS cache (~45s) — new Iran/oil items appear in Flash quickly. */
-const FLASH_POLL_MS = 30_000;
+/** Flash poll — RSS cache is ~90s; keep UI snappy on mobile. */
+const FLASH_POLL_MS = 75_000;
 
 function flashFingerprint(events: NewsEvent[]): string {
   return events.map((e) => `${e.id}:${e.isFlash ? 1 : 0}`).join("|");
@@ -75,14 +75,20 @@ export function useLiveFlashNews(initialEvents: NewsEvent[]) {
       }
     }
 
-    void tick();
+    // Use SSR payload first; refresh later so mobile first paint stays light
+    const hasInitial = initialEvents.length > 0;
+    if (!hasInitial) void tick();
     const interval = window.setInterval(() => {
       void tick();
     }, FLASH_POLL_MS);
+    const warmup = hasInitial
+      ? window.setTimeout(() => void tick(), Math.min(15_000, FLASH_POLL_MS))
+      : null;
 
     return () => {
       cancelled = true;
       window.clearInterval(interval);
+      if (warmup) window.clearTimeout(warmup);
     };
   }, []);
 

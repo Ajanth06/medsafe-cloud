@@ -64,7 +64,7 @@ export function TerminalNav({ unreadCount = 0 }: TerminalNavProps) {
           type="button"
           onClick={() => setView(id)}
           className={cn(
-            "relative flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-[10px] font-semibold transition-all duration-200 hover:-translate-y-0.5 md:rounded-xl md:px-3 md:py-2.5 md:text-xs",
+            "app-touch relative flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-[10px] font-semibold transition-all duration-200 hover:-translate-y-0.5 md:min-h-0 md:rounded-xl md:px-3 md:py-2.5 md:text-xs",
             active === id
               ? "bg-gradient-to-r from-orange-600 to-orange-400 text-white shadow-[0_8px_20px_rgba(249,115,22,0.25)]"
               : "text-slate-300 hover:bg-white/10 hover:text-white",

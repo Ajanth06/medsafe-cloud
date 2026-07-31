@@ -1,5 +1,8 @@
 import { INVESTIGATION_CONFIG } from "@/lib/market-intelligence/config/investigation-config";
 import { getNewsProviderConfig } from "@/lib/market-intelligence/config/news-provider-config";
+import { classifyFlashTopic } from "@/lib/market-intelligence/config/oil-rss-feeds";
+import { isEscalationHot } from "@/lib/market-intelligence/services/flash-relevance";
+import { buildOilReaction } from "@/lib/market-intelligence/services/oil-reaction";
 import { createIntelligenceAlert } from "@/lib/market-intelligence/engine/alert-engine";
 import { runAIAnalysisJob, toLegacyExtendedAnalysis } from "@/lib/market-intelligence/ai/ai-analysis-orchestrator";
 import { clusterNewsItems } from "@/lib/market-intelligence/services/event-clustering";
@@ -242,12 +245,11 @@ export async function processNewsFirstEvents(
 
 function clusterToNewsEvent(cluster: IntelligenceEventCluster): NewsEvent {
   const ageMs = Date.now() - new Date(cluster.firstReportAt).getTime();
-  const fresh = ageMs >= 0 && ageMs < 45 * 60_000;
+  const fresh = ageMs >= 0 && ageMs < 36 * 60 * 60_000;
   const text = `${cluster.headline} ${cluster.summary}`;
-  const hot = /iran|hormuz|attack|strike|missile|drone|sanctions|opec|war|explosion|pipeline|embargo|angriff|sanktion/i.test(
-    text,
-  );
-  const flash = fresh || hot || cluster.watchMode;
+  const hot = isEscalationHot(text);
+  const flash = fresh || hot;
+  const flashTopic = classifyFlashTopic(text);
 
   return {
     id: cluster.id,
@@ -276,6 +278,7 @@ function clusterToNewsEvent(cluster: IntelligenceEventCluster): NewsEvent {
           : "ACTIVE",
     isFlash: Boolean(flash),
     url: cluster.sources?.[0]?.url,
+    flashTopic,
   };
 }
 
@@ -380,10 +383,20 @@ function buildNewsLiveFeed(
   );
 }
 
+export interface NewsPipelineOptions {
+  /** Skip AI + deep investigation — for fast page loads / mobile. */
+  fast?: boolean;
+  breakingLimit?: number;
+}
+
 export async function runNewsPipeline(
   marketPipeline: PipelineResult,
+  options: NewsPipelineOptions = {},
 ): Promise<NewsPipelineResult> {
   const config = getNewsProviderConfig();
+  const fast = Boolean(options.fast);
+  const breakingLimit = options.breakingLimit ?? (fast ? 18 : 30);
+
   // Demo-Modus: kein Cache — alte englische RSS-Cluster sonst dauerhaft sichtbar
   if (!config.isConfigured) {
     resetNewsPipelineState();
@@ -393,24 +406,29 @@ export async function runNewsPipeline(
 
   let allClusters = [...activeClusters.values()];
 
-  // Event-first: investigate significant market events
-  const significantEvents = marketPipeline.marketEvents.filter(
-    (e) => e.severity === "HIGH" || e.severity === "CRITICAL" || e.eventType === "OIL_MARKET_ANOMALY",
-  );
+  // Event-first: skip on fast path (expensive multi-query investigation)
+  if (!fast) {
+    const significantEvents = marketPipeline.marketEvents.filter(
+      (e) =>
+        e.severity === "HIGH" ||
+        e.severity === "CRITICAL" ||
+        e.eventType === "OIL_MARKET_ANOMALY",
+    );
 
-  for (const marketEvent of significantEvents) {
-    const investigated = await investigateMarketEvent({
-      marketEventId: marketEvent.id,
-      marketEvent,
-      oilCorrelation: marketPipeline.oilCorrelation,
-    });
-    allClusters = investigated;
+    for (const marketEvent of significantEvents) {
+      const investigated = await investigateMarketEvent({
+        marketEventId: marketEvent.id,
+        marketEvent,
+        oilCorrelation: marketPipeline.oilCorrelation,
+      });
+      allClusters = investigated;
+    }
   }
 
-  // News-first: free Oil RSS breaking + official feeds always (no NewsAPI required)
+  // News-first: free Oil RSS breaking + official feeds
   try {
-    const breaking = await newsProvider.getBreakingNews(15);
-    const officialNews = await official.fetchLatest(10);
+    const breaking = await newsProvider.getBreakingNews(breakingLimit);
+    const officialNews = await official.fetchLatest(fast ? 5 : 10);
     const newsFirst = await processNewsFirstEvents([...breaking, ...officialNews]);
     allClusters = mergeClusters(allClusters, newsFirst);
   } catch (error) {
@@ -419,38 +437,55 @@ export async function runNewsPipeline(
     });
   }
 
-  // AI analysis for high-priority clusters
-  for (let i = 0; i < allClusters.length; i++) {
-    const cluster = allClusters[i];
-    if (cluster.aiAnalysisResult) continue;
+  // AI analysis only for HIGH / CRITICAL — never on fast page path
+  if (!fast) {
+    for (let i = 0; i < allClusters.length; i++) {
+      const cluster = allClusters[i];
+      if (cluster.aiAnalysisResult) continue;
 
-    const marketEvent = marketPipeline.marketEvents.find(
-      (e) => cluster.marketCorrelation?.marketEventId === e.id,
-    );
+      const marketEvent = marketPipeline.marketEvents.find(
+        (e) => cluster.marketCorrelation?.marketEventId === e.id,
+      );
 
-    const shouldAnalyze =
-      cluster.priorityScore >= 60 ||
-      cluster.watchMode ||
-      cluster.verification.hasOfficialSource;
+      const shouldAnalyze =
+        cluster.priority === "CRITICAL" ||
+        cluster.priority === "HIGH" ||
+        cluster.priorityScore >= 75;
 
-    if (!shouldAnalyze) continue;
+      if (!shouldAnalyze) continue;
 
-    try {
-      const { cluster: updated } = await runAIAnalysisJob({
-        cluster,
-        pipeline: marketPipeline,
-        marketEvent,
-      });
-      allClusters[i] = {
-        ...updated,
-        aiAnalysis: updated.aiAnalysisResult
-          ? toLegacyExtendedAnalysis(updated.aiAnalysisResult)
-          : undefined,
-      };
-    } catch {
-      // AI optional — market system continues
+      try {
+        const { cluster: updated } = await runAIAnalysisJob({
+          cluster: {
+            ...cluster,
+            oilReaction:
+              cluster.oilReaction ?? buildOilReaction(cluster.firstReportAt),
+          },
+          pipeline: marketPipeline,
+          marketEvent,
+        });
+        allClusters[i] = {
+          ...updated,
+          oilReaction:
+            updated.oilReaction ?? buildOilReaction(updated.firstReportAt),
+          aiAnalysis: updated.aiAnalysisResult
+            ? toLegacyExtendedAnalysis(updated.aiAnalysisResult)
+            : undefined,
+        };
+      } catch {
+        // AI optional — market system continues
+      }
     }
   }
+
+  // Attach oil reaction hints (cheap, in-memory)
+  allClusters = allClusters.map((cluster) => {
+    if (cluster.oilReaction) return cluster;
+    return {
+      ...cluster,
+      oilReaction: buildOilReaction(cluster.firstReportAt),
+    };
+  });
 
   const breakingNews = allClusters.map(clusterToNewsEvent);
   const timeline = buildNewsTimeline(allClusters, marketPipeline);
@@ -483,7 +518,7 @@ export async function runNewsPipeline(
   ]);
 
   if (isMiPersistenceEnabled()) {
-    for (const cluster of allClusters.slice(0, 20)) {
+    for (const cluster of allClusters.slice(0, fast ? 8 : 20)) {
       void persistIntelligenceCluster(cluster);
     }
   }
