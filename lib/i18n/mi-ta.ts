@@ -225,6 +225,8 @@ export const miTa = {
   marketAlreadyMovedLabel: "சந்தை ஏற்கனவே எதிர்வினையாற்றியது:",
 
   openSource: "மூலத்தை திற",
+  openTranslatedSource: "மொழிபெயர்த்து திற",
+  openOriginalSource: "அசலை திற",
   noExternalSource: "வெளிப்புற மூலம் இல்லை.",
   showMore: "மேலும் காட்டு",
   showLess: "குறைவாக காட்டு",
@@ -439,4 +441,6 @@ export const miTa = {
   rateLimitWait: "Rate limit — சிறிது காத்திருக்கவும்",
 
   continueWithGoogle: "Google உடன் தொடர",
+  continueAsGuest: "கடவுச்சொல் இல்லாமல் தொடர",
+  guestAccessHint: "அனைவருக்கும் தற்காலிக விருந்தினர் அணுகல்.",
 } as const;

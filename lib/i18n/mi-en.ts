@@ -225,6 +225,8 @@ export const miEn = {
   marketAlreadyMovedLabel: "Market already reacted:",
 
   openSource: "Open source",
+  openTranslatedSource: "Open translated source",
+  openOriginalSource: "Open original",
   noExternalSource: "No external source linked.",
   showMore: "Show more",
   showLess: "Show less",
@@ -439,4 +441,6 @@ export const miEn = {
   rateLimitWait: "Rate limit — wait briefly",
 
   continueWithGoogle: "Continue with Google",
+  continueAsGuest: "Continue without password",
+  guestAccessHint: "Temporary guest access for everyone.",
 } as const;

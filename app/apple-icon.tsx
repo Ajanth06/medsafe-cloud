@@ -15,26 +15,38 @@ export default function AppleIcon() {
           justifyContent: "center",
           background:
             "linear-gradient(145deg, #111827 0%, #0b1520 56%, #07111a 100%)",
-          borderRadius: 36,
+          borderRadius: 40,
         }}
       >
         <div
           style={{
-            width: 104,
-            height: 104,
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            borderRadius: 28,
-            background: "linear-gradient(145deg, #fb923c, #ea580c)",
-            color: "white",
-            fontSize: 30,
-            fontWeight: 900,
-            letterSpacing: 3,
-            boxShadow: "0 14px 38px rgba(249,115,22,0.35)",
+            gap: 10,
           }}
         >
-          AX
+          <div
+            style={{
+              color: "#F97316",
+              fontSize: 96,
+              fontWeight: 900,
+              lineHeight: 1,
+              letterSpacing: -4,
+              fontFamily: "ui-sans-serif, system-ui, sans-serif",
+            }}
+          >
+            A
+          </div>
+          <div
+            style={{
+              width: 72,
+              height: 8,
+              borderRadius: 4,
+              background: "#22D3EE",
+            }}
+          />
         </div>
       </div>
     ),

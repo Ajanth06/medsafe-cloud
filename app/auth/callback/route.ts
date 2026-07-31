@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isLikelyNewOAuthAccount, isSignupEnabled } from "@/lib/auth/config";
+import { isLikelyNewOAuthAccount, isOAuthSignupAllowed } from "@/lib/auth/config";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      if (!isSignupEnabled()) {
+      if (!isOAuthSignupAllowed()) {
         const {
           data: { user },
         } = await supabase.auth.getUser();

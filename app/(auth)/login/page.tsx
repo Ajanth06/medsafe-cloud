@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { AuthForm } from "@/components/auth/auth-form";
 import { GlobalMarketClock } from "@/components/auth/global-market-clock";
-import { isOAuthLoginEnabled, isSignupEnabled } from "@/lib/auth/config";
+import { isOAuthLoginEnabled, isOpenAccessEnabled, isSignupEnabled } from "@/lib/auth/config";
 import { cookies } from "next/headers";
 import { LOCALE_COOKIE_KEY, parseAppLocale } from "@/lib/i18n/locales";
 import { getMi } from "@/lib/i18n/mi";
@@ -23,6 +23,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { error, message } = await searchParams;
   const signupEnabled = isSignupEnabled();
   const oauthLoginEnabled = isOAuthLoginEnabled();
+  const openAccessEnabled = isOpenAccessEnabled();
   const jar = await cookies();
   const t = getMi(parseAppLocale(jar.get(LOCALE_COOKIE_KEY)?.value));
 
@@ -61,6 +62,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             message={message}
             signupEnabled={signupEnabled}
             oauthLoginEnabled={oauthLoginEnabled}
+            openAccessEnabled={openAccessEnabled}
           />
         </div>
 

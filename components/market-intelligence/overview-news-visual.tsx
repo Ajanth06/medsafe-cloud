@@ -7,11 +7,12 @@ import {
   type FlashNewsTopic,
 } from "@/lib/market-intelligence/config/oil-rss-feeds";
 import { resolveAgencyRegion } from "@/components/market-intelligence/news-detail-panel";
-import { useMi } from "@/components/i18n/locale-provider";
+import { useLocale, useMi } from "@/components/i18n/locale-provider";
 import {
   agencyRegionLabel,
   flashTopicLabel,
 } from "@/lib/i18n/news-labels";
+import { translatedSourceUrl } from "@/lib/i18n/translate-source-url";
 import { formatTime } from "@/lib/market-intelligence/format";
 import { decodeHtmlEntities } from "@/lib/market-intelligence/format/decode-html";
 import { cn } from "@/lib/utils";
@@ -255,6 +256,7 @@ export function OverviewNewsVisual({
   className,
 }: OverviewNewsVisualProps) {
   const t = useMi();
+  const { locale } = useLocale();
   const [items, setItems] = useState<VisualItem[]>([]);
   const [featuredId, setFeaturedId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
@@ -309,6 +311,9 @@ export function OverviewNewsVisual({
   );
   const region = resolveAgencyRegion(hero);
   const sourceUrl = hero.url;
+  const translatedUrl = sourceUrl
+    ? translatedSourceUrl(sourceUrl, locale)
+    : undefined;
 
   function selectStory(id: string) {
     setFeaturedId(id);
@@ -406,16 +411,27 @@ export function OverviewNewsVisual({
               {formatTime(hero.timestamp)} CET
             </p>
           </div>
-          {sourceUrl ? (
-            <a
-              href={sourceUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="app-touch inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/25 bg-cyan-500/10 px-3 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
-            >
-              {t.openSource}
-              <ExternalLink className="h-4 w-4" aria-hidden="true" />
-            </a>
+          {sourceUrl && translatedUrl ? (
+            <div className="space-y-2">
+              <a
+                href={translatedUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="app-touch inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/25 bg-cyan-500/10 px-3 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
+              >
+                {t.openTranslatedSource}
+                <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              </a>
+              <a
+                href={sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="app-touch inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-xs font-medium text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+              >
+                {t.openOriginalSource}
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
+            </div>
           ) : (
             <p className="text-center text-xs text-slate-500">
               {t.noExternalSource}

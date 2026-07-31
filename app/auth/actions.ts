@@ -2,7 +2,11 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { isSignupEnabled } from "@/lib/auth/config";
+import {
+  getGuestCredentials,
+  isOpenAccessEnabled,
+  isSignupEnabled,
+} from "@/lib/auth/config";
 import { createClient } from "@/lib/supabase/server";
 
 async function getOrigin() {
@@ -54,6 +58,37 @@ export async function signInWithEmail(formData: FormData) {
 
   if (error) {
     redirect(`/login?error=${encodeURIComponent(error.message)}`);
+  }
+
+  redirect("/market-intelligence");
+}
+
+/**
+ * Temporary open access — shared guest session (no password form).
+ * Guest user must exist (created via scripts/create-test-user.ts).
+ */
+export async function signInAsGuest() {
+  if (!isOpenAccessEnabled()) {
+    redirect("/login?error=Gastzugang+ist+deaktiviert");
+  }
+
+  const credentials = getGuestCredentials();
+  if (!credentials) {
+    redirect("/login?error=Gastzugang+nicht+konfiguriert");
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({
+    email: credentials.email,
+    password: credentials.password,
+  });
+
+  if (error) {
+    redirect(
+      `/login?error=${encodeURIComponent(
+        `Gastzugang fehlgeschlagen: ${error.message}`,
+      )}`,
+    );
   }
 
   redirect("/market-intelligence");

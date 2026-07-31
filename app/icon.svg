@@ -1,11 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <defs>
-    <linearGradient id="bg" x1="3" y1="2" x2="29" y2="30" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FB923C" />
-      <stop offset="1" stop-color="#EA580C" />
-    </linearGradient>
-  </defs>
-  <rect width="32" height="32" rx="8" fill="#0B1520" />
-  <rect x="5" y="5" width="22" height="22" rx="6" fill="url(#bg)" />
-  <text x="16" y="19.5" fill="white" font-family="monospace" font-size="8" font-weight="900" text-anchor="middle">AX</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="AARYX">
+  <rect width="32" height="32" rx="8" fill="#0B1520"/>
+  <path
+    fill="#F97316"
+    d="M16 6.2 7.4 25.2h3.7l1.55-3.55h6.7l1.55 3.55H24.6L16 6.2Zm0 5.2 2.35 5.45h-4.7L16 11.4Z"
+  />
+  <path fill="#22D3EE" d="M10.2 26.4h11.6v1.6H10.2z" opacity="0.9"/>
 </svg>

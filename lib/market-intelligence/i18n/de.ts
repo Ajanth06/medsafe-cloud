@@ -225,6 +225,8 @@ export const miDe = {
   marketAlreadyMovedLabel: "Markt hat bereits reagiert:",
 
   openSource: "Quelle öffnen",
+  openTranslatedSource: "Quelle übersetzt öffnen",
+  openOriginalSource: "Original öffnen",
   noExternalSource: "Keine externe Quelle hinterlegt.",
   showMore: "Mehr anzeigen",
   showLess: "Weniger anzeigen",
@@ -439,6 +441,8 @@ export const miDe = {
   rateLimitWait: "Rate limit — kurz warten",
 
   continueWithGoogle: "Weiter mit Google",
+  continueAsGuest: "Ohne Passwort weiter",
+  guestAccessHint: "Vorläufiger Gastzugang für alle.",
 } as const;
 
 export {

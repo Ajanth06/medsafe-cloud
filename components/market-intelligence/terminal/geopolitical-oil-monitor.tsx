@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { Globe2, Radio, ShieldAlert } from "lucide-react";
-import { useMi } from "@/components/i18n/locale-provider";
+import { useLocale, useMi } from "@/components/i18n/locale-provider";
 import { formatTime } from "@/lib/market-intelligence/format";
+import { translatedSourceUrl } from "@/lib/i18n/translate-source-url";
 import { cn } from "@/lib/utils";
 import type {
   IntelligenceEventCluster,
@@ -72,6 +73,7 @@ export function GeopoliticalOilMonitor({
   breakingNews,
 }: GeopoliticalOilMonitorProps) {
   const t = useMi();
+  const { locale } = useLocale();
   const [focus, setFocus] = useState<FocusId>("all");
 
   const FOCUS = [
@@ -251,7 +253,7 @@ export function GeopoliticalOilMonitor({
             return item.url ? (
               <a
                 key={item.id}
-                href={item.url}
+                href={translatedSourceUrl(item.url, locale)}
                 target="_blank"
                 rel="noreferrer"
                 className="block rounded-xl border border-white/8 bg-[#101c29]/90 p-4 transition hover:border-cyan-400/20 hover:bg-[#122131]"

@@ -6,12 +6,13 @@ import { ExternalLink, X } from "lucide-react";
 import { classifyFlashTopic } from "@/lib/market-intelligence/config/oil-rss-feeds";
 import { formatTime } from "@/lib/market-intelligence/format";
 import { decodeHtmlEntities } from "@/lib/market-intelligence/format/decode-html";
-import { useMi } from "@/components/i18n/locale-provider";
+import { useMi, useLocale } from "@/components/i18n/locale-provider";
 import {
   agencyRegionLabel,
   flashTopicLabel,
   type NewsAgencyRegion,
 } from "@/lib/i18n/news-labels";
+import { translatedSourceUrl } from "@/lib/i18n/translate-source-url";
 import type { NewsEvent } from "@/lib/types/market";
 
 export type { NewsAgencyRegion };
@@ -59,6 +60,7 @@ interface NewsDetailPanelProps {
 
 export function NewsDetailPanel({ event, onClose }: NewsDetailPanelProps) {
   const t = useMi();
+  const { locale } = useLocale();
   const topic =
     event.flashTopic ??
     classifyFlashTopic(`${event.title} ${event.summary}`);
@@ -67,6 +69,7 @@ export function NewsDetailPanel({ event, onClose }: NewsDetailPanelProps) {
   );
   const region = resolveAgencyRegion(event);
   const url = event.url;
+  const translatedUrl = url ? translatedSourceUrl(url, locale) : undefined;
   const imageSrc = event.imageUrl
     ? event.imageUrl.replace(
         /(ichef\.bbci\.co\.uk\/(?:news|ace\/(?:standard|ws))\/)(\d{2,4})\//gi,
@@ -164,16 +167,27 @@ export function NewsDetailPanel({ event, onClose }: NewsDetailPanelProps) {
             </p>
           </div>
 
-          {url ? (
-            <a
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="app-touch inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/25 bg-cyan-500/10 px-3 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
-            >
-              {t.openSource}
-              <ExternalLink className="h-4 w-4" aria-hidden="true" />
-            </a>
+          {url && translatedUrl ? (
+            <div className="space-y-2">
+              <a
+                href={translatedUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="app-touch inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/25 bg-cyan-500/10 px-3 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
+              >
+                {t.openTranslatedSource}
+                <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              </a>
+              <a
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="app-touch inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-xs font-medium text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+              >
+                {t.openOriginalSource}
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
+            </div>
           ) : (
             <p className="text-center text-xs text-slate-500">
               {t.noExternalSource}

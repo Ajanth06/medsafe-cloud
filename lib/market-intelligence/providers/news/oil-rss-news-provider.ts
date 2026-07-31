@@ -215,16 +215,17 @@ export class OilRssNewsProvider implements NewsProvider {
       }));
 
     const translations = await ensureNewsTranslations(toTranslate, {
-      maxAwaitMs: 4_800,
-      maxItems: 20,
+      // Non-DE locales need a bit longer; first paint otherwise stays EN.
+      maxAwaitMs: targetLocale === "de" ? 4_800 : 7_500,
+      maxItems: 22,
       target: targetLocale,
     });
 
     return ordered.map((r) => {
       const tr = translations.get(r.item.id);
       const translated = Boolean(tr?.translated);
-      const title = translated && tr ? tr.title : r.item.title;
-      const summary = translated && tr ? tr.summary : r.item.summary;
+      const title = translated && tr?.title ? tr.title : r.item.title;
+      const summary = translated && tr?.summary ? tr.summary : r.item.summary;
       const src = `${r.item.source} ${r.item.sourceName ?? ""}`.toLowerCase();
       const isReuters = src.includes("reuters");
       const isAj = src.includes("al jazeera");

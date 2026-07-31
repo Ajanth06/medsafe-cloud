@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { Lock } from "lucide-react";
-import { signInWithEmail } from "@/app/auth/actions";
+import { signInAsGuest, signInWithEmail } from "@/app/auth/actions";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { RememberMeCheckbox } from "@/components/auth/remember-me-checkbox";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
-import { useLocale } from "@/components/i18n/locale-provider";
+import { useLocale, useMi } from "@/components/i18n/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { readRememberMeFromCheckbox, setRememberMe } from "@/lib/session-policy";
@@ -17,6 +17,7 @@ interface AuthFormProps {
   message?: string;
   signupEnabled?: boolean;
   oauthLoginEnabled?: boolean;
+  openAccessEnabled?: boolean;
 }
 
 const AUTH_COPY: Record<
@@ -84,8 +85,10 @@ export function AuthForm({
   message,
   signupEnabled = false,
   oauthLoginEnabled = true,
+  openAccessEnabled = true,
 }: AuthFormProps) {
   const { locale } = useLocale();
+  const t = useMi();
   const copy = AUTH_COPY[locale];
 
   return (
@@ -119,6 +122,32 @@ export function AuthForm({
           >
             {message}
           </p>
+        )}
+
+        {openAccessEnabled && (
+          <div className="space-y-2">
+            <form action={signInAsGuest}>
+              <Button
+                type="submit"
+                fullWidth
+                size="lg"
+                className="h-12 rounded-xl bg-cyan-500 text-base font-semibold text-[#041018] transition hover:bg-cyan-400 focus-visible:ring-cyan-300/40"
+              >
+                {t.continueAsGuest}
+              </Button>
+            </form>
+            <p className="text-center text-xs text-slate-500">{t.guestAccessHint}</p>
+          </div>
+        )}
+
+        {openAccessEnabled && (
+          <div className="relative flex items-center py-1">
+            <div className="grow border-t border-white/10" />
+            <span className="mx-3 shrink-0 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">
+              {copy.or}
+            </span>
+            <div className="grow border-t border-white/10" />
+          </div>
         )}
 
         <form

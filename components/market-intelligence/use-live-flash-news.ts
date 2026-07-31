@@ -2,6 +2,7 @@
 
 import { startTransition, useEffect, useRef, useState } from "react";
 import { useLocale } from "@/components/i18n/locale-provider";
+import type { AppLocale } from "@/lib/i18n/locales";
 import { getMi } from "@/lib/i18n/mi";
 import type { NewsEvent } from "@/lib/types/market";
 
@@ -9,6 +10,7 @@ interface FlashPayload {
   breakingNews?: NewsEvent[];
   fetchedAt?: string;
   error?: string;
+  locale?: string;
 }
 
 const FLASH_POLL_MS = 90_000;
@@ -53,8 +55,48 @@ function mergeFlashEvents(prev: NewsEvent[], next: NewsEvent[]): NewsEvent[] {
   return out;
 }
 
+/** Prefer new titles/language, keep previously resolved photos. */
+function replaceKeepingImages(prev: NewsEvent[], next: NewsEvent[]): NewsEvent[] {
+  const imageById = new Map(
+    prev.filter((e) => e.imageUrl).map((e) => [e.id, e.imageUrl!] as const),
+  );
+  const imageByUrl = new Map(
+    prev
+      .filter((e) => e.url && e.imageUrl)
+      .map((e) => [e.url!, e.imageUrl!] as const),
+  );
+  return next.map((e) => {
+    const imageUrl =
+      e.imageUrl ??
+      imageById.get(e.id) ??
+      (e.url ? imageByUrl.get(e.url) : undefined);
+    return imageUrl && !e.imageUrl ? { ...e, imageUrl } : e;
+  });
+}
+
+/** Rough check: did the feed actually come back in the UI language? */
+function roughlyMatchesLocale(events: NewsEvent[], locale: AppLocale): boolean {
+  if (!events.length) return false;
+  const sample = events.slice(0, 12);
+  const langHits = sample.filter((e) => e.language === locale).length;
+  if (locale === "ta") {
+    return (
+      sample.some((e) => /[\u0B80-\u0BFF]/.test(e.title)) ||
+      langHits >= Math.max(2, Math.ceil(sample.length * 0.25))
+    );
+  }
+  if (locale === "de") {
+    return (
+      sample.some((e) => /[äöüßÄÖÜ]/.test(e.title)) ||
+      langHits >= Math.max(2, Math.ceil(sample.length * 0.25))
+    );
+  }
+  return langHits >= 1 || sample.some((e) => /^[A-Za-z0-9]/.test(e.title.trim()));
+}
+
 /**
  * Keeps Flash News fresh; refetches when UI language changes.
+ * Live `?lang=` responses must not be overwritten by SSR props (always DE default).
  */
 export function useLiveFlashNews(initialEvents: NewsEvent[]) {
   const { locale } = useLocale();
@@ -64,12 +106,18 @@ export function useLiveFlashNews(initialEvents: NewsEvent[]) {
   const fingerprintRef = useRef(flashFingerprint(initialEvents));
   const eventsRef = useRef(initialEvents);
   const localeRef = useRef(locale);
+  /** Locale for which we already applied a live flash API response. */
+  const liveLocaleRef = useRef<AppLocale | null>(null);
 
   useEffect(() => {
     eventsRef.current = events;
   }, [events]);
 
   useEffect(() => {
+    // Once live flash data exists for the active UI language, ignore SSR/
+    // dashboard props — those default to DE and would wipe EN/TA headlines.
+    if (liveLocaleRef.current === locale) return;
+
     const next = flashFingerprint(initialEvents);
     if (next !== fingerprintRef.current && initialEvents.length > 0) {
       fingerprintRef.current = next;
@@ -77,7 +125,7 @@ export function useLiveFlashNews(initialEvents: NewsEvent[]) {
       setEvents(merged);
       eventsRef.current = merged;
     }
-  }, [initialEvents]);
+  }, [initialEvents, locale]);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,8 +133,12 @@ export function useLiveFlashNews(initialEvents: NewsEvent[]) {
     const localeChanged = localeRef.current !== locale;
     localeRef.current = locale;
 
-    async function tick(force = false) {
-      if (cancelled || inFlight) return;
+    if (localeChanged) {
+      liveLocaleRef.current = null;
+    }
+
+    async function tick(force = false): Promise<NewsEvent[]> {
+      if (cancelled || inFlight) return eventsRef.current;
       inFlight = true;
       try {
         const res = await fetch(
@@ -100,27 +152,29 @@ export function useLiveFlashNews(initialEvents: NewsEvent[]) {
           if (!cancelled) {
             setError(res.status === 401 ? null : `HTTP ${res.status}`);
           }
-          return;
+          return eventsRef.current;
         }
         const data = (await res.json()) as FlashPayload;
-        if (cancelled) return;
+        if (cancelled) return eventsRef.current;
 
         const nextEvents = Array.isArray(data.breakingNews)
           ? data.breakingNews
           : [];
         if (nextEvents.length > 0) {
-          const merged = force
-            ? nextEvents
+          const applied = force
+            ? replaceKeepingImages(eventsRef.current, nextEvents)
             : mergeFlashEvents(eventsRef.current, nextEvents);
-          const fp = flashFingerprint(merged);
+          const fp = flashFingerprint(applied);
           if (fp !== fingerprintRef.current || force) {
             fingerprintRef.current = fp;
-            eventsRef.current = merged;
-            startTransition(() => setEvents(merged));
+            eventsRef.current = applied;
+            startTransition(() => setEvents(applied));
           }
+          liveLocaleRef.current = locale;
         }
         setFetchedAt(data.fetchedAt ?? new Date().toISOString());
         setError(null);
+        return nextEvents.length > 0 ? nextEvents : eventsRef.current;
       } catch (err) {
         if (!cancelled) {
           setError(
@@ -129,17 +183,39 @@ export function useLiveFlashNews(initialEvents: NewsEvent[]) {
               : getMi(locale).flashFeedDisconnected,
           );
         }
+        return eventsRef.current;
       } finally {
         inFlight = false;
       }
     }
 
+    async function tickUntilTranslated() {
+      const first = await tick(true);
+      if (cancelled) return;
+      if (roughlyMatchesLocale(first, locale)) return;
+
+      // First response often still has source-language titles while AI
+      // translations finish in the background — retry a few times.
+      for (const delay of [2_500, 6_000, 12_000]) {
+        await new Promise((r) => setTimeout(r, delay));
+        if (cancelled) return;
+        const again = await tick(true);
+        if (roughlyMatchesLocale(again, locale)) return;
+      }
+    }
+
+    const needsLocaleFetch =
+      localeChanged || !roughlyMatchesLocale(eventsRef.current, locale);
+
     const t0 = window.setTimeout(
-      () => void tick(localeChanged),
-      localeChanged ? 80 : 400,
+      () => {
+        if (needsLocaleFetch) void tickUntilTranslated();
+        else void tick(false);
+      },
+      localeChanged || needsLocaleFetch ? 60 : 400,
     );
-    const t1 = window.setTimeout(() => void tick(), 14_000);
-    const interval = window.setInterval(() => void tick(), FLASH_POLL_MS);
+    const t1 = window.setTimeout(() => void tick(false), 14_000);
+    const interval = window.setInterval(() => void tick(false), FLASH_POLL_MS);
 
     return () => {
       cancelled = true;

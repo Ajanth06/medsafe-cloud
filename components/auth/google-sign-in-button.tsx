@@ -32,17 +32,12 @@ interface GoogleSignInButtonProps {
   className?: string;
 }
 
+/**
+ * Google via Supabase OAuth — no GSI client-id required in the browser.
+ * Provider must be enabled in the Supabase dashboard.
+ */
 export function GoogleSignInButton({ className }: GoogleSignInButtonProps) {
   const t = useMi();
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-
-  if (!clientId) {
-    return (
-      <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-        {t.googleNotConfigured}
-      </p>
-    );
-  }
 
   return (
     <form action={signInWithOAuth.bind(null, "google")} className={cn("w-full", className)}>
