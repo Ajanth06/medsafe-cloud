@@ -1,3 +1,5 @@
+"use client";
+
 import { Activity } from "lucide-react";
 import { AlertCenter } from "@/components/market-intelligence/alert-center";
 import { AlertNavBadge } from "@/components/market-intelligence/alert-nav-badge";
@@ -14,7 +16,7 @@ import { SystemStatus } from "@/components/market-intelligence/system-status";
 import { IntelligenceAlerts } from "@/components/market-intelligence/intelligence-alerts";
 import { IntelligenceEventsSection } from "@/components/market-intelligence/intelligence-events-section";
 import { OilIntelligenceSection } from "@/components/market-intelligence/oil-intelligence-section";
-import { miDe } from "@/lib/market-intelligence/i18n/de";
+import { useMi } from "@/components/i18n/locale-provider";
 import type { MarketIntelligenceDashboardData } from "@/lib/types/market";
 
 interface MarketIntelligenceDashboardProps {
@@ -22,6 +24,8 @@ interface MarketIntelligenceDashboardProps {
 }
 
 export function MarketIntelligenceDashboard({ data }: MarketIntelligenceDashboardProps) {
+  const t = useMi();
+
   return (
     <div className="space-y-8">
       <header className="space-y-3 border-b border-border pb-6">
@@ -32,10 +36,10 @@ export function MarketIntelligenceDashboard({ data }: MarketIntelligenceDashboar
             </div>
             <div className="min-w-0">
               <h1 className="text-2xl font-semibold tracking-tight text-foreground lg:text-3xl">
-                {miDe.moduleTitle}
+                {t.moduleTitle}
               </h1>
               <p className="mt-1 text-sm text-muted lg:text-base">
-                {miDe.moduleSubtitle}
+                {t.moduleSubtitle}
               </p>
             </div>
           </div>
@@ -107,8 +111,8 @@ export function MarketIntelligenceDashboard({ data }: MarketIntelligenceDashboar
 
       <footer className="rounded-2xl border border-dashed border-border bg-card/60 p-4 text-center">
         <p className="text-xs text-muted">
-          {data.systemHealth.isLive ? miDe.footerLive : miDe.footerDemo}{" "}
-          {miDe.footerDisclaimer}
+          {data.systemHealth.isLive ? t.footerLive : t.footerDemo}{" "}
+          {t.footerDisclaimer}
         </p>
       </footer>
     </div>

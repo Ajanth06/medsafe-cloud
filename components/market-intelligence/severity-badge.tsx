@@ -1,4 +1,6 @@
-import { tSeverity } from "@/lib/market-intelligence/i18n/de";
+"use client";
+
+import { useLabels } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type { AlertSeverity, EventSeverity } from "@/lib/types/market";
 
@@ -16,6 +18,7 @@ interface SeverityBadgeProps {
 }
 
 export function SeverityBadge({ severity, className }: SeverityBadgeProps) {
+  const { tSeverity } = useLabels();
   return (
     <span
       className={cn(

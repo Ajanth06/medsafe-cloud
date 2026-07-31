@@ -1,4 +1,6 @@
-import { tDataAvailability } from "@/lib/market-intelligence/i18n/de";
+"use client";
+
+import { useLabels } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type { DataAvailability } from "@/lib/types/market";
 
@@ -19,6 +21,7 @@ export function DataAvailabilityBadge({
   availability,
   className,
 }: DataAvailabilityBadgeProps) {
+  const { tDataAvailability } = useLabels();
   return (
     <span
       className={cn(

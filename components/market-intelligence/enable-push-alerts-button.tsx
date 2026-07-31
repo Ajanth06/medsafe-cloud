@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { miDe } from "@/lib/market-intelligence/i18n/de";
-
+import { useMi } from "@/components/i18n/locale-provider";
 export function EnablePushAlertsButton() {
+  const t = useMi();
+
   const [status, setStatus] = useState<"idle" | "unsupported" | "denied" | "enabled">("idle");
 
   async function enablePush() {
@@ -25,21 +26,21 @@ export function EnablePushAlertsButton() {
 
   return (
     <div className="rounded-xl border border-dashed border-border bg-card/60 p-4">
-      <p className="text-sm font-medium text-foreground">{miDe.pushTitle}</p>
+      <p className="text-sm font-medium text-foreground">{t.pushTitle}</p>
       <p className="mt-1 text-xs text-muted">
-        {miDe.pushDescription}
+        {t.pushDescription}
       </p>
       <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => void enablePush()}>
-        {miDe.enablePush}
+        {t.enablePush}
       </Button>
       {status === "unsupported" && (
-        <p className="mt-2 text-xs text-amber-700">{miDe.pushUnsupported}</p>
+        <p className="mt-2 text-xs text-amber-700">{t.pushUnsupported}</p>
       )}
       {status === "denied" && (
-        <p className="mt-2 text-xs text-amber-700">{miDe.pushDenied}</p>
+        <p className="mt-2 text-xs text-amber-700">{t.pushDenied}</p>
       )}
       {status === "enabled" && (
-        <p className="mt-2 text-xs text-emerald-700">{miDe.pushGranted}</p>
+        <p className="mt-2 text-xs text-emerald-700">{t.pushGranted}</p>
       )}
     </div>
   );

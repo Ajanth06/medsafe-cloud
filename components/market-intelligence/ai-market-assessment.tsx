@@ -1,14 +1,18 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { AIAnalysisResult } from "@/lib/types/market";
 import { formatTime } from "@/lib/market-intelligence/format";
-import { miDe, tPressure, tRegime } from "@/lib/market-intelligence/i18n/de";
-
+import { useLabels, useMi } from "@/components/i18n/locale-provider";
 interface AIMarketAssessmentProps {
   analysis: AIAnalysisResult;
 }
 
 export function AIMarketAssessment({ analysis }: AIMarketAssessmentProps) {
+  const t = useMi();
+  const { tRegime, tPressure } = useLabels();
+
   const isDemo = analysis.mode === "DEMO" || analysis.mode === "FALLBACK";
 
   return (
@@ -16,11 +20,11 @@ export function AIMarketAssessment({ analysis }: AIMarketAssessmentProps) {
       <CardContent className="space-y-4 p-5">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-            {miDe.aiAssessment}
+            {t.aiAssessment}
           </p>
           {isDemo && (
             <p className="mt-1 text-xs text-amber-400/90">
-              {analysis.mode === "DEMO" ? miDe.aiDemoMode : miDe.aiFallback}
+              {analysis.mode === "DEMO" ? t.aiDemoMode : t.aiFallback}
             </p>
           )}
           <p className="mt-1 text-xs text-slate-500">
@@ -34,25 +38,25 @@ export function AIMarketAssessment({ analysis }: AIMarketAssessmentProps) {
 
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">{miDe.marketRegime}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500">{t.marketRegime}</p>
             <p className="mt-0.5 font-mono text-xs font-semibold text-white">
               {tRegime(analysis.marketRegime)}
             </p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">{miDe.confidence}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500">{t.confidence}</p>
             <p className="mt-0.5 font-mono text-xs font-semibold text-white">
               {analysis.confidence} — {analysis.confidenceScore}/100
             </p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">{miDe.reactionPhase}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500">{t.reactionPhase}</p>
             <p className="mt-0.5 font-mono text-xs text-slate-300">
               {analysis.reactionPhase.replace(/_/g, " ")}
             </p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">{miDe.significance}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500">{t.significance}</p>
             <p className="mt-0.5 font-mono text-xs text-slate-300">{analysis.eventSignificance}</p>
           </div>
         </div>
@@ -76,7 +80,7 @@ export function AIMarketAssessment({ analysis }: AIMarketAssessmentProps) {
         <div className="space-y-3 border-t border-slate-700 pt-3 text-sm">
           <section>
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-              {miDe.observedFacts}
+              {t.observedFacts}
             </p>
             <ul className="mt-1 space-y-1">
               {analysis.facts.slice(0, 5).map((f) => (
@@ -89,7 +93,7 @@ export function AIMarketAssessment({ analysis }: AIMarketAssessmentProps) {
 
           <section>
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-              {miDe.aiInterpretation}
+              {t.aiInterpretation}
             </p>
             <ul className="mt-1 space-y-1">
               {analysis.interpretations.map((line, i) => (
@@ -101,19 +105,19 @@ export function AIMarketAssessment({ analysis }: AIMarketAssessmentProps) {
           </section>
 
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">{miDe.possibleCause}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500">{t.possibleCause}</p>
             <p className="mt-0.5 leading-relaxed text-slate-300">
               {analysis.possibleCause.description}
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
-              {miDe.causality}: {analysis.possibleCause.causalityStatus.replace(/_/g, " ")}
+              {t.causality}: {analysis.possibleCause.causalityStatus.replace(/_/g, " ")}
             </p>
           </div>
 
           {analysis.alternativeExplanations.length > 0 && (
             <div>
               <p className="text-[10px] uppercase tracking-wider text-slate-500">
-                {miDe.alternatives}
+                {t.alternatives}
               </p>
               <ul className="mt-0.5 list-inside list-disc text-xs text-slate-400">
                 {analysis.alternativeExplanations.map((alt, i) => (
@@ -125,13 +129,13 @@ export function AIMarketAssessment({ analysis }: AIMarketAssessmentProps) {
 
           {analysis.marketAlreadyMoved && (
             <div className={cn("rounded-lg bg-amber-900/30 px-3 py-2 text-xs text-amber-200")}>
-              {miDe.marketAlreadyMovedLabel} {analysis.moveAssessment}
+              {t.marketAlreadyMovedLabel} {analysis.moveAssessment}
             </div>
           )}
 
           {analysis.whatToWatchNext.length > 0 && (
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-slate-500">{miDe.whatToWatch}</p>
+              <p className="text-[10px] uppercase tracking-wider text-slate-500">{t.whatToWatch}</p>
               <ul className="mt-1 space-y-1">
                 {analysis.whatToWatchNext.map((item, i) => (
                   <li key={i} className="text-xs text-slate-300">
@@ -147,7 +151,7 @@ export function AIMarketAssessment({ analysis }: AIMarketAssessmentProps) {
 
           {analysis.whyThisAlert && analysis.whyThisAlert.length > 0 && (
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-slate-500">{miDe.whyAlert}</p>
+              <p className="text-[10px] uppercase tracking-wider text-slate-500">{t.whyAlert}</p>
               <ol className="mt-1 list-inside list-decimal text-xs text-slate-300">
                 {analysis.whyThisAlert.map((r, i) => (
                   <li key={i}>{r}</li>

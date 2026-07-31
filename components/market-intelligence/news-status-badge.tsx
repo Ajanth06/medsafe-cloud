@@ -1,5 +1,7 @@
+"use client";
+
 import { Newspaper } from "lucide-react";
-import { miDe, tStatus } from "@/lib/market-intelligence/i18n/de";
+import { useLabels, useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type { EngineStatus, NewsSystemHealth, OperationsHealth } from "@/lib/types/market";
 
@@ -10,7 +12,15 @@ interface NewsStatusBadgeProps {
   variant?: "dark" | "light";
 }
 
-function resolveMode(props: NewsStatusBadgeProps): {
+function resolveMode(
+  props: NewsStatusBadgeProps,
+  labels: {
+    newsMonitoringOff: string;
+    newsLive: string;
+    newsDemo: string;
+    demoNews: string;
+  },
+): {
   label: string;
   tone: "live" | "demo" | "offline";
   source: string;
@@ -19,28 +29,31 @@ function resolveMode(props: NewsStatusBadgeProps): {
   const isLive = props.newsHealth?.isLive ?? props.newsEngine === "ACTIVE";
   const primary =
     props.newsHealth?.primarySource ??
-    (isLive ? "Oil RSS (Free)" : "Demo-News");
+    (isLive ? "Oil RSS (Free)" : labels.demoNews);
   const official =
     props.newsHealth?.officialSourceLabel ?? "Free Oil RSS + Official (EIA, Fed)";
   const source = `${primary} · ${official}`;
 
   if (monitoring === "OFFLINE") {
     return {
-      label: miDe.newsMonitoringOff,
+      label: labels.newsMonitoringOff,
       tone: "offline",
       source,
     };
   }
 
   if (isLive) {
-    return { label: miDe.newsLive, tone: "live", source };
+    return { label: labels.newsLive, tone: "live", source };
   }
 
-  return { label: miDe.newsDemo, tone: "demo", source };
+  return { label: labels.newsDemo, tone: "demo", source };
 }
 
 export function NewsStatusBadge(props: NewsStatusBadgeProps) {
-  const { label, tone, source } = resolveMode(props);
+  const t = useMi();
+  const { tStatus } = useLabels();
+
+  const { label, tone, source } = resolveMode(props, t);
   const engineLabel = tStatus(props.newsEngine);
   const light = props.variant === "light";
 
@@ -61,7 +74,7 @@ export function NewsStatusBadge(props: NewsStatusBadgeProps) {
             ? "border-red-200 bg-red-50"
             : "border-red-300/40 bg-red-500/10"),
       )}
-      title={`${miDe.newsSource}: ${source}`}
+      title={`${t.newsSource}: ${source}`}
     >
       <span className="inline-flex items-center gap-2">
         <Newspaper
@@ -81,7 +94,7 @@ export function NewsStatusBadge(props: NewsStatusBadgeProps) {
             tone === "offline" && (light ? "text-red-800" : "text-red-100"),
           )}
         >
-          {miDe.newsStatus}: {label}
+          {t.newsStatus}: {label}
         </span>
         <span
           className={cn(

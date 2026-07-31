@@ -10,7 +10,7 @@ import { AiIntelligenceView } from "@/components/market-intelligence/terminal/ai
 import { GeopoliticalOilMonitor } from "@/components/market-intelligence/terminal/geopolitical-oil-monitor";
 import { IntelligenceAlertWorkspace } from "@/components/market-intelligence/terminal/intelligence-alert-workspace";
 import { formatChange, formatPrice } from "@/lib/market-intelligence/format";
-import { miDe } from "@/lib/market-intelligence/i18n/de";
+import { useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type {
   BrentWTISpread,
@@ -37,37 +37,12 @@ interface OilWorkspaceProps {
 
 type OilView = "overview" | "geo" | "ai" | "alerts";
 
-const OIL_VIEWS: {
-  id: OilView;
-  label: string;
-  hint: string;
-  icon: typeof Droplets;
-}[] = [
-  {
-    id: "overview",
-    label: "Öl-Übersicht",
-    hint: "WTI · Brent · Flash News",
-    icon: Droplets,
-  },
-  {
-    id: "geo",
-    label: "Geo Monitor",
-    hint: "Hormuz · OPEC+ · Konflikte",
-    icon: Globe2,
-  },
-  {
-    id: "ai",
-    label: "KI Intelligence",
-    hint: "Risk · Bias · Confidence",
-    icon: Brain,
-  },
-  {
-    id: "alerts",
-    label: "Intelligence Alerts",
-    hint: "Warnungen · Verlauf",
-    icon: BellRing,
-  },
-];
+const OIL_VIEW_ICONS: Record<OilView, typeof Droplets> = {
+  overview: Droplets,
+  geo: Globe2,
+  ai: Brain,
+  alerts: BellRing,
+};
 
 function resolveOilView(
   view: string | null,
@@ -119,32 +94,65 @@ export function OilWorkspace({
   alertHistory,
   alertsPaused = false,
 }: OilWorkspaceProps) {
+  const t = useMi();
+
   const searchParams = useSearchParams();
   const activeView = resolveOilView(
     searchParams.get("view"),
     searchParams.get("oilView"),
   );
 
+  const oilViews: {
+    id: OilView;
+    label: string;
+    hint: string;
+    icon: typeof Droplets;
+  }[] = [
+    {
+      id: "overview",
+      label: t.oilOverview,
+      hint: t.oilOverviewHint,
+      icon: OIL_VIEW_ICONS.overview,
+    },
+    {
+      id: "geo",
+      label: t.geoMonitor,
+      hint: t.geoMonitorHint,
+      icon: OIL_VIEW_ICONS.geo,
+    },
+    {
+      id: "ai",
+      label: t.kiIntelligence,
+      hint: t.oilIntelHint,
+      icon: OIL_VIEW_ICONS.ai,
+    },
+    {
+      id: "alerts",
+      label: t.intelAlerts,
+      hint: t.intelAlertsHint,
+      icon: OIL_VIEW_ICONS.alerts,
+    },
+  ];
+
   return (
     <div className="space-y-7">
       <header>
         <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-orange-300">
-          Öl-Terminal
+          {t.oilTerminal}
         </p>
         <h1 className="mt-1 text-xl font-semibold text-white">
-          WTI · Brent · Oil Market Intelligence
+          {t.oilTerminalTitle}
         </h1>
         <p className="mt-1 text-sm text-slate-400">
-          Preise, Volatilität und ölpreisrelevante Flash News in einer klaren
-          Marktansicht.
+          {t.oilPricesIntro}
         </p>
       </header>
 
       <nav
         className="app-horizontal-scroll -mx-2.5 flex snap-x snap-mandatory gap-2 overflow-x-auto px-2.5 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:rounded-2xl sm:border sm:border-white/10 sm:bg-[#0d1925]/90 sm:p-2 xl:grid-cols-4"
-        aria-label="Öl-Bereiche"
+        aria-label={t.oilSectionsAria}
       >
-        {OIL_VIEWS.map(({ id, label, hint, icon: Icon }) => (
+        {oilViews.map(({ id, label, hint, icon: Icon }) => (
           <Link
             key={id}
             href={
@@ -187,8 +195,8 @@ export function OilWorkspace({
           <section className="space-y-3">
             <SectionLabel
               step="01"
-              title="Preise"
-              subtitle="WTI & Brent live"
+              title={t.pricesSection}
+              subtitle={t.pricesSubtitle}
             />
             <div className="grid gap-3 sm:grid-cols-2">
               {wti && <OilPriceCard quote={wti} />}
@@ -197,7 +205,7 @@ export function OilWorkspace({
             {spread && (
               <div className="rounded-xl border border-white/10 bg-[#101c29]/90 px-4 py-3 text-slate-100">
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                  {miDe.brentWtiSpread}
+                  {t.brentWtiSpread}
                 </p>
                 <div className="mt-1 flex flex-wrap items-baseline gap-3">
                   <p className="font-mono text-2xl font-semibold">
@@ -212,7 +220,7 @@ export function OilWorkspace({
                     )}
                   >
                     {formatChange(spread.spreadChangePercent, true)}{" "}
-                    {miDe.vsPrior}
+                    {t.vsPrior}
                   </p>
                 </div>
               </div>
@@ -223,14 +231,14 @@ export function OilWorkspace({
           <section className="space-y-3">
             <SectionLabel
               step="02"
-              title="Oil Flash News"
-              subtitle="Iran · Trump · Hormuz · OPEC+"
+              title={t.oilFlashTitle}
+              subtitle={t.oilFlashSubtitle}
             />
             <FlashNewsStrip
               events={breakingNews}
               oilMovePercent={oilMovePercent}
               allowedTopics={["oil", "iran", "opec", "inventory"]}
-              heading="Iran · Al Jazeera · BBC · US · Öl"
+              heading={t.flashHeadingOil}
             />
           </section>
         </div>
@@ -268,6 +276,7 @@ export function OilWorkspace({
 }
 
 function OilPriceCard({ quote }: { quote: EnrichedMarketQuote }) {
+  const t = useMi();
   const positive = quote.direction === "up";
   const hot =
     quote.volatilityStatus !== "NORMAL" ||
@@ -301,20 +310,20 @@ function OilPriceCard({ quote }: { quote: EnrichedMarketQuote }) {
       </div>
       <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
         <MarketStat
-          label="Tageshoch"
+          label={t.dayHigh}
           value={formatPrice(dayHigh, quote.symbol)}
         />
         <MarketStat
-          label="Tagestief"
+          label={t.dayLow}
           value={formatPrice(dayLow, quote.symbol)}
         />
         <MarketStat
-          label="Veränderung"
+          label={t.changeLabel}
           value={formatChange(quote.percentageChange, true)}
           tone={positive ? "up" : "down"}
         />
         <MarketStat
-          label="Volatilität"
+          label={t.volatilityLabel}
           value={quote.volatilityStatus.replace(/_/g, " ")}
           tone={hot ? "hot" : "neutral"}
         />
@@ -324,7 +333,7 @@ function OilPriceCard({ quote }: { quote: EnrichedMarketQuote }) {
           data={quote.sparkline ?? []}
           positive={positive}
           height={100}
-          label={miDe.priceAction60m}
+          label={t.priceAction60m}
         />
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[10px]">

@@ -1,7 +1,9 @@
+"use client";
+
 import { SeverityBadge } from "@/components/market-intelligence/severity-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatChange, formatTime } from "@/lib/market-intelligence/format";
-import { miDe, tEventStatus } from "@/lib/market-intelligence/i18n/de";
+import { useLabels, useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type { MarketEvent } from "@/lib/types/market";
 
@@ -10,13 +12,16 @@ interface MarketEventsProps {
 }
 
 export function MarketEvents({ events }: MarketEventsProps) {
+  const t = useMi();
+  const { tEventStatus } = useLabels();
+
   return (
     <section aria-labelledby="market-events-heading">
       <h2
         id="market-events-heading"
         className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted"
       >
-        {miDe.marketEvents}
+        {t.marketEvents}
       </h2>
       <div className="space-y-2">
         {events.map((event) => (
@@ -49,7 +54,7 @@ export function MarketEvents({ events }: MarketEventsProps) {
                     {formatChange(event.priceChangePercent, true)}
                   </span>{" "}
                   <span className="font-normal text-muted">
-                    / {event.windowMinutes} {miDe.minutesShort}
+                    / {event.windowMinutes} {t.minutesShort}
                   </span>
                 </p>
                 <p className="text-xs text-muted">{event.description}</p>

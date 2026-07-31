@@ -11,7 +11,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { formatChange } from "@/lib/market-intelligence/format";
-import { tConfidence, tRegime } from "@/lib/market-intelligence/i18n/de";
+import { useLabels, useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type {
   EnrichedMarketQuote,
@@ -75,6 +75,8 @@ export function KiIntelligencePanel({
   oilCorrelation,
   intelligenceEvents,
 }: KiIntelligencePanelProps) {
+  const t = useMi();
+  const { tRegime, tConfidence } = useLabels();
   const cards = useMemo(() => {
     const out: KiCard[] = [];
     const oils = [wti, brent].filter(
@@ -91,18 +93,18 @@ export function KiIntelligencePanel({
         out.push({
           id: `vol-${q.symbol}`,
           tone: "hot",
-          badge: "HOT · Volatilität",
-          title: `${q.symbol}: erhöhte Bewegung`,
-          body: `${formatChange(q.percentageChange, true)} am Tag · Status ${q.volatilityStatus.replace(/_/g, " ")}.`,
+          badge: t.hotVolatility,
+          title: `${q.symbol}: ${t.elevatedMove}`,
+          body: `${formatChange(q.percentageChange, true)} · ${q.volatilityStatus.replace(/_/g, " ")}.`,
           meta: `5M ${formatChange(q.returns.m5 ?? 0, true)} · 15M ${formatChange(q.returns.m15 ?? 0, true)}`,
         });
       } else if (abs >= 0.35) {
         out.push({
           id: `move-${q.symbol}`,
           tone: q.percentageChange >= 0 ? "up" : "down",
-          badge: q.percentageChange >= 0 ? "Aufwärts" : "Abwärts",
+          badge: q.percentageChange >= 0 ? t.upward : t.downward,
           title: `${q.symbol} ${formatChange(q.percentageChange, true)}`,
-          body: "Moderate Tagesbewegung — weiter beobachten.",
+          body: t.moderateDayMove,
           meta: `1H ${formatChange(q.returns.m60 ?? 0, true)}`,
         });
       }
@@ -112,17 +114,17 @@ export function KiIntelligencePanel({
       out.push({
         id: "corr-oil",
         tone: "hot",
-        badge: "Korrelation",
-        title: "WTI + Brent bestätigt",
+        badge: t.correlation,
+        title: t.wtiBrentConfirmed,
         body: oilCorrelation.description,
-        meta: "Ölmärkte bewegen sich gemeinsam",
+        meta: t.oilsMoveTogether,
       });
     } else if (oilCorrelation && !oilCorrelation.bothConfirmed) {
       out.push({
         id: "corr-indep",
         tone: "neutral",
-        badge: "Korrelation",
-        title: "Unabhängige Öl-Bewegung",
+        badge: t.correlation,
+        title: t.independentOilMove,
         body: oilCorrelation.description,
       });
     }
@@ -137,7 +139,7 @@ export function KiIntelligencePanel({
       out.push({
         id: `ai-${aiCluster.id}`,
         tone: "ai",
-        badge: "KI · Einschätzung",
+        badge: t.kiAssessment,
         title: aiCluster.headline,
         body: ai.summary.slice(0, 220),
         meta: `${tRegime(String(ai.marketRegime).replace(/-/g, "_"))} · ${tConfidence(ai.confidence)}`,
@@ -148,14 +150,14 @@ export function KiIntelligencePanel({
       out.push({
         id: "calm",
         tone: "neutral",
-        badge: "Lage",
-        title: "Kein HOT-Signal",
-        body: "WTI/Brent ohne erhöhte Volatilität. KI-Hinweise erscheinen bei starken Moves oder Live-Analyse.",
+        badge: t.calmSituation,
+        title: t.noHotSignal,
+        body: t.noHotBody,
       });
     }
 
     return out;
-  }, [wti, brent, oilCorrelation, intelligenceEvents]);
+  }, [wti, brent, oilCorrelation, intelligenceEvents, t]);
 
   return (
     <section aria-labelledby="ki-intelligence-heading" className="space-y-3">
@@ -168,10 +170,10 @@ export function KiIntelligencePanel({
             id="ki-intelligence-heading"
             className="text-sm font-semibold uppercase tracking-wider text-slate-200"
           >
-            KI Intelligence
+            {t.kiIntelligence}
           </h2>
           <p className="text-[11px] text-slate-500">
-            HOT · Volatilität · Korrelation · Einschätzung
+            {t.kiPanelSubtitle}
           </p>
         </div>
       </div>
@@ -210,7 +212,7 @@ export function KiIntelligencePanel({
         ))}
       </div>
       <p className="text-[10px] text-slate-500">
-        Keine Anlageberatung — strukturierte Signale für den Öl-Terminal.
+        {t.kiPanelDisclaimer}
       </p>
     </section>
   );

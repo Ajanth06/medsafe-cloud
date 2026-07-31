@@ -1,4 +1,5 @@
 import type { NewsSearchParams, NewsSearchAroundTimestampParams } from "@/lib/market-intelligence/services/news-provider";
+import type { AppLocale } from "@/lib/i18n/locales";
 import type { NormalizedNewsItem, NewsProviderHealthInfo } from "@/lib/types/market";
 
 export type NewsUpdateCallback = (items: NormalizedNewsItem[]) => void;
@@ -14,7 +15,7 @@ export interface NewsProvider {
   searchLatest(params?: NewsSearchParams): Promise<NormalizedNewsItem[]>;
   searchByKeywords(keywords: string[], params?: NewsSearchParams): Promise<NormalizedNewsItem[]>;
   searchAroundTimestamp(params: NewsSearchAroundTimestampParams): Promise<NormalizedNewsItem[]>;
-  getBreakingNews(limit?: number): Promise<NormalizedNewsItem[]>;
+  getBreakingNews(limit?: number, targetLocale?: AppLocale): Promise<NormalizedNewsItem[]>;
   getArticle?(id: string): Promise<NormalizedNewsItem | null>;
   getProviderHealth(): Promise<NewsProviderHealthInfo>;
   subscribeToBreakingNews?(callback: NewsUpdateCallback): NewsUnsubscribe;

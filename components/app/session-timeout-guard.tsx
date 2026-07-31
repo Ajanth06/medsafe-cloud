@@ -8,15 +8,19 @@ import {
   setRememberMe,
   shouldSkipInactivityLogout,
 } from "@/lib/session-policy";
+import { useMi } from "@/components/i18n/locale-provider";
 import { Button } from "@/components/ui/button";
 
 const ACTIVITY_EVENTS = ["mousedown", "keydown", "scroll", "touchstart", "click"] as const;
 
 export function SessionTimeoutGuard() {
+  const t = useMi();
   const [showWarning, setShowWarning] = useState(false);
   const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const logoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const enabledRef = useRef(false);
+  const loggedOutMessageRef = useRef(t.sessionLoggedOut);
+  loggedOutMessageRef.current = t.sessionLoggedOut;
 
   const clearTimers = useCallback(() => {
     if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
@@ -32,9 +36,7 @@ export function SessionTimeoutGuard() {
     const supabase = createClient();
     await supabase.auth.signOut({ scope: "global" });
 
-    const message =
-      "Sie wurden nach 15 Minuten Inaktivität aus Sicherheitsgründen abgemeldet.";
-    window.location.href = `/login?message=${encodeURIComponent(message)}`;
+    window.location.href = `/login?message=${encodeURIComponent(loggedOutMessageRef.current)}`;
   }, [clearTimers]);
 
   const scheduleTimers = useCallback(() => {
@@ -106,18 +108,18 @@ export function SessionTimeoutGuard() {
     >
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-[0_20px_60px_rgba(15,23,42,0.18)]">
         <h2 id="session-timeout-title" className="text-lg font-semibold text-foreground">
-          Sitzung läuft ab
+          {t.sessionExpiring}
         </h2>
         <p id="session-timeout-description" className="mt-2 text-sm leading-relaxed text-muted">
-          Sie werden aus Sicherheitsgründen in 1 Minute abgemeldet.
+          {t.sessionExpiringBody}
         </p>
 
         <div className="mt-5 space-y-2">
           <Button type="button" fullWidth onClick={stayActive}>
-            Weiterarbeiten
+            {t.continueWorking}
           </Button>
           <Button type="button" variant="outline" fullWidth onClick={stayLoggedIn}>
-            Angemeldet bleiben
+            {t.staySignedIn}
           </Button>
         </div>
       </div>

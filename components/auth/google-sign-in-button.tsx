@@ -1,36 +1,31 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import Script from "next/script";
-import { createClient } from "@/lib/supabase/client";
-import { readRememberMeFromCheckbox, setRememberMe } from "@/lib/session-policy";
+import { signInWithOAuth } from "@/app/auth/actions";
+import { useMi } from "@/components/i18n/locale-provider";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (config: Record<string, unknown>) => void;
-          renderButton: (
-            parent: HTMLElement,
-            options: Record<string, unknown>,
-          ) => void;
-        };
-      };
-    };
-  }
-}
-
-async function generateNonce() {
-  const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
-  const encodedNonce = new TextEncoder().encode(nonce);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", encodedNonce);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashedNonce = hashArray.map((byte) => byte.toString(16).padStart(2, "0")).join("");
-
-  return { nonce, hashedNonce };
+function GoogleIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="#EA4335"
+        d="M12 10.2v3.6h5.1c-.2 1.2-.9 2.2-1.9 2.9l3.1 2.4c1.8-1.7 2.9-4.1 2.9-7 0-.7-.1-1.4-.2-2H12z"
+      />
+      <path
+        fill="#34A853"
+        d="M6.6 14.3 5.8 14.9l-2.1 1.6C5.2 19.3 8.4 21 12 21c2.7 0 5-.9 6.7-2.4l-3.1-2.4c-.9.6-2 .9-3.6.9-2.8 0-5.1-1.9-5.9-4.4z"
+      />
+      <path
+        fill="#4A90E2"
+        d="M3.7 7.5C3.3 8.4 3 9.4 3 10.5s.3 2.1.7 3l3.9-3c-.2-.6-.3-1.2-.3-1.8 0-.6.1-1.2.3-1.8L3.7 7.5z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M12 5.3c1.5 0 2.8.5 3.8 1.5l2.8-2.8C16.9 2.3 14.7 1.5 12 1.5 8.4 1.5 5.2 3.2 3.7 5.9l3.9 3c.8-2.5 3.1-4.4 5.9-4.4z"
+      />
+    </svg>
+  );
 }
 
 interface GoogleSignInButtonProps {
@@ -38,99 +33,29 @@ interface GoogleSignInButtonProps {
 }
 
 export function GoogleSignInButton({ className }: GoogleSignInButtonProps) {
-  const buttonRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-  const [scriptReady, setScriptReady] = useState(false);
+  const t = useMi();
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-
-  useEffect(() => {
-    if (!scriptReady || !clientId || !buttonRef.current || !window.google) return;
-
-    let cancelled = false;
-
-    async function setupGoogleButton() {
-      const container = buttonRef.current;
-      if (!container || !window.google) return;
-
-      container.innerHTML = "";
-      const { nonce, hashedNonce } = await generateNonce();
-      if (cancelled) return;
-
-      const supabase = createClient();
-
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: async (response: { credential: string }) => {
-          setError(null);
-
-          const { error: signInError } = await supabase.auth.signInWithIdToken({
-            provider: "google",
-            token: response.credential,
-            nonce,
-          });
-
-          if (signInError) {
-            setError(signInError.message);
-            return;
-          }
-
-          setRememberMe(readRememberMeFromCheckbox());
-
-          router.push("/market-intelligence");
-          router.refresh();
-        },
-        nonce: hashedNonce,
-        ux_mode: "popup",
-        use_fedcm_for_prompt: true,
-      });
-
-      const width = Math.max(container.offsetWidth, 320);
-
-      window.google.accounts.id.renderButton(container, {
-        type: "standard",
-        theme: "outline",
-        size: "large",
-        text: "continue_with",
-        shape: "pill",
-        logo_alignment: "left",
-        width,
-      });
-    }
-
-    void setupGoogleButton();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [clientId, router, scriptReady]);
 
   if (!clientId) {
     return (
       <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-        Google-Anmeldung ist nicht konfiguriert.
+        {t.googleNotConfigured}
       </p>
     );
   }
 
   return (
-    <>
-      <Script
-        src="https://accounts.google.com/gsi/client"
-        strategy="afterInteractive"
-        onReady={() => setScriptReady(true)}
-      />
-      <div className={cn("w-full", className)}>
-        <div
-          ref={buttonRef}
-          className="flex min-h-[52px] w-full items-center justify-center py-0.5 [&>div]:min-h-[52px] [&>div]:w-full [&_iframe]:min-h-[52px]"
-        />
-        {error && (
-          <p role="alert" className="mt-2 text-sm text-red-600">
-            {error}
-          </p>
-        )}
-      </div>
-    </>
+    <form action={signInWithOAuth.bind(null, "google")} className={cn("w-full", className)}>
+      <Button
+        type="submit"
+        variant="outline"
+        fullWidth
+        aria-label={t.continueWithGoogle}
+        className="h-12 rounded-xl border-white/12 bg-white/[0.04] text-base font-semibold text-white hover:bg-white/[0.08]"
+      >
+        <GoogleIcon className="h-5 w-5" />
+        {t.continueWithGoogle}
+      </Button>
+    </form>
   );
 }

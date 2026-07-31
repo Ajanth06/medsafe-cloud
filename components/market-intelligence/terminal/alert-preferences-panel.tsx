@@ -5,7 +5,7 @@ import {
   DEFAULT_TERMINAL_PREFERENCES,
   type UserTerminalPreferences,
 } from "@/lib/market-intelligence/user/preferences-types";
-import { miDe, tSeverity } from "@/lib/market-intelligence/i18n/de";
+import { useLabels, useMi } from "@/components/i18n/locale-provider";
 import type { AlertSeverity } from "@/lib/types/market";
 
 const SEVERITIES: AlertSeverity[] = ["MEDIUM", "HIGH", "CRITICAL"];
@@ -17,6 +17,9 @@ interface AlertPreferencesPanelProps {
 export function AlertPreferencesPanel({
   onPreferencesChange,
 }: AlertPreferencesPanelProps) {
+  const t = useMi();
+  const { tSeverity } = useLabels();
+
   const [prefs, setPrefs] = useState<UserTerminalPreferences>(DEFAULT_TERMINAL_PREFERENCES);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -70,7 +73,7 @@ export function AlertPreferencesPanel({
   }
 
   if (loading) {
-    return <p className="text-sm text-muted">{miDe.loadingPreferences}</p>;
+    return <p className="text-sm text-muted">{t.loadingPreferences}</p>;
   }
 
   return (
@@ -79,24 +82,24 @@ export function AlertPreferencesPanel({
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-white">
-              Intelligence-Alert-Einstellungen
+              {t.intelAlertSettings}
             </h3>
             <p className="mt-1 text-xs text-slate-500">
-              Änderungen werden automatisch gespeichert.
+              {t.changesAutoSaved}
             </p>
           </div>
           {saving && (
             <span className="font-mono text-[9px] uppercase text-cyan-300">
-              {miDe.saving}
+              {t.saving}
             </span>
           )}
         </div>
 
         <label className="flex min-h-12 items-center justify-between gap-4 rounded-xl border border-white/8 bg-white/[0.04] px-3 text-sm text-slate-200">
           <span>
-            <span className="block font-medium">{miDe.pauseAllAlerts}</span>
+            <span className="block font-medium">{t.pauseAllAlerts}</span>
             <span className="block text-[10px] text-slate-500">
-              Blendet alle Intelligence Alerts aus.
+              {t.hidesAllIntelAlerts}
             </span>
           </span>
           <input
@@ -109,7 +112,7 @@ export function AlertPreferencesPanel({
 
         <div>
           <p className="mb-2 text-xs font-medium text-slate-400">
-            Mindestpriorität
+            {t.minPriority}
           </p>
           <div className="grid grid-cols-3 gap-2">
             {SEVERITIES.map((s) => (
@@ -132,8 +135,8 @@ export function AlertPreferencesPanel({
         <div className="grid gap-2 sm:grid-cols-2">
           {(
             [
-              ["oilAlerts", miDe.categories.oil],
-              ["geopoliticalAlerts", miDe.categories.geo],
+              ["oilAlerts", t.categories.oil],
+              ["geopoliticalAlerts", t.categories.geo],
             ] as const
           ).map(([key, label]) => (
             <label

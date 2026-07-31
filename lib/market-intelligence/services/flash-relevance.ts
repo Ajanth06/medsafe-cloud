@@ -99,10 +99,10 @@ export function scoreFlashItem(input: {
   if (topic === "opec") score += 8;
   const src = `${input.item.source} ${input.item.sourceName ?? ""}`.toLowerCase();
   const priorityEn =
-    /al jazeera|\bbbc\b|reuters|\bcnn\b|\bap ·|associated press|nyt ·|new york times|google news us/.test(
+    /al jazeera|\bbbc\b|reuters|\bcnn\b|\bap ·|associated press|nyt ·|new york times|google news|press tv|tehran times|\birna\b/.test(
       src,
     );
-  if (isDe) score += 12;
+  if (isDe) score += 6;
   else if (priorityEn) score += 20;
   else score -= 4;
   if (src.includes("al jazeera")) score += 26;
@@ -111,9 +111,25 @@ export function scoreFlashItem(input: {
   if (/\bcnn\b/.test(src)) score += 16;
   if (/\bap ·|associated press/.test(src)) score += 16;
   if (/nyt ·|new york times/.test(src)) score += 14;
-  if (src.includes("google news us")) score += 12;
+  if (src.includes("google news")) score += 14;
+  if (/press tv|tehran times|\birna\b/.test(src)) score += 24;
+  if (input.item.imageUrl) score += 30;
 
   return { score, hot, fresh, topic };
+}
+
+/** Prefer higher-weight / priority sources when collapsing near-duplicates. */
+export function sortForFlashDedupe<
+  T extends { language?: string; publishedAt: string; source?: string; sourceName?: string },
+>(items: T[], weightOf: (item: T) => number): T[] {
+  return [...items].sort((a, b) => {
+    const wb = weightOf(b);
+    const wa = weightOf(a);
+    if (wb !== wa) return wb - wa;
+    return (
+      new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    );
+  });
 }
 
 /**
@@ -145,6 +161,7 @@ export function dedupeFlashItems<T extends { id: string; title: string; url?: st
       noUrl.push(item);
       continue;
     }
+    // First wins — caller should pre-sort by source weight
     if (!byUrl.has(key)) byUrl.set(key, item);
   }
   // Slightly looser than before so near-duplicates from DE wires still show once

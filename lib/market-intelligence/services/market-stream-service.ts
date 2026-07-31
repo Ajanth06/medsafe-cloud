@@ -77,6 +77,8 @@ let lastHistoryPersistAt = 0;
 let pollInFlight: Promise<void> | null = null;
 let lastNewsResult: NewsPipelineResult | null = null;
 let newsRefreshInFlight: Promise<void> | null = null;
+/** Timestamp of last news refresh kickoff (throttle). */
+let lastNewsRefreshAt = 0;
 const tickFilter = new DuplicateTickFilter();
 
 function seedDemoHistory(): void {
@@ -376,6 +378,14 @@ function emptyNewsResult(pipeline: PipelineResult): NewsPipelineResult {
 
 function refreshNewsInBackground(pipeline: PipelineResult): void {
   if (newsRefreshInFlight) return;
+  // Throttle: don't re-run full news pipeline on every navigation
+  if (
+    lastNewsResult &&
+    Date.now() - lastNewsRefreshAt < 90_000
+  ) {
+    return;
+  }
+  lastNewsRefreshAt = Date.now();
   newsRefreshInFlight = runNewsPipeline(pipeline, { fast: true })
     .then((result) => {
       lastNewsResult = result;
@@ -411,7 +421,7 @@ export async function getMarketIntelligenceDataFromStream(): Promise<MarketIntel
   const pipeline =
     streamState.pipeline ?? runEventPipeline([], getPriceHistoryBuffer());
 
-  // News: serve cache instantly; refresh in background (Flash client poll fills gaps)
+  // News: serve cache instantly; background refresh is throttled
   const newsResult = lastNewsResult ?? emptyNewsResult(pipeline);
   refreshNewsInBackground(pipeline);
 

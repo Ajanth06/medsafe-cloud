@@ -1,7 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { miDe } from "@/lib/market-intelligence/i18n/de";
+import { useMi } from "@/components/i18n/locale-provider";
 import type { TerminalSearchScope } from "@/lib/market-intelligence/terminal/terminal-search";
 import { Search } from "lucide-react";
 
@@ -14,13 +14,6 @@ interface TerminalSearchBarProps {
   onMinSeverityChange: (severity: string) => void;
 }
 
-const SCOPES: { id: TerminalSearchScope; label: string }[] = [
-  { id: "all", label: miDe.searchScopeAll },
-  { id: "events", label: miDe.searchScopeEvents },
-  { id: "alerts", label: miDe.searchScopeAlerts },
-  { id: "news", label: miDe.searchScopeNews },
-];
-
 export function TerminalSearchBar({
   query,
   scope,
@@ -29,21 +22,30 @@ export function TerminalSearchBar({
   onScopeChange,
   onMinSeverityChange,
 }: TerminalSearchBarProps) {
+  const t = useMi();
+
+  const scopes: { id: TerminalSearchScope; label: string }[] = [
+    { id: "all", label: t.searchScopeAll },
+    { id: "events", label: t.searchScopeEvents },
+    { id: "alerts", label: t.searchScopeAlerts },
+    { id: "news", label: t.searchScopeNews },
+  ];
+
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
         <Input
           type="search"
-          placeholder={miDe.searchPlaceholder}
+          placeholder={t.searchPlaceholder}
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
           className="pl-9"
-          aria-label={miDe.searchTerminalAria}
+          aria-label={t.searchTerminalAria}
         />
       </div>
       <div className="flex flex-wrap gap-2">
-        {SCOPES.map((s) => (
+        {scopes.map((s) => (
           <button
             key={s.id}
             type="button"
@@ -61,12 +63,12 @@ export function TerminalSearchBar({
           value={minSeverity}
           onChange={(e) => onMinSeverityChange(e.target.value)}
           className="rounded-lg border border-border bg-card px-2 py-1.5 text-xs"
-          aria-label={miDe.minSeverityAria}
+          aria-label={t.minSeverityAria}
         >
-          <option value="">{miDe.anySeverity}</option>
-          <option value="MEDIUM">{miDe.severityMediumPlus}</option>
-          <option value="HIGH">{miDe.severityHighPlus}</option>
-          <option value="CRITICAL">{miDe.severityCriticalOnly}</option>
+          <option value="">{t.anySeverity}</option>
+          <option value="MEDIUM">{t.severityMediumPlus}</option>
+          <option value="HIGH">{t.severityHighPlus}</option>
+          <option value="CRITICAL">{t.severityCriticalOnly}</option>
         </select>
       </div>
     </div>

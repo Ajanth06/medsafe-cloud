@@ -43,6 +43,11 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
+html {
+  min-height: 100%;
+  background: #07111a;
+}
+
 .aaryx-terminal-theme {
   color-scheme: dark;
   --background: #0b1520;
@@ -65,10 +70,12 @@ body {
 @media (max-width: 767px) {
   .mobile-app-surface {
     min-height: 100svh;
+    min-height: 100dvh;
     background:
       radial-gradient(circle at 12% -8%, rgb(249 115 22 / 0.18), transparent 32%),
       linear-gradient(180deg, #0d1926 0%, #08131e 100%);
     isolation: isolate;
+    -webkit-touch-callout: none;
   }
 
   .mobile-app-surface .aaryx-terminal-grid {
@@ -93,8 +100,13 @@ body {
   }
 
   .mobile-bottom-nav {
-    padding-bottom: max(0.375rem, env(safe-area-inset-bottom));
+    padding-bottom: 0.375rem;
     -webkit-backdrop-filter: blur(24px) saturate(150%);
+  }
+
+  .ios-bottom-sheet {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    -webkit-overflow-scrolling: touch;
   }
 
   .app-horizontal-scroll {
@@ -114,6 +126,16 @@ body {
     border-color: rgb(255 255 255 / 0.1) !important;
     background-color: rgb(13 24 36 / 0.98) !important;
     color: #f8fafc !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .mobile-app-header {
+    border-radius: 1.15rem;
+  }
+
+  .mobile-compact-title {
+    max-width: 9.5rem;
   }
 }
 
@@ -419,4 +441,79 @@ body {
     -webkit-background-clip: unset;
     background-clip: unset;
   }
+
+  .aaryx-start-rise,
+  .aaryx-start-sheen {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ——— AARYX Startseite (Login) ——— */
+.aaryx-start {
+  color-scheme: dark;
+  background: #070e16;
+}
+
+.aaryx-start-field {
+  background:
+    radial-gradient(ellipse 90% 70% at 12% 18%, rgb(194 98 32 / 0.28), transparent 52%),
+    radial-gradient(ellipse 70% 55% at 88% 82%, rgb(14 116 144 / 0.18), transparent 48%),
+    radial-gradient(ellipse 50% 40% at 55% 45%, rgb(249 115 22 / 0.08), transparent 60%),
+    linear-gradient(155deg, #0c1622 0%, #07111a 48%, #050a10 100%);
+}
+
+.aaryx-start-sheen {
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    rgb(255 255 255 / 0.03) 42%,
+    transparent 58%
+  );
+  background-size: 220% 100%;
+  animation: aaryx-start-sheen 14s ease-in-out infinite;
+}
+
+.aaryx-start-grid {
+  background-image:
+    linear-gradient(rgb(148 163 184 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(148 163 184 / 0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, black, transparent 92%);
+}
+
+@keyframes aaryx-start-sheen {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes aaryx-start-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.aaryx-start-rise {
+  animation: aaryx-start-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.aaryx-start .aaryx-start-oauth button {
+  border-color: rgb(255 255 255 / 0.12);
+  background: rgb(255 255 255 / 0.04);
+  color: #f8fafc;
+}
+
+.aaryx-start .aaryx-start-oauth button:hover {
+  background: rgb(255 255 255 / 0.08);
 }

@@ -1,4 +1,6 @@
-import { tVerification } from "@/lib/market-intelligence/i18n/de";
+"use client";
+
+import { useLabels } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type { SourceVerificationStatus } from "@/lib/types/market";
 
@@ -24,6 +26,7 @@ export function SourceVerificationBadge({
   sourceCount,
   className,
 }: SourceVerificationBadgeProps) {
+  const { tVerification } = useLabels();
   return (
     <span
       className={cn(

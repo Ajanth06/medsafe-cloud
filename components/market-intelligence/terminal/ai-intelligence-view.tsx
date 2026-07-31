@@ -8,6 +8,7 @@ import {
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
+import { useMi } from "@/components/i18n/locale-provider";
 import { formatChange } from "@/lib/market-intelligence/format";
 import { cn } from "@/lib/utils";
 import type {
@@ -72,6 +73,7 @@ export function AiIntelligenceView({
   breakingNews,
   intelligenceEvents,
 }: AiIntelligenceViewProps) {
+  const t = useMi();
   const latestAi = [...intelligenceEvents]
     .filter((event) => event.aiAnalysisResult)
     .sort(
@@ -149,12 +151,12 @@ export function AiIntelligenceView({
 
   const metrics = [
     {
-      label: "WTI Volatilität",
+      label: t.wtiVolatility,
       value: levelFromScore(volatilityScore),
       detail: wti ? formatChange(wti.percentageChange, true) : "—",
     },
     {
-      label: "Brent Momentum",
+      label: t.brentMomentumLabel,
       value:
         (brent?.percentageChange ?? 0) > 0.2
           ? "BULLISH"
@@ -164,16 +166,16 @@ export function AiIntelligenceView({
       detail: brent ? formatChange(brent.percentageChange, true) : "—",
     },
     {
-      label: "Hormuz-Risiko",
+      label: t.hormuzRisk,
       value: levelFromScore(hormuzScore),
       detail: containsAny(combinedText, ["hormuz"])
-        ? "Aktive Erwähnungen"
-        : "Keine bestätigte Störung",
+        ? t.activeMentions
+        : t.noConfirmedDisruption,
     },
     {
-      label: "Angebotsrisiko",
+      label: t.supplyRisk,
       value: levelFromScore(supplyScore),
-      detail: "News- und Ereignislage",
+      detail: t.newsEventSituation,
     },
   ];
 
@@ -181,14 +183,13 @@ export function AiIntelligenceView({
     <div className="space-y-5">
       <header>
         <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-violet-300">
-          AI-powered Market & Geopolitical Intelligence
+          {t.aiBriefEyebrow}
         </p>
         <h2 className="mt-1 text-2xl font-semibold text-white">
-          KI Intelligence Brief
+          {t.aiBriefTitle}
         </h2>
         <p className="mt-1 text-sm text-slate-400">
-          Zusammenhänge zwischen News, Ölpreisen, Volatilität und geopolitischen
-          Risiken.
+          {t.aiBriefSubtitle}
         </p>
       </header>
 
@@ -200,7 +201,7 @@ export function AiIntelligenceView({
             </span>
             <div>
               <p className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
-                Oil Risk Level
+                {t.oilRiskLevel}
               </p>
               <p className={cn("mt-1 inline-flex rounded-md px-2 py-1 font-mono text-sm font-black", levelTone(riskLevel))}>
                 {riskLevel}
@@ -208,15 +209,14 @@ export function AiIntelligenceView({
             </div>
           </div>
           <span className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-[10px] uppercase text-slate-400">
-            {ai?.mode === "LIVE" ? "Live-KI-Analyse" : "Systemeinschätzung"}
+            {ai?.mode === "LIVE" ? t.liveAiAnalysis : t.systemAssessment}
           </span>
         </div>
         <h3 className="mt-5 text-base font-semibold text-white">
-          {latestAi?.headline ?? "Aktuelle Öl- und Risikolage"}
+          {latestAi?.headline ?? t.currentOilRisk}
         </h3>
         <p className="mt-2 text-sm leading-relaxed text-slate-300">
-          {ai?.summary ??
-            "Die Einschätzung wird aus aktuellen Ölbewegungen, priorisierten Nachrichten und geopolitischen Risikomerkmalen gebildet. Es liegt derzeit keine neue verifizierte Live-KI-Zusammenfassung vor."}
+          {ai?.summary ?? t.aiFallbackSummary}
         </p>
       </section>
 
@@ -239,15 +239,15 @@ export function AiIntelligenceView({
 
       <section className="grid gap-3 lg:grid-cols-2">
         <FactorCard
-          title="Bullish Factors"
+          title={t.bullishFactors}
           items={bullish}
-          fallback="Keine dominanten bullishen Faktoren erkannt."
+          fallback={t.noBullishFactors}
           positive
         />
         <FactorCard
-          title="Bearish Factors"
+          title={t.bearishFactors}
           items={bearish}
-          fallback="Keine dominanten bearishen Faktoren erkannt."
+          fallback={t.noBearishFactors}
         />
       </section>
 
@@ -255,26 +255,23 @@ export function AiIntelligenceView({
         <div className="flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4 text-cyan-300" aria-hidden="true" />
           <p className="text-xs font-bold uppercase tracking-wider text-slate-300">
-            AI Conclusion
+            {t.aiConclusion}
           </p>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <ConclusionMetric label="Short-term Oil Bias" value={bias} />
+          <ConclusionMetric label={t.shortTermOilBias} value={bias} />
           <ConclusionMetric
-            label="Confidence"
+            label={t.confidence}
             value={`${Math.round(confidence)} %`}
           />
           <ConclusionMetric
-            label="Risk"
+            label={t.riskLabel}
             value={riskLevel}
           />
         </div>
         <div className="mt-4 flex items-start gap-2 rounded-xl bg-black/20 p-3 text-xs text-slate-400">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          <p>
-            Keine Anlageberatung. Nicht bestätigte Ereignisse werden als Risiko,
-            nicht als Tatsache behandelt.
-          </p>
+          <p>{t.aiDisclaimer}</p>
         </div>
       </section>
     </div>

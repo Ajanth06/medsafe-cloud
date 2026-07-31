@@ -1,7 +1,9 @@
+"use client";
+
 import { SeverityBadge } from "@/components/market-intelligence/severity-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatChange, formatTime } from "@/lib/market-intelligence/format";
-import { miDe, tEventStatus, tVerification } from "@/lib/market-intelligence/i18n/de";
+import { useLabels, useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type { IntelligenceAlert } from "@/lib/types/market";
 
@@ -10,13 +12,16 @@ interface IntelligenceAlertsProps {
 }
 
 export function IntelligenceAlerts({ alerts }: IntelligenceAlertsProps) {
+  const t = useMi();
+  const { tVerification, tEventStatus } = useLabels();
+
   return (
     <section aria-labelledby="intelligence-alerts-heading">
       <h2
         id="intelligence-alerts-heading"
         className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted"
       >
-        {miDe.activeAlerts}
+        {t.activeAlerts}
       </h2>
       <div className="space-y-3">
         {alerts.map((alert) => (
@@ -45,18 +50,18 @@ export function IntelligenceAlerts({ alerts }: IntelligenceAlertsProps) {
 
               {alert.possibleEvent && (
                 <p className="text-sm">
-                  <span className="font-medium text-foreground">{miDe.possibleEvent}:</span>{" "}
+                  <span className="font-medium text-foreground">{t.possibleEvent}:</span>{" "}
                   {alert.possibleEvent}
                 </p>
               )}
 
               <div className="flex flex-wrap gap-3 text-xs">
                 <span>
-                  {miDe.verificationLabel}:{" "}
+                  {t.verificationLabel}:{" "}
                   <span className="font-semibold uppercase">{alert.verification ? tVerification(alert.verification) : alert.verification}</span>
                 </span>
                 <span>
-                  {miDe.confidenceLabel}:{" "}
+                  {t.confidenceLabel}:{" "}
                   <span className="font-semibold uppercase">{alert.confidence}</span> (
                   {alert.confidenceScore})
                 </span>

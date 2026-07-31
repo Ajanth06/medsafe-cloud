@@ -1,10 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { AIMarketAssessment } from "@/components/market-intelligence/ai-market-assessment";
 import { EvidencePanel } from "@/components/market-intelligence/evidence-panel";
 import { SourceVerificationBadge } from "@/components/market-intelligence/source-verification-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTime } from "@/lib/market-intelligence/format";
-import { miDe, tSourcesCount, tVerification } from "@/lib/market-intelligence/i18n/de";
+import { useLabels, useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type { IntelligenceEventCluster } from "@/lib/types/market";
 
@@ -13,6 +15,9 @@ interface IntelligenceEventsSectionProps {
 }
 
 export function IntelligenceEventsSection({ events }: IntelligenceEventsSectionProps) {
+  const t = useMi();
+  const { tVerification, tSourcesCount } = useLabels();
+
   if (events.length === 0) return null;
 
   return (
@@ -21,7 +26,7 @@ export function IntelligenceEventsSection({ events }: IntelligenceEventsSectionP
         id="intelligence-events-heading"
         className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted"
       >
-        {miDe.intelEvents}
+        {t.intelEvents}
       </h2>
       <div className="space-y-4">
         {events.map((event) => (
@@ -31,7 +36,7 @@ export function IntelligenceEventsSection({ events }: IntelligenceEventsSectionP
               <div className="flex flex-wrap items-center gap-2">
                 {event.dataAvailability === "DEMO" && (
                   <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-700">
-                    {miDe.demoData}
+                    {t.demoData}
                   </span>
                 )}
                 {event.state === "UNVERIFIED" && (
@@ -41,7 +46,7 @@ export function IntelligenceEventsSection({ events }: IntelligenceEventsSectionP
                 )}
                 {event.state === "CONFLICTING" && (
                   <span className="rounded-md bg-red-50 px-2 py-0.5 text-[10px] font-semibold uppercase text-red-700">
-                    {miDe.conflictingReports}
+                    {t.conflictingReports}
                   </span>
                 )}
                 {event.watchMode && (
@@ -73,11 +78,11 @@ export function IntelligenceEventsSection({ events }: IntelligenceEventsSectionP
               {event.leadLag && (
                 <div className="rounded-lg border border-border bg-muted/30 p-3">
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">
-                    {miDe.whatDetectedFirst}
+                    {t.whatDetectedFirst}
                   </p>
                   <p className="mt-1 text-sm font-medium text-foreground">{event.leadLag.label}</p>
                   {!event.leadLag.isReliable && (
-                    <p className="mt-0.5 text-xs text-muted">{miDe.timingApproximate}</p>
+                    <p className="mt-0.5 text-xs text-muted">{t.timingApproximate}</p>
                   )}
                 </div>
               )}

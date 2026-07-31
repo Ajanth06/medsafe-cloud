@@ -1,3 +1,5 @@
+"use client";
+
 import {
   BellRing,
   Brain,
@@ -5,6 +7,7 @@ import {
   Gauge,
   Waves,
 } from "lucide-react";
+import { useMi } from "@/components/i18n/locale-provider";
 import { formatChange, formatTime } from "@/lib/market-intelligence/format";
 import { cn } from "@/lib/utils";
 import type {
@@ -65,6 +68,7 @@ export function IntelligenceAlertWorkspace({
   intelligenceEvents,
   paused = false,
 }: IntelligenceAlertWorkspaceProps) {
+  const t = useMi();
   const normalized: AlertItem[] = intelligenceAlerts.map((alert) => {
     const related = intelligenceEvents.find(
       (event) =>
@@ -80,13 +84,13 @@ export function IntelligenceAlertWorkspace({
         related?.aiAnalysisResult?.impactAssessment ??
         related?.summary ??
         alert.possibleEvent ??
-        "Der Alert überschreitet einen überwachten Markt- oder Risikoschwellenwert.",
+        t.alertThresholdFallback,
       assets: alert.affectedAssets,
-      risk: `${alert.severity} · Confidence ${alert.confidenceScore}/100`,
+      risk: `${alert.severity} · ${t.confidence} ${alert.confidenceScore}/100`,
       ai:
         related?.aiAnalysisResult?.summary ??
         alert.possibleEvent ??
-        "Noch keine zusätzliche verifizierte KI-Einordnung verfügbar.",
+        t.alertNoAiFallback,
       timestamp: alert.timestamps.alertCreatedAt ?? new Date().toISOString(),
       category: categoryFor(alert.title, alert.description),
     };
@@ -109,12 +113,12 @@ export function IntelligenceAlertWorkspace({
         related?.aiAnalysisResult?.impactAssessment ??
         related?.summary ??
         alert.materialChange?.[0] ??
-        "Eine überwachte Markt- oder Nachrichtenbedingung hat sich wesentlich verändert.",
+        t.alertMaterialChangeFallback,
       assets: alert.affectedAssets,
-      risk: `${alert.severity}${alert.confidenceScore != null ? ` · Confidence ${alert.confidenceScore}/100` : ""}`,
+      risk: `${alert.severity}${alert.confidenceScore != null ? ` · ${t.confidence} ${alert.confidenceScore}/100` : ""}`,
       ai:
         related?.aiAnalysisResult?.summary ??
-        "Der Alert wird beobachtet; eine zusätzliche Live-KI-Einordnung liegt noch nicht vor.",
+        t.alertWatchingAiFallback,
       timestamp: alert.createdAt,
       category: categoryFor(alert.title, alert.body),
     });
@@ -128,14 +132,13 @@ export function IntelligenceAlertWorkspace({
     <div className="space-y-5">
       <header>
         <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">
-          Intelligence Alerts & History
+          {t.alertsHistoryEyebrow}
         </p>
         <h2 className="mt-1 text-2xl font-semibold text-white">
-          Was ist passiert – und was bedeutet es?
+          {t.alertsWhatHappenedTitle}
         </h2>
         <p className="mt-1 text-sm text-slate-400">
-          Preis-, Volatilitäts- und geopolitische Warnungen mit Einordnung für
-          WTI und Brent.
+          {t.alertsWorkspaceSubtitle}
         </p>
       </header>
 
@@ -143,18 +146,14 @@ export function IntelligenceAlertWorkspace({
         <section className="rounded-2xl border border-white/10 bg-[#101c29]/90 p-8 text-center">
           <BellRing className="mx-auto h-6 w-6 text-slate-500" aria-hidden="true" />
           <p className="mt-3 text-sm font-semibold text-white">
-            {paused
-              ? "Intelligence Alerts sind pausiert"
-              : "Keine aktiven Intelligence Alerts"}
+            {paused ? t.alertsPausedTitle : t.alertsEmptyTitle}
           </p>
           <p className="mt-1 text-xs text-slate-500">
-            {paused
-              ? "Du kannst sie unter Einstellungen wieder aktivieren."
-              : "Neue relevante Preis- oder Risikoereignisse erscheinen hier."}
+            {paused ? t.alertsPausedHint : t.alertsEmptyHint}
           </p>
         </section>
       ) : (
-        <section className="space-y-3" aria-label="Intelligence Alerts">
+        <section className="space-y-3" aria-label={t.alertsHistoryEyebrow}>
           {normalized.map((alert) => (
             <article
               key={alert.id}
@@ -192,19 +191,19 @@ export function IntelligenceAlertWorkspace({
               <div className="mt-4 grid gap-3 lg:grid-cols-2">
                 <InfoBlock
                   icon={CircleAlert}
-                  label="Was ist passiert?"
+                  label={t.whatHappened}
                   text={alert.happened}
                 />
                 <InfoBlock
                   icon={Gauge}
-                  label="Warum ist es wichtig?"
+                  label={t.whyImportant}
                   text={alert.why}
                 />
                 <div className="rounded-xl border border-white/8 bg-black/15 p-3">
                   <div className="flex items-center gap-2">
                     <Waves className="h-4 w-4 text-cyan-300" aria-hidden="true" />
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Bedeutung für WTI & Brent
+                      {t.meaningForOil}
                     </p>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -224,17 +223,17 @@ export function IntelligenceAlertWorkspace({
                       ))
                     ) : (
                       <span className="text-xs text-slate-500">
-                        Marktauswirkung wird noch geprüft.
+                        {t.marketImpactPending}
                       </span>
                     )}
                   </div>
                   <p className="mt-2 font-mono text-[10px] text-slate-400">
-                    Risiko: {alert.risk}
+                    {t.riskPrefix} {alert.risk}
                   </p>
                 </div>
                 <InfoBlock
                   icon={Brain}
-                  label="Was sagt die KI dazu?"
+                  label={t.whatAiSays}
                   text={alert.ai}
                   accent
                 />

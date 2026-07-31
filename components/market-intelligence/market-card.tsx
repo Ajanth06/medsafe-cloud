@@ -6,7 +6,7 @@ import { ArrowDown, ArrowUp, Minus } from "lucide-react";
 import { Sparkline } from "@/components/market-intelligence/sparkline";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatChange, formatPrice, formatTime } from "@/lib/market-intelligence/format";
-import { miDe, tDelayedMinutes, tVolatility } from "@/lib/market-intelligence/i18n/de";
+import { useLabels, useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type { EnrichedMarketQuote } from "@/lib/types/market";
 
@@ -72,6 +72,9 @@ export function MarketCard({
   quote,
   featured = false,
 }: MarketCardProps) {
+  const t = useMi();
+  const { tVolatility, tDelayedMinutes } = useLabels();
+
   const unavailable = quote.dataAvailability === "UNAVAILABLE" || quote.price <= 0;
   const positive = quote.direction === "up";
   const negative = quote.direction === "down";
@@ -119,9 +122,9 @@ export function MarketCard({
 
         {unavailable ? (
           <div className="rounded-xl bg-background/60 p-4 text-center">
-            <p className="text-sm font-semibold text-muted">{miDe.dataUnavailable}</p>
+            <p className="text-sm font-semibold text-muted">{t.dataUnavailable}</p>
             <p className="mt-1 text-xs text-muted">
-              {miDe.configureApiKey}
+              {t.configureApiKey}
             </p>
           </div>
         ) : (
@@ -142,7 +145,7 @@ export function MarketCard({
                   {positive && <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />}
                   {negative && <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />}
                   {!positive && !negative && <Minus className="h-3.5 w-3.5" aria-hidden="true" />}
-                  <span>{miDe.day} {formatChange(quote.percentageChange, true)}</span>
+                  <span>{t.day} {formatChange(quote.percentageChange, true)}</span>
                 </div>
               </div>
               {(quote.sparkline?.length ?? 0) >= 2 && (
@@ -159,7 +162,7 @@ export function MarketCard({
         )}
 
         <p className="hidden text-[10px] text-muted md:block">
-          {quote.isStale ? `${miDe.stale} ` : `${miDe.updated} `}
+          {quote.isStale ? `${t.stale} ` : `${t.updated} `}
           {formatTime(quote.timestamp)} CET
           {quote.delaySeconds && quote.delaySeconds >= 60
             ? ` · ${tDelayedMinutes(Math.round(quote.delaySeconds / 60))}`

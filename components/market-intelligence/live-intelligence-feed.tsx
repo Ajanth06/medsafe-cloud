@@ -1,7 +1,9 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { SeverityBadge } from "@/components/market-intelligence/severity-badge";
 import { formatTime } from "@/lib/market-intelligence/format";
-import { miDe } from "@/lib/market-intelligence/i18n/de";
+import { useMi } from "@/components/i18n/locale-provider";
 import type { LiveFeedEntry } from "@/lib/types/market";
 
 interface LiveIntelligenceFeedProps {
@@ -9,6 +11,8 @@ interface LiveIntelligenceFeedProps {
 }
 
 export function LiveIntelligenceFeed({ entries }: LiveIntelligenceFeedProps) {
+  const t = useMi();
+
   if (entries.length === 0) return null;
 
   return (
@@ -17,7 +21,7 @@ export function LiveIntelligenceFeed({ entries }: LiveIntelligenceFeedProps) {
         id="live-feed-heading"
         className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted"
       >
-        {miDe.liveFeed}
+        {t.liveFeed}
       </h2>
       <Card>
         <CardContent className="p-0">

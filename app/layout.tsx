@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import { Geist, Geist_Mono, Syne } from "next/font/google";
+import { AppProviders } from "@/components/i18n/app-providers";
+import { LOCALE_COOKIE_KEY, parseAppLocale } from "@/lib/i18n/locales";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -49,17 +52,22 @@ export const viewport: Viewport = {
   themeColor: "#0b1520",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jar = await cookies();
+  const initialLocale = parseAppLocale(jar.get(LOCALE_COOKIE_KEY)?.value);
+
   return (
     <html
-      lang="de"
+      lang={initialLocale === "ta" ? "ta" : initialLocale}
       className={`${geistSans.variable} ${geistMono.variable} ${landingDisplay.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <AppProviders initialLocale={initialLocale}>{children}</AppProviders>
+      </body>
     </html>
   );
 }

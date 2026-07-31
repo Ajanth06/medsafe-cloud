@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import { ArrowRightLeft, Flame, Newspaper } from "lucide-react";
-import { FLASH_TOPIC_LABELS_DE } from "@/lib/market-intelligence/config/oil-rss-feeds";
+import { useMi } from "@/components/i18n/locale-provider";
+import { flashTopicLabel } from "@/lib/i18n/news-labels";
 import { formatChange, formatPrice } from "@/lib/market-intelligence/format";
 import { buildEventStory } from "@/lib/market-intelligence/services/event-story";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,7 @@ export function EventStoryCard({
   marketEvents,
   intelligenceEvents,
 }: EventStoryCardProps) {
+  const t = useMi();
   const story = useMemo(
     () =>
       buildEventStory({
@@ -55,7 +57,7 @@ export function EventStoryCard({
           Event Story
         </span>
         <span className="rounded-md bg-white/8 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase text-slate-300">
-          {FLASH_TOPIC_LABELS_DE[story.flashTopic]}
+          {flashTopicLabel(story.flashTopic, t)}
         </span>
         <span
           className={cn(

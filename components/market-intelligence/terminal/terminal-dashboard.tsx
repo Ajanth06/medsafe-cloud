@@ -13,7 +13,8 @@ import { TerminalNav, useTerminalView } from "@/components/market-intelligence/t
 import { TerminalMarketPulse } from "@/components/market-intelligence/terminal/terminal-market-pulse";
 import { useLiveFlashNews } from "@/components/market-intelligence/use-live-flash-news";
 import { useLiveMarketQuotes } from "@/components/market-intelligence/use-live-market-quotes";
-import { miDe } from "@/lib/market-intelligence/i18n/de";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { useLocale, useMi } from "@/components/i18n/locale-provider";
 import {
   DEFAULT_TERMINAL_PREFERENCES,
   type UserTerminalPreferences,
@@ -70,6 +71,8 @@ function matchesPreferences(
 
 function TerminalDashboardContent({ data }: TerminalDashboardProps) {
   const view = useTerminalView();
+  const t = useMi();
+  const { locale } = useLocale();
   const [alertPreferences, setAlertPreferences] =
     useState<UserTerminalPreferences>(DEFAULT_TERMINAL_PREFERENCES);
 
@@ -142,21 +145,22 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
                   AX
                 </span>
               </div>
-              <div className="min-w-0">
+              <div className="mobile-compact-title min-w-0">
                 <p className="font-mono text-[8px] font-bold uppercase tracking-[0.24em] text-orange-300">
                   AARYX
                 </p>
                 <h1 className="truncate text-base font-semibold tracking-tight text-white md:text-xl">
-                  {miDe.terminalTitle}
+                  {t.terminalTitle}
                 </h1>
               </div>
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5">
+              <LanguageSwitcher className="hidden md:inline-flex" />
               <Link
                 href="/profile"
-                aria-label="Profil öffnen"
-                title="Profil öffnen"
+                aria-label={t.openProfile}
+                title={t.openProfile}
                 className="app-touch grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/[0.06] text-slate-200 transition hover:border-cyan-300/40 hover:bg-cyan-400/10 hover:text-cyan-200 md:h-10 md:w-10"
               >
                 <UserRound className="h-[18px] w-[18px]" aria-hidden="true" />
@@ -164,14 +168,21 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
               <form action={signOut}>
                 <button
                   type="submit"
-                  aria-label="Abmelden"
-                  title="Abmelden"
+                  aria-label={t.signOut}
+                  title={t.signOut}
                   className="app-touch grid h-11 w-11 place-items-center rounded-xl border border-orange-300/20 bg-orange-400/10 text-orange-200 transition hover:border-orange-300/40 hover:bg-orange-400/20 md:h-10 md:w-10"
                 >
                   <LogOut className="h-[18px] w-[18px]" aria-hidden="true" />
                 </button>
               </form>
             </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-2 md:hidden">
+            <LanguageSwitcher />
+            <span className="shrink-0 font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">
+              iOS · Android
+            </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
@@ -191,12 +202,12 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
             <span className="hidden items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-cyan-200 md:inline-flex">
               <Radio className="h-3 w-3 text-cyan-300" aria-hidden="true" />
               {live.connected
-                ? `Live · ${data.systemHealth.dataSource}`
+                ? `${t.livePrefix} · ${data.systemHealth.dataSource}`
                 : data.systemHealth.dataSource}
             </span>
             {live.lastPollAt && (
               <span className="hidden font-mono text-[9px] text-slate-400 md:inline">
-                {new Date(live.lastPollAt).toLocaleTimeString("de-DE")}
+                {new Date(live.lastPollAt).toLocaleTimeString(locale === "ta" ? "ta-IN" : locale === "en" ? "en-GB" : "de-DE")}
               </span>
             )}
           </div>
@@ -225,11 +236,6 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
               />
               <div className="hidden space-y-6 md:block">
                 <IntelligenceOverview
-                  wti={primaryQuotes.find((quote) => quote.symbol === "WTI")}
-                  brent={primaryQuotes.find(
-                    (quote) => quote.symbol === "BRENT",
-                  )}
-                  intelligenceEvents={data.intelligenceEvents}
                   breakingNews={breakingNews}
                 />
               </div>
@@ -257,13 +263,13 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
             <>
               <header>
                 <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">
-                  Preferences
+                  {t.preferencesEyebrow}
                 </p>
                 <h2 className="mt-1 text-2xl font-semibold text-white">
-                  Einstellungen
+                  {t.settingsTitle}
                 </h2>
                 <p className="mt-1 text-sm text-slate-400">
-                  In-App Alerts, Prioritäten und relevante Ölthemen.
+                  {t.settingsSubtitle}
                 </p>
               </header>
               <AlertPreferencesPanel
@@ -282,17 +288,22 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
 
       <footer className="hidden rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center backdrop-blur md:block">
         <p className="text-xs text-muted">
-          {data.systemHealth.isLive ? miDe.footerLive : miDe.footerDemo}{" "}
-          {miDe.footerDisclaimer}
+          {data.systemHealth.isLive ? t.footerLive : t.footerDemo}{" "}
+          {t.footerDisclaimer}
         </p>
       </footer>
     </div>
   );
 }
 
+function TerminalLoadingFallback() {
+  const t = useMi();
+  return <p className="text-sm text-muted">{t.loadingTerminal}</p>;
+}
+
 export function TerminalDashboard({ data }: TerminalDashboardProps) {
   return (
-    <Suspense fallback={<p className="text-sm text-muted">{miDe.loadingTerminal}</p>}>
+    <Suspense fallback={<TerminalLoadingFallback />}>
       <TerminalDashboardContent data={data} />
     </Suspense>
   );

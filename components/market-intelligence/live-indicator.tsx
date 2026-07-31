@@ -1,4 +1,6 @@
-import { miDe } from "@/lib/market-intelligence/i18n/de";
+"use client";
+
+import { useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type { DataAvailability } from "@/lib/types/market";
 
@@ -8,12 +10,14 @@ interface LiveIndicatorProps {
 }
 
 export function LiveIndicator({ isLive = false, dataAvailability }: LiveIndicatorProps) {
+  const t = useMi();
+
   if (!isLive) {
     return (
       <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1">
         <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
         <span className="text-[11px] font-semibold uppercase tracking-widest text-amber-200">
-          {dataAvailability === "DEMO" ? miDe.demoData : miDe.noLiveFeed}
+          {dataAvailability === "DEMO" ? t.demoData : t.noLiveFeed}
         </span>
       </div>
     );
@@ -50,7 +54,7 @@ export function LiveIndicator({ isLive = false, dataAvailability }: LiveIndicato
           isDelayed ? "text-orange-200" : "text-cyan-200",
         )}
       >
-        {isDelayed ? miDe.delayedFeed : miDe.liveMonitoring}
+        {isDelayed ? t.delayedFeed : t.liveMonitoring}
       </span>
     </div>
   );

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTime } from "@/lib/market-intelligence/format";
-import { miDe, tStatus } from "@/lib/market-intelligence/i18n/de";
+import { useLabels, useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 
 interface OperationsData {
@@ -23,6 +23,9 @@ interface OperationsData {
 }
 
 export function OperationsConsole() {
+  const t = useMi();
+  const { tStatus } = useLabels();
+
   const [data, setData] = useState<OperationsData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,7 +38,7 @@ export function OperationsConsole() {
       if (!res.ok) throw new Error(`Status ${res.status}`);
       setData((await res.json()) as OperationsData);
     } catch (e) {
-      setError(e instanceof Error ? e.message : miDe.opsFailed);
+      setError(e instanceof Error ? e.message : t.opsFailed);
     } finally {
       setLoading(false);
     }
@@ -48,7 +51,7 @@ export function OperationsConsole() {
   }, []);
 
   if (loading && !data) {
-    return <p className="text-sm text-muted">{miDe.loadingOps}</p>;
+    return <p className="text-sm text-muted">{t.loadingOps}</p>;
   }
 
   if (error && !data) {
@@ -64,46 +67,46 @@ export function OperationsConsole() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{miDe.opsTitle}</h2>
+        <h2 className="text-lg font-semibold">{t.opsTitle}</h2>
         <button
           type="button"
           onClick={() => void refresh()}
           className="text-xs font-medium text-blue-600 hover:underline"
         >
-          {miDe.refresh}
+          {t.refresh}
         </button>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardContent className="space-y-2 p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">{miDe.pipeline}</p>
-            <StatusLine label={miDe.marketMonitoring} value={data.health.marketMonitoring} />
-            <StatusLine label={miDe.newsMonitoring} value={data.health.newsMonitoring} />
-            <StatusLine label={miDe.alertEngine} value={data.health.alertEngine} />
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">{t.pipeline}</p>
+            <StatusLine label={t.marketMonitoring} value={data.health.marketMonitoring} />
+            <StatusLine label={t.newsMonitoring} value={data.health.newsMonitoring} />
+            <StatusLine label={t.alertEngine} value={data.health.alertEngine} />
             <StatusLine label="Telegram" value={data.health.telegram} />
             {data.health.lastPipelineRunAt && (
               <p className="text-xs text-muted">
-                {miDe.lastRun}: {formatTime(data.health.lastPipelineRunAt)} CET
+                {t.lastRun}: {formatTime(data.health.lastPipelineRunAt)} CET
               </p>
             )}
             <p className="text-xs text-muted">
-              {miDe.persistence}: {data.persistenceEnabled ? miDe.persistenceOn : miDe.persistenceMemory}
+              {t.persistence}: {data.persistenceEnabled ? t.persistenceOn : t.persistenceMemory}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="space-y-2 p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">{miDe.jobQueue}</p>
-            <Metric label={miDe.pending} value={data.jobs.pending} />
-            <Metric label={miDe.running} value={data.jobs.running} />
-            <Metric label={miDe.failed} value={data.jobs.failed} warn={data.jobs.failed > 0} />
-            <Metric label={miDe.deadLetter} value={data.jobs.deadLetter} warn={data.jobs.deadLetter > 0} />
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">{t.jobQueue}</p>
+            <Metric label={t.pending} value={data.jobs.pending} />
+            <Metric label={t.running} value={data.jobs.running} />
+            <Metric label={t.failed} value={data.jobs.failed} warn={data.jobs.failed > 0} />
+            <Metric label={t.deadLetter} value={data.jobs.deadLetter} warn={data.jobs.deadLetter > 0} />
             <div className="border-t border-border pt-2">
-              <Metric label={miDe.alertsGenerated} value={data.deliveryStats.generated} />
-              <Metric label={miDe.suppressed} value={data.deliveryStats.suppressed} />
-              <Metric label={miDe.deliveryFailed} value={data.deliveryStats.failed} warn={data.deliveryStats.failed > 0} />
+              <Metric label={t.alertsGenerated} value={data.deliveryStats.generated} />
+              <Metric label={t.suppressed} value={data.deliveryStats.suppressed} />
+              <Metric label={t.deliveryFailed} value={data.deliveryStats.failed} warn={data.deliveryStats.failed > 0} />
             </div>
           </CardContent>
         </Card>
@@ -111,9 +114,9 @@ export function OperationsConsole() {
 
       <Card className={cn(!data.watchdog.healthy && "border-amber-300")}>
         <CardContent className="p-4">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">{miDe.watchdog}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">{t.watchdog}</p>
           <p className={cn("mt-1 text-sm font-medium", data.watchdog.healthy ? "text-emerald-700" : "text-amber-700")}>
-            {data.watchdog.healthy ? miDe.allNominal : miDe.issuesDetected}
+            {data.watchdog.healthy ? t.allNominal : t.issuesDetected}
           </p>
           {data.watchdog.issues.length > 0 && (
             <ul className="mt-2 list-inside list-disc text-xs text-muted">
@@ -128,7 +131,7 @@ export function OperationsConsole() {
       {data.health.workers.length > 0 && (
         <Card>
           <CardContent className="p-4">
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted">{miDe.workers}</p>
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted">{t.workers}</p>
             <div className="space-y-1">
               {data.health.workers.map((w) => (
                 <p key={w.workerId} className="font-mono text-xs text-muted">
@@ -148,6 +151,7 @@ export function OperationsConsole() {
 }
 
 function StatusLine({ label, value }: { label: string; value: string }) {
+  const { tStatus } = useLabels();
   const ok = value === "ACTIVE" || value === "ONLINE" || value === "READY";
   return (
     <div className="flex justify-between text-sm">

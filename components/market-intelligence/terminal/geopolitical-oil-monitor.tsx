@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Globe2, Radio, ShieldAlert } from "lucide-react";
+import { useMi } from "@/components/i18n/locale-provider";
 import { formatTime } from "@/lib/market-intelligence/format";
 import { cn } from "@/lib/utils";
 import type {
@@ -15,18 +16,20 @@ interface GeopoliticalOilMonitorProps {
   breakingNews: NewsEvent[];
 }
 
-const FOCUS = [
-  { id: "all", label: "Alle", terms: [] },
-  { id: "iran", label: "Iran", terms: ["iran"] },
-  { id: "usa", label: "USA / Trump", terms: ["usa", "u.s.", "trump", "washington"] },
-  { id: "israel", label: "Israel", terms: ["israel"] },
-  { id: "hormuz", label: "Hormuz", terms: ["hormuz", "strait"] },
-  { id: "saudi", label: "Saudi-Arabien", terms: ["saudi"] },
-  { id: "opec", label: "OPEC+", terms: ["opec"] },
-  { id: "russia", label: "Russland / Ukraine", terms: ["russia", "russian", "ukraine"] },
-  { id: "red-sea", label: "Red Sea / Houthis", terms: ["red sea", "houthi", "yemen"] },
-  { id: "china", label: "China", terms: ["china", "chinese", "beijing"] },
+const FOCUS_DEFS = [
+  { id: "all", terms: [] as string[] },
+  { id: "iran", terms: ["iran"] },
+  { id: "usa", terms: ["usa", "u.s.", "trump", "washington"] },
+  { id: "israel", terms: ["israel"] },
+  { id: "hormuz", terms: ["hormuz", "strait"] },
+  { id: "saudi", terms: ["saudi"] },
+  { id: "opec", terms: ["opec"] },
+  { id: "russia", terms: ["russia", "russian", "ukraine"] },
+  { id: "red-sea", terms: ["red sea", "houthi", "yemen"] },
+  { id: "china", terms: ["china", "chinese", "beijing"] },
 ] as const;
+
+type FocusId = (typeof FOCUS_DEFS)[number]["id"];
 
 type MonitorItem = {
   id: string;
@@ -68,7 +71,22 @@ export function GeopoliticalOilMonitor({
   events,
   breakingNews,
 }: GeopoliticalOilMonitorProps) {
-  const [focus, setFocus] = useState<(typeof FOCUS)[number]["id"]>("all");
+  const t = useMi();
+  const [focus, setFocus] = useState<FocusId>("all");
+
+  const FOCUS = [
+    { id: "all" as const, label: t.focusAll, terms: FOCUS_DEFS[0].terms },
+    { id: "iran" as const, label: "Iran", terms: FOCUS_DEFS[1].terms },
+    { id: "usa" as const, label: t.focusUsaTrump, terms: FOCUS_DEFS[2].terms },
+    { id: "israel" as const, label: "Israel", terms: FOCUS_DEFS[3].terms },
+    { id: "hormuz" as const, label: "Hormuz", terms: FOCUS_DEFS[4].terms },
+    { id: "saudi" as const, label: t.focusSaudi, terms: FOCUS_DEFS[5].terms },
+    { id: "opec" as const, label: "OPEC+", terms: FOCUS_DEFS[6].terms },
+    { id: "russia" as const, label: t.focusRussia, terms: FOCUS_DEFS[7].terms },
+    { id: "red-sea" as const, label: t.focusRedSea, terms: FOCUS_DEFS[8].terms },
+    { id: "china" as const, label: "China", terms: FOCUS_DEFS[9].terms },
+  ];
+
   const items = useMemo<MonitorItem[]>(() => {
     const clustered = events.map((event) => {
       const text = `${event.headline} ${event.summary}`;
@@ -144,16 +162,16 @@ export function GeopoliticalOilMonitor({
               id="geopolitical-oil-heading"
               className="text-sm font-semibold uppercase tracking-wider text-white"
             >
-              Geopolitical Oil Monitor
+              {t.geoMonitorTitle}
             </h2>
             <p className="text-[11px] text-slate-500">
-              Ereignisse mit möglicher Relevanz für WTI und Brent
+              {t.geoMonitorSubtitle}
             </p>
           </div>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/10 px-2.5 py-1 font-mono text-[9px] uppercase text-cyan-200">
           <Radio className="h-3 w-3 animate-pulse" aria-hidden="true" />
-          {visible.length} aktiv
+          {visible.length} {t.activeCount}
         </span>
       </div>
 
@@ -186,7 +204,7 @@ export function GeopoliticalOilMonitor({
       <div className="space-y-2.5">
         {visible.length === 0 ? (
           <div className="rounded-xl border border-white/8 bg-white/[0.03] p-5 text-sm text-slate-500">
-            Keine aktuellen Meldungen für diesen Fokus.
+            {t.noFocusReports}
           </div>
         ) : (
           visible.slice(0, 14).map((item) => {
@@ -205,7 +223,7 @@ export function GeopoliticalOilMonitor({
                           : "bg-white/[0.06] text-slate-400",
                     )}
                   >
-                    {item.priority} IMPACT
+                    {item.priority} {t.impactLabel}
                   </span>
                 </div>
                 <h3 className="mt-2 text-sm font-semibold text-white">
@@ -216,7 +234,7 @@ export function GeopoliticalOilMonitor({
                 </p>
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                   <span className="text-[10px] text-slate-500">
-                    Quelle: {item.source}
+                    {t.sourcePrefix} {item.source}
                   </span>
                   <span
                     className={cn(
@@ -225,7 +243,7 @@ export function GeopoliticalOilMonitor({
                     )}
                   >
                     <ShieldAlert className="h-3 w-3" aria-hidden="true" />
-                    Potential Impact: {item.impact}
+                    {t.potentialImpact} {item.impact}
                   </span>
                 </div>
               </>

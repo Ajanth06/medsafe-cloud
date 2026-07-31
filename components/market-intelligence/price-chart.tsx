@@ -1,4 +1,6 @@
-import { miDe } from "@/lib/market-intelligence/i18n/de";
+"use client";
+
+import { useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 
 interface PriceChartProps {
@@ -16,6 +18,8 @@ export function PriceChart({
   className,
   label,
 }: PriceChartProps) {
+  const t = useMi();
+
   const series = Array.isArray(data) ? data : [];
   if (series.length < 2) {
     return (
@@ -23,7 +27,7 @@ export function PriceChart({
         className={cn("flex items-center justify-center rounded-lg bg-white/[0.06] text-xs text-slate-400", className)}
         style={{ height }}
       >
-        {miDe.insufficientHistory}
+        {t.insufficientHistory}
       </div>
     );
   }

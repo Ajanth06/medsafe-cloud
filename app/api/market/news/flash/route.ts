@@ -5,6 +5,7 @@ import {
 import { NextResponse } from "next/server";
 import { requireApiUserOrWorker } from "@/lib/market-intelligence/api/auth";
 import { createNewsProvider } from "@/lib/market-intelligence/providers/news/news-provider-factory";
+import { parseAppLocale } from "@/lib/i18n/locales";
 import type { NewsEvent, NormalizedNewsItem } from "@/lib/types/market";
 
 export const dynamic = "force-dynamic";
@@ -44,21 +45,23 @@ function toFlashEvent(item: NormalizedNewsItem): NewsEvent {
 }
 
 /**
- * Lightweight flash feed — Oil RSS only, no full pipeline reset.
- * Polled by the terminal so Iran/oil headlines land in Flash News quickly.
+ * Lightweight flash feed — Oil RSS only.
+ * ?lang=de|en|ta controls headline language.
  */
 export async function GET(request: Request) {
   const auth = await requireApiUserOrWorker(request);
   if (auth instanceof NextResponse) return auth;
 
   try {
+    const lang = parseAppLocale(new URL(request.url).searchParams.get("lang"));
     const provider = createNewsProvider();
-    const items = await provider.getBreakingNews(20);
+    const items = await provider.getBreakingNews(40, lang);
     const breakingNews = items.map(toFlashEvent);
 
     return Response.json({
       breakingNews,
       provider: provider.id,
+      locale: lang,
       fetchedAt: new Date().toISOString(),
     });
   } catch (error) {

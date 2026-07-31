@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SeverityBadge } from "@/components/market-intelligence/severity-badge";
 import { SourceVerificationBadge } from "@/components/market-intelligence/source-verification-badge";
 import { formatTime } from "@/lib/market-intelligence/format";
-import { miDe, tUnreadAlerts } from "@/lib/market-intelligence/i18n/de";
+import { useLabels, useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type { AlertReadStatus, DeliveredAlert } from "@/lib/types/market";
 import Link from "next/link";
@@ -16,13 +16,6 @@ interface AlertCenterProps {
 }
 
 type Tab = "ACTIVE" | "HIGH_PRIORITY" | "ALL" | "RESOLVED";
-
-const TABS: { id: Tab; label: string }[] = [
-  { id: "ACTIVE", label: miDe.tabActive },
-  { id: "HIGH_PRIORITY", label: miDe.tabHigh },
-  { id: "ALL", label: miDe.tabAll },
-  { id: "RESOLVED", label: miDe.tabResolved },
-];
 
 function filterAlerts(alerts: DeliveredAlert[], tab: Tab): DeliveredAlert[] {
   switch (tab) {
@@ -37,17 +30,35 @@ function filterAlerts(alerts: DeliveredAlert[], tab: Tab): DeliveredAlert[] {
   }
 }
 
-function ReadBadge({ status }: { status: AlertReadStatus }) {
+function ReadBadge({
+  status,
+  unreadLabel,
+  ackLabel,
+}: {
+  status: AlertReadStatus;
+  unreadLabel: string;
+  ackLabel: string;
+}) {
   if (status === "UNREAD") {
-    return <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-blue-700">{miDe.unread}</span>;
+    return <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-blue-700">{unreadLabel}</span>;
   }
   if (status === "ACKNOWLEDGED") {
-    return <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-600">{miDe.ack}</span>;
+    return <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-600">{ackLabel}</span>;
   }
   return null;
 }
 
 export function AlertCenter({ alerts, unreadCount = 0 }: AlertCenterProps) {
+  const t = useMi();
+  const { tUnreadAlerts } = useLabels();
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "ACTIVE", label: t.tabActive },
+    { id: "HIGH_PRIORITY", label: t.tabHigh },
+    { id: "ALL", label: t.tabAll },
+    { id: "RESOLVED", label: t.tabResolved },
+  ];
+
   const [tab, setTab] = useState<Tab>("ACTIVE");
   const filtered = filterAlerts(alerts, tab);
 
@@ -55,25 +66,25 @@ export function AlertCenter({ alerts, unreadCount = 0 }: AlertCenterProps) {
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">{miDe.alertCenter}</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t.alertCenter}</h2>
           {unreadCount > 0 && (
             <p className="text-sm text-muted">{tUnreadAlerts(unreadCount)}</p>
           )}
         </div>
         <div className="flex flex-wrap gap-2">
-          {TABS.map((t) => (
+          {tabs.map((item) => (
             <button
-              key={t.id}
+              key={item.id}
               type="button"
-              onClick={() => setTab(t.id)}
+              onClick={() => setTab(item.id)}
               className={cn(
                 "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
-                tab === t.id
+                tab === item.id
                   ? "bg-orange-400/15 text-orange-200 ring-1 ring-orange-300/25"
                   : "bg-white/[0.06] text-slate-300 hover:bg-white/10 hover:text-white",
               )}
             >
-              {t.label}
+              {item.label}
             </button>
           ))}
         </div>
@@ -81,7 +92,7 @@ export function AlertCenter({ alerts, unreadCount = 0 }: AlertCenterProps) {
 
       {filtered.length === 0 ? (
         <Card>
-          <CardContent className="p-6 text-center text-sm text-muted">{miDe.noAlerts}</CardContent>
+          <CardContent className="p-6 text-center text-sm text-muted">{t.noAlerts}</CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
@@ -96,7 +107,11 @@ export function AlertCenter({ alerts, unreadCount = 0 }: AlertCenterProps) {
                         {alert.alertType}
                       </span>
                     )}
-                    <ReadBadge status={alert.readStatus} />
+                    <ReadBadge
+                      status={alert.readStatus}
+                      unreadLabel={t.unread}
+                      ackLabel={t.ack}
+                    />
                   </div>
                   <span className="font-mono text-xs text-muted">{formatTime(alert.createdAt)} CET</span>
                 </div>
@@ -123,7 +138,7 @@ export function AlertCenter({ alerts, unreadCount = 0 }: AlertCenterProps) {
 
                 {alert.confidenceScore != null && (
                   <p className="text-xs text-muted">
-                    {miDe.confidenceLabel}: {alert.confidenceScore}/100 — {alert.confidence}
+                    {t.confidenceLabel}: {alert.confidenceScore}/100 — {alert.confidence}
                   </p>
                 )}
 
@@ -139,7 +154,7 @@ export function AlertCenter({ alerts, unreadCount = 0 }: AlertCenterProps) {
                   href={alert.deepLink.replace(/^https?:\/\/[^/]+/, "")}
                   className="inline-block text-xs font-medium text-blue-600 hover:underline"
                 >
-                  {miDe.viewEvent}
+                  {t.viewEvent}
                 </Link>
               </CardContent>
             </Card>

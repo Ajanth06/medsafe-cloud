@@ -7,7 +7,7 @@ import {
   DEFAULT_TERMINAL_PREFERENCES,
   type UserTerminalPreferences,
 } from "@/lib/market-intelligence/user/preferences-types";
-import { miDe } from "@/lib/market-intelligence/i18n/de";
+import { useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 
 const WATCHLIST_STORAGE_KEY = "aaryx-watchlist";
@@ -18,6 +18,8 @@ interface WatchlistPanelProps {
 }
 
 export function WatchlistPanel({ initialSymbols, onChange }: WatchlistPanelProps) {
+  const t = useMi();
+
   const [symbols, setSymbols] = useState<string[]>(
     initialSymbols ?? DEFAULT_TERMINAL_PREFERENCES.watchlistSymbols,
   );
@@ -57,11 +59,11 @@ export function WatchlistPanel({ initialSymbols, onChange }: WatchlistPanelProps
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">{miDe.watchlist}</h3>
-        {saving && <span className="text-xs text-muted">{miDe.saving}</span>}
+        <h3 className="text-sm font-semibold text-foreground">{t.watchlist}</h3>
+        {saving && <span className="text-xs text-muted">{t.saving}</span>}
       </div>
       <p className="text-xs text-muted">
-        {miDe.watchlistHint}
+        {t.watchlistHint}
       </p>
       <div className="flex flex-wrap gap-2">
         {MARKET_ASSETS.map((asset) => {
@@ -89,7 +91,7 @@ export function WatchlistPanel({ initialSymbols, onChange }: WatchlistPanelProps
         size="sm"
         onClick={() => void persist([...DEFAULT_TERMINAL_PREFERENCES.watchlistSymbols])}
       >
-        {miDe.resetDefault}
+        {t.resetDefault}
       </Button>
     </section>
   );

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { signInWithOAuth } from "@/app/auth/actions";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
+import { useMi } from "@/components/i18n/locale-provider";
 import { Button } from "@/components/ui/button";
 import { isAppleDevice } from "@/lib/platform";
 
@@ -15,6 +16,7 @@ function AppleIcon({ className }: { className?: string }) {
 }
 
 export function OAuthButtons() {
+  const t = useMi();
   const [showApple, setShowApple] = useState(false);
 
   useEffect(() => {
@@ -28,9 +30,9 @@ export function OAuthButtons() {
     <div className="space-y-3">
       {showApple && (
         <form action={signInWithOAuth.bind(null, "apple")}>
-          <Button type="submit" variant="outline" fullWidth aria-label="Continue with Apple">
+          <Button type="submit" variant="outline" fullWidth aria-label={t.continueWithApple}>
             <AppleIcon className="h-5 w-5" />
-            Continue with Apple
+            {t.continueWithApple}
           </Button>
         </form>
       )}

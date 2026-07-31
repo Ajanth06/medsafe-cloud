@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
+import { useLocale } from "@/components/i18n/locale-provider";
+import { getMi } from "@/lib/i18n/mi";
 import type { EnrichedMarketQuote } from "@/lib/types/market";
 
 interface LiveQuotesPayload {
@@ -11,31 +13,37 @@ interface LiveQuotesPayload {
   refreshing?: boolean;
 }
 
-/** UI polls every 2.5s — server Yahoo refresh stays ~2s from cache. */
-const LIVE_POLL_MS = 2_500;
+/** Steady poll — cache is fast; no need to hammer. */
+const LIVE_POLL_MS = 4_000;
 
 function quotesFingerprint(quotes: EnrichedMarketQuote[]): string {
   return quotes
-    .map((q) => `${q.symbol}:${q.price}:${q.percentageChange}:${q.dataAvailability}`)
+    .map(
+      (q) =>
+        `${q.symbol}:${q.price}:${q.percentageChange}:${q.dataAvailability}`,
+    )
     .join("|");
 }
 
 /**
- * Smooth live quotes: poll cache every second without waiting on Yahoo.
+ * Live quotes from server cache — never blocks on Yahoo in the API.
  */
 export function useLiveMarketQuotes(initialQuotes: EnrichedMarketQuote[]) {
+  const { locale } = useLocale();
   const [quotes, setQuotes] = useState(initialQuotes);
   const [lastPollAt, setLastPollAt] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const fingerprintRef = useRef(quotesFingerprint(initialQuotes));
+  const hasQuotesRef = useRef(initialQuotes.some((q) => q.price > 0));
 
   useEffect(() => {
     const next = quotesFingerprint(initialQuotes);
     if (next !== fingerprintRef.current) {
       fingerprintRef.current = next;
       setQuotes(initialQuotes);
+      hasQuotesRef.current = initialQuotes.some((q) => q.price > 0);
     }
   }, [initialQuotes]);
 
@@ -55,7 +63,9 @@ export function useLiveMarketQuotes(initialQuotes: EnrichedMarketQuote[]) {
           if (!cancelled) {
             setConnected(false);
             setError(
-              res.status === 429 ? "Rate limit — kurz warten" : `HTTP ${res.status}`,
+              res.status === 429
+                ? getMi(locale).rateLimitWait
+                : `HTTP ${res.status}`,
             );
           }
           return;
@@ -64,11 +74,11 @@ export function useLiveMarketQuotes(initialQuotes: EnrichedMarketQuote[]) {
         if (cancelled) return;
 
         if (Array.isArray(data.quotes) && data.quotes.length > 0) {
+          hasQuotesRef.current = true;
           const next = quotesFingerprint(data.quotes);
-          // Skip React re-render when prices unchanged → no UI stutter
           if (next !== fingerprintRef.current) {
             fingerprintRef.current = next;
-            setQuotes(data.quotes);
+            startTransition(() => setQuotes(data.quotes ?? []));
           }
         }
         setLastPollAt(data.lastPollAt);
@@ -78,7 +88,7 @@ export function useLiveMarketQuotes(initialQuotes: EnrichedMarketQuote[]) {
       } catch (err) {
         if (!cancelled) {
           setConnected(false);
-          setError(err instanceof Error ? err.message : "Live-Feed getrennt");
+          setError(err instanceof Error ? err.message : getMi(locale).liveFeedDisconnected);
         }
       } finally {
         inFlight = false;
@@ -86,16 +96,20 @@ export function useLiveMarketQuotes(initialQuotes: EnrichedMarketQuote[]) {
     }
 
     void tick();
-    // Cold start: retry quickly until first quotes land
+
+    // Only burst while empty — stop as soon as prices land
     const burst = window.setInterval(() => {
+      if (hasQuotesRef.current) {
+        window.clearInterval(burst);
+        return;
+      }
       void tick();
-    }, 900);
+    }, 1_200);
     const stopBurst = window.setTimeout(() => {
       window.clearInterval(burst);
-    }, 6_000);
-    const interval = window.setInterval(() => {
-      void tick();
-    }, LIVE_POLL_MS);
+    }, 5_000);
+
+    const interval = window.setInterval(() => void tick(), LIVE_POLL_MS);
 
     return () => {
       cancelled = true;
@@ -103,7 +117,7 @@ export function useLiveMarketQuotes(initialQuotes: EnrichedMarketQuote[]) {
       window.clearInterval(burst);
       window.clearTimeout(stopBurst);
     };
-  }, []);
+  }, [locale]);
 
   return { quotes, lastPollAt, isDemo, error, connected, pollMs: LIVE_POLL_MS };
 }

@@ -2,7 +2,7 @@
 
 import { PriceChart } from "@/components/market-intelligence/price-chart";
 import { formatChange, formatPrice } from "@/lib/market-intelligence/format";
-import { miDe } from "@/lib/market-intelligence/i18n/de";
+import { useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type {
   BrentWTISpread,
@@ -18,12 +18,14 @@ interface OilTerminalViewProps {
 }
 
 export function OilTerminalView({ wti, brent, spread, oilCorrelation }: OilTerminalViewProps) {
+  const t = useMi();
+
   return (
     <div className="space-y-6">
       <header>
-        <h2 className="text-lg font-semibold text-foreground">{miDe.oilTerminal}</h2>
+        <h2 className="text-lg font-semibold text-foreground">{t.oilTerminal}</h2>
         <p className="text-sm text-muted">
-          {miDe.oilTerminalSub}
+          {t.oilTerminalSub}
         </p>
       </header>
 
@@ -35,11 +37,11 @@ export function OilTerminalView({ wti, brent, spread, oilCorrelation }: OilTermi
       {spread && (
         <div className="rounded-2xl border border-white/10 bg-[#101c29]/90 p-5 text-slate-100">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-            {miDe.brentWtiSpread}
+            {t.brentWtiSpread}
           </p>
           <p className="mt-2 font-mono text-3xl font-semibold">${spread.spread.toFixed(2)}</p>
           <p className={cn("mt-1 text-sm", spread.spreadChangePercent >= 0 ? "text-emerald-400" : "text-red-400")}>
-            {formatChange(spread.spreadChangePercent, true)} {miDe.vsPrior}
+            {formatChange(spread.spreadChangePercent, true)} {t.vsPrior}
           </p>
         </div>
       )}
@@ -47,10 +49,10 @@ export function OilTerminalView({ wti, brent, spread, oilCorrelation }: OilTermi
       {oilCorrelation && (
         <div className="rounded-xl border border-border bg-card p-4">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">
-            {miDe.correlationEngine}
+            {t.correlationEngine}
           </p>
           <p className={cn("mt-2 text-sm font-semibold", oilCorrelation.bothConfirmed ? "text-emerald-700" : "text-foreground")}>
-            {oilCorrelation.bothConfirmed ? miDe.oilConfirmed : miDe.independentMove}
+            {oilCorrelation.bothConfirmed ? t.oilConfirmed : t.independentMove}
           </p>
           <p className="mt-1 text-xs text-muted">{oilCorrelation.description}</p>
         </div>
@@ -60,6 +62,7 @@ export function OilTerminalView({ wti, brent, spread, oilCorrelation }: OilTermi
 }
 
 function OilAssetPanel({ quote }: { quote: EnrichedMarketQuote }) {
+  const t = useMi();
   const positive = quote.direction === "up";
 
   return (
@@ -75,7 +78,7 @@ function OilAssetPanel({ quote }: { quote: EnrichedMarketQuote }) {
       </div>
 
       <p className={cn("mt-1 text-sm font-medium", positive ? "text-emerald-400" : "text-red-400")}>
-        {miDe.day} {formatChange(quote.percentageChange, true)}
+        {t.day} {formatChange(quote.percentageChange, true)}
       </p>
 
       <div className="mt-4">
@@ -83,7 +86,7 @@ function OilAssetPanel({ quote }: { quote: EnrichedMarketQuote }) {
           data={quote.sparkline}
           positive={positive}
           height={140}
-          label={miDe.priceAction60m}
+          label={t.priceAction60m}
         />
       </div>
 

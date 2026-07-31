@@ -1,6 +1,8 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTime } from "@/lib/market-intelligence/format";
-import { miDe, tStatus } from "@/lib/market-intelligence/i18n/de";
+import { useLabels, useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type { EngineStatus, FeedConnectionState, OperationsHealth, ProviderHealthStatus, SystemHealth } from "@/lib/types/market";
 
@@ -41,6 +43,7 @@ function StatusRow({
   label: string;
   status: ProviderHealthStatus | EngineStatus | FeedConnectionState;
 }) {
+  const { tStatus } = useLabels();
   return (
     <div className="flex items-center justify-between gap-2 text-sm">
       <span className="text-muted">{label}</span>
@@ -52,16 +55,28 @@ function StatusRow({
   );
 }
 
-function OperationsRows({ ops }: { ops: OperationsHealth }) {
+function OperationsRows({
+  ops,
+  labels,
+}: {
+  ops: OperationsHealth;
+  labels: {
+    marketMonitoring: string;
+    newsMonitoring: string;
+    alertEngine: string;
+    lastPipeline: string;
+  };
+}) {
+  const { tStatus } = useLabels();
   return (
     <div className="space-y-2">
-      <StatusRow label={miDe.marketMonitoring} status={ops.marketMonitoring} />
-      <StatusRow label={miDe.newsMonitoring} status={ops.newsMonitoring} />
-      <StatusRow label={miDe.alertEngine} status={ops.alertEngine} />
+      <StatusRow label={labels.marketMonitoring} status={ops.marketMonitoring} />
+      <StatusRow label={labels.newsMonitoring} status={ops.newsMonitoring} />
+      <StatusRow label={labels.alertEngine} status={ops.alertEngine} />
       <StatusRow label="Telegram" status={ops.telegram} />
       {ops.lastPipelineRunAt && (
         <p className="text-xs text-muted">
-          {miDe.lastPipeline}: {formatTime(ops.lastPipelineRunAt)} CET
+          {labels.lastPipeline}: {formatTime(ops.lastPipelineRunAt)} CET
         </p>
       )}
       {ops.hostingNote && (
@@ -81,28 +96,30 @@ function OperationsRows({ ops }: { ops: OperationsHealth }) {
 }
 
 export function SystemStatus({ health }: SystemStatusProps) {
+  const t = useMi();
+
   return (
     <Card>
       <CardContent className="space-y-3 p-4">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">
-          {miDe.systemStatus}
+          {t.systemStatus}
         </p>
         <div className="space-y-2">
           <StatusRow
-            label={miDe.marketProvider}
+            label={t.marketProvider}
             status={health.providerConfigured ? health.marketData : "NOT_CONFIGURED"}
           />
           <StatusRow label="WTI" status={health.wtiFeed} />
           <StatusRow label="BRENT" status={health.brentFeed} />
-          {health.goldFeed && <StatusRow label={miDe.gold} status={health.goldFeed} />}
-          <StatusRow label={miDe.restFallback} status={health.restFallback} />
-          <StatusRow label={miDe.eventDetection} status={health.eventDetection} />
-          <StatusRow label={miDe.newsEngine} status={health.newsEngine} />
+          {health.goldFeed && <StatusRow label={t.gold} status={health.goldFeed} />}
+          <StatusRow label={t.restFallback} status={health.restFallback} />
+          <StatusRow label={t.eventDetection} status={health.eventDetection} />
+          <StatusRow label={t.newsEngine} status={health.newsEngine} />
           {health.newsHealth && (
             <>
               <div className="rounded-lg border border-border/60 bg-muted/20 px-2.5 py-2 text-xs">
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">
-                  {miDe.newsSource}
+                  {t.newsSource}
                 </p>
                 <p className="mt-1 font-medium text-foreground">
                   {health.newsHealth.primarySource}
@@ -110,42 +127,42 @@ export function SystemStatus({ health }: SystemStatusProps) {
                 <p className="mt-0.5 text-muted">{health.newsHealth.officialSourceLabel}</p>
                 {health.newsHealth.lastNewsAt && (
                   <p className="mt-1 text-[10px] text-muted">
-                    {miDe.lastNews}: {formatTime(health.newsHealth.lastNewsAt)} CET
+                    {t.lastNews}: {formatTime(health.newsHealth.lastNewsAt)} CET
                   </p>
                 )}
               </div>
-              <StatusRow label={miDe.verification} status={health.newsHealth.verificationEngine} />
-              <StatusRow label={miDe.eventCorrelation} status={health.newsHealth.eventCorrelation} />
+              <StatusRow label={t.verification} status={health.newsHealth.verificationEngine} />
+              <StatusRow label={t.eventCorrelation} status={health.newsHealth.eventCorrelation} />
             </>
           )}
-          <StatusRow label={miDe.aiEngine} status={health.aiEngine} />
+          <StatusRow label={t.aiEngine} status={health.aiEngine} />
           {health.operationsHealth && (
             <>
               <div className="border-t border-border pt-2">
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted">{miDe.aaryx247Status}</p>
-                <OperationsRows ops={health.operationsHealth} />
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted">{t.aaryx247Status}</p>
+                <OperationsRows ops={health.operationsHealth} labels={t} />
               </div>
             </>
           )}
         </div>
         <div className="border-t border-border pt-2 text-xs text-muted">
           <p>
-            {miDe.sourceLabel}: <span className="font-medium text-foreground">{health.dataSource}</span>
+            {t.sourceLabel}: <span className="font-medium text-foreground">{health.dataSource}</span>
           </p>
           {health.lastHeartbeat && (
-            <p className="mt-1">{miDe.lastHeartbeat}: {formatTime(health.lastHeartbeat)} CET</p>
+            <p className="mt-1">{t.lastHeartbeat}: {formatTime(health.lastHeartbeat)} CET</p>
           )}
           {health.averageLatencyMs != null && (
-            <p className="mt-1">{miDe.avgLatency}: {health.averageLatencyMs}ms</p>
+            <p className="mt-1">{t.avgLatency}: {health.averageLatencyMs}ms</p>
           )}
           {!health.isLive && (
             <p className="mt-1 font-medium text-amber-700">
-              {miDe.noProviderWarning}
+              {t.noProviderWarning}
             </p>
           )}
           {health.newsHealth && !health.newsHealth.isLive && (
             <p className="mt-1 font-medium text-amber-700">
-              {miDe.newsDemoWarning}
+              {t.newsDemoWarning}
             </p>
           )}
         </div>

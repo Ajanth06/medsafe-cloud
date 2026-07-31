@@ -1,6 +1,8 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { formatChange } from "@/lib/market-intelligence/format";
-import { miDe } from "@/lib/market-intelligence/i18n/de";
+import { useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type {
   BrentWTISpread,
@@ -40,6 +42,8 @@ export function OilIntelligenceSection({
   spread,
   oilCorrelation,
 }: OilIntelligenceSectionProps) {
+  const t = useMi();
+
   if (!wti && !brent) return null;
 
   return (
@@ -48,14 +52,14 @@ export function OilIntelligenceSection({
         id="oil-intelligence-heading"
         className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted"
       >
-        {miDe.oilIntelligence}
+        {t.oilIntelligence}
       </h2>
       <Card className="border-white/10 bg-[#101c29]/90 text-slate-100">
         <CardContent className="grid gap-6 p-5 lg:grid-cols-3">
           {wti && (
             <div className="space-y-2">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-                {miDe.wtiMomentum}
+                {t.wtiMomentum}
               </p>
               <MomentumRow label="5M" value={wti.returns.m5} />
               <MomentumRow label="15M" value={wti.returns.m15} />
@@ -67,7 +71,7 @@ export function OilIntelligenceSection({
           {brent && (
             <div className="space-y-2">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-                {miDe.brentMomentum}
+                {t.brentMomentum}
               </p>
               <MomentumRow label="5M" value={brent.returns.m5} />
               <MomentumRow label="15M" value={brent.returns.m15} />
@@ -78,7 +82,7 @@ export function OilIntelligenceSection({
 
           <div className="space-y-2">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-              {miDe.correlationStatus}
+              {t.correlationStatus}
             </p>
             {oilCorrelation ? (
               <>
@@ -89,13 +93,13 @@ export function OilIntelligenceSection({
                   )}
                 >
                   {oilCorrelation.bothConfirmed
-                    ? miDe.oilConfirmed
-                    : miDe.independentMovement}
+                    ? t.oilConfirmed
+                    : t.independentMovement}
                 </p>
                 <p className="text-xs text-slate-400">{oilCorrelation.description}</p>
                 {spread && (
                   <p className="font-mono text-sm">
-                    {miDe.spread}: ${spread.spread.toFixed(2)}{" "}
+                    {t.spread}: ${spread.spread.toFixed(2)}{" "}
                     <span className="text-slate-400">
                       ({formatChange(spread.spreadChangePercent, true)})
                     </span>
@@ -103,7 +107,7 @@ export function OilIntelligenceSection({
                 )}
               </>
             ) : (
-              <p className="text-xs text-slate-400">{miDe.awaitingOilCorrelation}</p>
+              <p className="text-xs text-slate-400">{t.awaitingOilCorrelation}</p>
             )}
           </div>
         </CardContent>

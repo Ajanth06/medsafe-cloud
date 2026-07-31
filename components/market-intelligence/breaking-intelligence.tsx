@@ -1,12 +1,14 @@
+"use client";
+
 import { AIAssessment } from "@/components/market-intelligence/ai-assessment";
 import { AIMarketAssessment } from "@/components/market-intelligence/ai-market-assessment";
 import { SeverityBadge } from "@/components/market-intelligence/severity-badge";
 import { SourceVerificationBadge } from "@/components/market-intelligence/source-verification-badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { FLASH_TOPIC_LABELS_DE } from "@/lib/market-intelligence/config/oil-rss-feeds";
 import { buildDemoAnalysis } from "@/lib/market-intelligence/services/ai-analysis";
 import { formatChange, formatTime } from "@/lib/market-intelligence/format";
-import { miDe, tEventStatus, tVerification } from "@/lib/market-intelligence/i18n/de";
+import { flashTopicLabel } from "@/lib/i18n/news-labels";
+import { useLabels, useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type { IntelligenceEventCluster, NewsEvent } from "@/lib/types/market";
 
@@ -19,13 +21,16 @@ export function BreakingIntelligence({
   events,
   intelligenceEvents = [],
 }: BreakingIntelligenceProps) {
+  const t = useMi();
+  const { tVerification, tEventStatus } = useLabels();
+
   return (
     <section aria-labelledby="breaking-intelligence-heading">
       <h2
         id="breaking-intelligence-heading"
         className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted"
       >
-        {miDe.breakingIntel}
+        {t.breakingIntel}
       </h2>
       <div className="space-y-4">
         {events.map((event) => {
@@ -60,7 +65,7 @@ export function BreakingIntelligence({
                     )}
                     {event.flashTopic && (
                       <span className="rounded-md bg-slate-800 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider text-slate-200">
-                        {FLASH_TOPIC_LABELS_DE[event.flashTopic]}
+                        {flashTopicLabel(event.flashTopic, t)}
                       </span>
                     )}
                     <SeverityBadge severity={event.severity} />
@@ -94,13 +99,13 @@ export function BreakingIntelligence({
                   </div>
 
                   <div className="text-xs text-muted">
-                    <span className="font-medium text-foreground">{miDe.sources}:</span>{" "}
+                    <span className="font-medium text-foreground">{t.sources}:</span>{" "}
                     {event.sourceVerification.sources.join(", ")}
                   </div>
 
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-muted">
-                      {miDe.statusLabel}:
+                      {t.statusLabel}:
                     </span>
                     <span
                       className={cn(
@@ -121,7 +126,7 @@ export function BreakingIntelligence({
 
                   <div>
                     <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted">
-                      {miDe.affectedMarkets}
+                      {t.affectedMarkets}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {event.affectedMarkets.map((market) => (

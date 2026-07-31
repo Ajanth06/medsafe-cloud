@@ -1,5 +1,7 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
-import { miDe, tConfidence, tPressure, tRegime } from "@/lib/market-intelligence/i18n/de";
+import { useLabels, useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type { AIAnalysis } from "@/lib/types/market";
 
@@ -15,22 +17,25 @@ const sentimentColor: Record<string, string> = {
 };
 
 export function AIAssessment({ analysis }: AIAssessmentProps) {
+  const t = useMi();
+  const { tRegime, tPressure, tConfidence } = useLabels();
+
   return (
     <Card className="border-white/10 bg-[#101c29]/90 text-slate-100">
       <CardContent className="space-y-4 p-5">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-            {miDe.aiAssessment}
+            {t.aiAssessment}
           </p>
           <p className="mt-1 text-xs text-amber-400/80">
-            {miDe.demoDisclaimer}
+            {t.demoDisclaimer}
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-slate-500">
-              {miDe.marketRegime}
+              {t.marketRegime}
             </p>
             <p className="mt-0.5 font-mono font-semibold text-white">
               {tRegime(analysis.marketRegime.replace(/-/g, "_"))}
@@ -38,7 +43,7 @@ export function AIAssessment({ analysis }: AIAssessmentProps) {
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-wider text-slate-500">
-              {miDe.confidence}
+              {t.confidence}
             </p>
             <p className="mt-0.5 font-mono font-semibold text-white">
               {tConfidence(analysis.confidence)}
@@ -68,7 +73,7 @@ export function AIAssessment({ analysis }: AIAssessmentProps) {
         <div className="space-y-2 border-t border-slate-700 pt-3 text-sm">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-slate-500">
-              {miDe.potentialCauseLabel}
+              {t.potentialCauseLabel}
             </p>
             <p className="mt-0.5 leading-relaxed text-slate-300">
               {analysis.potentialCause}
@@ -76,7 +81,7 @@ export function AIAssessment({ analysis }: AIAssessmentProps) {
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-wider text-slate-500">
-              {miDe.keyRisk}
+              {t.keyRisk}
             </p>
             <p className="mt-0.5 leading-relaxed text-slate-300">{analysis.keyRisk}</p>
           </div>

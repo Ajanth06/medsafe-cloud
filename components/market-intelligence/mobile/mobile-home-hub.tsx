@@ -5,6 +5,7 @@ import { ArrowRight, Bell, Flame, Newspaper } from "lucide-react";
 import { FlashNewsStrip } from "@/components/market-intelligence/flash-news-strip";
 import { OverviewNewsVisual } from "@/components/market-intelligence/overview-news-visual";
 import { formatChange, formatPrice } from "@/lib/market-intelligence/format";
+import { useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type { EnrichedMarketQuote, NewsEvent } from "@/lib/types/market";
 
@@ -32,6 +33,7 @@ export function MobileHomeHub({
   criticalAlertCount,
   oilMovePercent = 0,
 }: MobileHomeHubProps) {
+  const t = useMi();
   const wti = quotes.find((quote) => quote.symbol === "WTI");
   const brent = quotes.find((quote) => quote.symbol === "BRENT");
   const oilQuotes = [wti, brent].filter(
@@ -49,13 +51,13 @@ export function MobileHomeHub({
     oilQuotes.some((quote) => quote.volatilityStatus !== "NORMAL");
 
   return (
-    <section className="space-y-3 md:hidden" aria-label="Mobile AARYX Übersicht">
+    <section className="space-y-3 md:hidden" aria-label={t.mobileOverviewAria}>
       <div className="px-1">
         <p className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-cyan-200">
-          Übersicht
+          {t.overviewShort}
         </p>
         <h2 className="mt-0.5 text-lg font-semibold text-white">
-          Wichtige News zuerst
+          {t.importantNewsFirst}
         </h2>
       </div>
 
@@ -64,7 +66,7 @@ export function MobileHomeHub({
       <FlashNewsStrip
         events={breakingNews}
         oilMovePercent={oilMovePercent}
-        heading="Iran · Al Jazeera · BBC · US"
+        heading={t.flashHeadingMobile}
       />
 
       <div className="grid grid-cols-2 gap-2.5">
@@ -78,7 +80,7 @@ export function MobileHomeHub({
             </span>
             <CardArrow />
           </div>
-          <p className="mt-3 text-sm font-bold text-white">Öl</p>
+          <p className="mt-3 text-sm font-bold text-white">{t.oilShort}</p>
           <p
             className={cn(
               "mt-0.5 font-mono text-[9px] font-semibold uppercase",
@@ -131,13 +133,13 @@ export function MobileHomeHub({
               </span>
             )}
           </div>
-          <p className="mt-3 text-sm font-bold text-white">Alerts</p>
+          <p className="mt-3 text-sm font-bold text-white">{t.alertsShort}</p>
           <p className="mt-1 text-[11px] leading-snug text-slate-400">
             {criticalAlertCount > 0
-              ? `${criticalAlertCount} kritisch`
+              ? `${criticalAlertCount} ${t.criticalCount}`
               : unreadAlertCount > 0
-                ? `${unreadAlertCount} ungelesen`
-                : "Keine offenen Warnungen"}
+                ? `${unreadAlertCount} ${t.unreadCountLabel}`
+                : t.noOpenWarnings}
           </p>
         </Link>
       </div>
@@ -150,7 +152,7 @@ export function MobileHomeHub({
           <Newspaper className="h-[19px] w-[19px]" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-white">Oil Flash News</p>
+          <p className="text-sm font-bold text-white">{t.oilFlashShort}</p>
           <p className="truncate text-[11px] text-slate-400">
             {breakingNews.length} Flash · Iran · AJ · BBC · US
           </p>

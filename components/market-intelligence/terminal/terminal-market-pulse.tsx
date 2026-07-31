@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Clock3, Globe2, TrendingDown, TrendingUp } from "lucide-react";
+import { useLocale, useMi } from "@/components/i18n/locale-provider";
 import { formatChange, formatPrice } from "@/lib/market-intelligence/format";
 import { cn } from "@/lib/utils";
 import type { EnrichedMarketQuote } from "@/lib/types/market";
@@ -9,7 +10,7 @@ import type { EnrichedMarketQuote } from "@/lib/types/market";
 const MARKET_CLOCKS = [
   { city: "Berlin", zone: "Europe/Berlin" },
   { city: "New York", zone: "America/New_York" },
-  { city: "Tokio", zone: "Asia/Tokyo" },
+  { city: "Tokyo", zone: "Asia/Tokyo" },
   { city: "Shanghai", zone: "Asia/Shanghai" },
 ] as const;
 
@@ -17,15 +18,17 @@ function MarketClock({
   city,
   zone,
   now,
+  intlLocale,
   className,
 }: {
   city: string;
   zone: string;
   now: number | null;
+  intlLocale: string;
   className?: string;
 }) {
   const time = now
-    ? new Intl.DateTimeFormat("de-DE", {
+    ? new Intl.DateTimeFormat(intlLocale, {
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
@@ -90,6 +93,9 @@ function TickerItems({
 }
 
 export function TerminalMarketPulse({ quotes }: { quotes: EnrichedMarketQuote[] }) {
+  const t = useMi();
+  const { locale } = useLocale();
+  const intlLocale = locale === "ta" ? "ta-IN" : locale === "en" ? "en-GB" : "de-DE";
   const [now, setNow] = useState<number | null>(null);
   const tickerQuotes = useMemo(
     () => quotes.filter((quote) => quote.price > 0).slice(0, 8),
@@ -99,7 +105,7 @@ export function TerminalMarketPulse({ quotes }: { quotes: EnrichedMarketQuote[] 
   useEffect(() => {
     const update = () => setNow(Date.now());
     const initialUpdate = window.setTimeout(update, 0);
-    const interval = window.setInterval(update, 1000);
+    const interval = window.setInterval(update, 5_000);
 
     return () => {
       window.clearTimeout(initialUpdate);
@@ -112,18 +118,20 @@ export function TerminalMarketPulse({ quotes }: { quotes: EnrichedMarketQuote[] 
   return (
     <section
       className="overflow-hidden rounded-2xl border border-white/10 bg-[#07111a]/55"
-      aria-label="Globale Marktzeiten und laufende Kurse"
+      aria-label={t.marketPulseAria}
     >
       <div className="app-scroll flex items-center gap-1.5 overflow-x-auto px-2 py-1.5 md:gap-2 md:px-2.5 md:py-2">
         <span className="flex shrink-0 items-center gap-1.5 px-1 text-[9px] font-bold uppercase tracking-[0.18em] text-orange-300">
           <Globe2 className="h-3.5 w-3.5" aria-hidden="true" />
-          Weltzeit
+          {t.worldTime}
         </span>
         {MARKET_CLOCKS.map((clock, index) => (
           <MarketClock
             key={clock.city}
-            {...clock}
+            city={clock.city === "Tokyo" ? t.tokyo : clock.city}
+            zone={clock.zone}
             now={now}
+            intlLocale={intlLocale}
             className={index > 1 ? "hidden md:flex" : undefined}
           />
         ))}
@@ -132,7 +140,7 @@ export function TerminalMarketPulse({ quotes }: { quotes: EnrichedMarketQuote[] 
       <div className="relative flex items-center border-t border-white/8 py-1.5 md:py-2">
         <span className="z-10 ml-2 flex shrink-0 items-center gap-1.5 rounded-lg bg-orange-400/10 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.14em] text-orange-200 md:ml-2.5 md:text-[9px] md:tracking-[0.16em]">
           <Clock3 className="h-3 w-3" aria-hidden="true" />
-          Markt-Puls
+          {t.marketPulse}
         </span>
         <div className="relative min-w-0 flex-1 overflow-hidden">
           <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-[#07111a] to-transparent" />

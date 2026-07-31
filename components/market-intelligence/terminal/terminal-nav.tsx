@@ -1,6 +1,6 @@
 "use client";
 
-import { miDe } from "@/lib/market-intelligence/i18n/de";
+import { useLocale, useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import {
   Droplets,
@@ -8,6 +8,7 @@ import {
   Settings,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 
 export type TerminalView =
   | "overview"
@@ -16,39 +17,14 @@ export type TerminalView =
   | "ai"
   | "alerts"
   | "settings"
-  // legacy aliases kept for old links
   | "news"
   | "markets"
   | "intelligence"
   | "operations";
 
-const VIEWS: {
-  id: Extract<TerminalView, "overview" | "oil" | "settings">;
-  label: string;
-  hint: string;
-  icon: typeof LayoutDashboard;
-}[] = [
-  {
-    id: "overview",
-    label: miDe.navOverview,
-    hint: "Wichtigstes zuerst",
-    icon: LayoutDashboard,
-  },
-  {
-    id: "oil",
-    label: miDe.navOil,
-    hint: "Preise · Flash · Alerts · KI",
-    icon: Droplets,
-  },
-  {
-    id: "settings",
-    label: miDe.navSettings,
-    hint: "Präferenzen",
-    icon: Settings,
-  },
-];
+type NavId = Extract<TerminalView, "overview" | "oil" | "settings">;
 
-function normalizeView(raw: string | null): (typeof VIEWS)[number]["id"] {
+function normalizeView(raw: string | null): NavId {
   if (
     raw === "geo" ||
     raw === "ai" ||
@@ -66,9 +42,29 @@ function normalizeView(raw: string | null): (typeof VIEWS)[number]["id"] {
   return "overview";
 }
 
+const SECTION_HINTS = {
+  de: {
+    sections: "Bereiche",
+    overview: "Wichtigstes zuerst",
+    oil: "Preise · Flash · Alerts · KI",
+    settings: "Präferenzen",
+  },
+  en: {
+    sections: "Sections",
+    overview: "Most important first",
+    oil: "Prices · Flash · Alerts · AI",
+    settings: "Preferences",
+  },
+  ta: {
+    sections: "பிரிவுகள்",
+    overview: "முக்கியம் முதலில்",
+    oil: "விலை · Flash · எச்சரிக்கை · AI",
+    settings: "விருப்பங்கள்",
+  },
+} as const;
+
 interface TerminalNavProps {
   unreadCount?: number;
-  /** Vertical rail for desktop right column */
   variant?: "side" | "mobile";
 }
 
@@ -78,9 +74,37 @@ export function TerminalNav({
 }: TerminalNavProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useMi();
+  const { locale } = useLocale();
+  const hints = SECTION_HINTS[locale];
   const active = normalizeView(searchParams.get("view"));
 
-  function setView(view: (typeof VIEWS)[number]["id"]) {
+  const views = useMemo(
+    () =>
+      [
+        {
+          id: "overview" as const,
+          label: t.navOverview,
+          hint: hints.overview,
+          icon: LayoutDashboard,
+        },
+        {
+          id: "oil" as const,
+          label: t.navOil,
+          hint: hints.oil,
+          icon: Droplets,
+        },
+        {
+          id: "settings" as const,
+          label: t.navSettings,
+          hint: hints.settings,
+          icon: Settings,
+        },
+      ] as const,
+    [t, hints],
+  );
+
+  function setView(view: NavId) {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("oilView");
     if (view === "overview") {
@@ -99,7 +123,7 @@ export function TerminalNav({
         aria-label="Mobile Navigation"
       >
         <div className="mx-auto flex max-w-lg items-stretch justify-between gap-0.5">
-          {VIEWS.map(({ id, label, icon: Icon }) => (
+          {views.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               type="button"
@@ -128,12 +152,12 @@ export function TerminalNav({
   return (
     <nav
       className="space-y-1 rounded-2xl border border-white/10 bg-[#101c29]/95 p-2 backdrop-blur-xl"
-      aria-label="Terminal-Navigation"
+      aria-label="Terminal navigation"
     >
       <p className="px-2.5 pb-1 pt-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-slate-500">
-        Bereiche
+        {hints.sections}
       </p>
-      {VIEWS.map(({ id, label, hint, icon: Icon }) => (
+      {views.map(({ id, label, hint, icon: Icon }) => (
         <button
           key={id}
           type="button"
@@ -174,7 +198,7 @@ export function TerminalNav({
   );
 }
 
-export function useTerminalView(): (typeof VIEWS)[number]["id"] {
+export function useTerminalView(): NavId {
   const searchParams = useSearchParams();
   return normalizeView(searchParams.get("view"));
 }

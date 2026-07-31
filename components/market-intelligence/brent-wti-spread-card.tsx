@@ -1,6 +1,8 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { formatChange, formatPrice } from "@/lib/market-intelligence/format";
-import { miDe } from "@/lib/market-intelligence/i18n/de";
+import { useMi } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 import type { BrentWTISpread } from "@/lib/types/market";
 
@@ -9,6 +11,8 @@ interface BrentWTISpreadCardProps {
 }
 
 export function BrentWTISpreadCard({ spread }: BrentWTISpreadCardProps) {
+  const t = useMi();
+
   const spreadUp = spread.spreadChange > 0;
 
   return (
@@ -16,7 +20,7 @@ export function BrentWTISpreadCard({ spread }: BrentWTISpreadCardProps) {
       <CardContent className="space-y-3 p-4">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-            {miDe.brentWtiSpread}
+            {t.brentWtiSpread}
           </p>
           <p className="mt-1 font-mono text-2xl font-semibold">
             ${formatPrice(spread.spread, "WTI")}
@@ -40,7 +44,7 @@ export function BrentWTISpreadCard({ spread }: BrentWTISpreadCardProps) {
             spreadUp ? "bg-emerald-900/40 text-emerald-300" : "bg-red-900/40 text-red-300",
           )}
         >
-          {miDe.spread} {formatChange(spread.spreadChange)} ({formatChange(spread.spreadChangePercent, true)})
+          {t.spread} {formatChange(spread.spreadChange)} ({formatChange(spread.spreadChangePercent, true)})
         </div>
       </CardContent>
     </Card>

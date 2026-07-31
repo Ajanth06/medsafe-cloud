@@ -223,149 +223,236 @@ export const miDe = {
   verificationLabel: "Verifizierung",
   confidenceLabel: "Konfidenz",
   marketAlreadyMovedLabel: "Markt hat bereits reagiert:",
+
+  openSource: "Quelle öffnen",
+  noExternalSource: "Keine externe Quelle hinterlegt.",
+  showMore: "Mehr anzeigen",
+  showLess: "Weniger anzeigen",
+  unknownSource: "Unbekannte Quelle",
+  regionIranian: "Iranische Agentur",
+  regionAmerican: "Amerikanische Agentur",
+  regionBritish: "Britische Agentur",
+  regionEuropean: "Europäische Agentur",
+  regionInternational: "Internationale Quelle",
+  agencyRegion: "Agentur / Region",
+  reportDetails: "Meldungsdetails",
+  flashAll: "Alle",
+  flashReports: "Meldungen",
+  flashNoTopic: "Keine Meldungen in diesem Thema.",
+  flashByTopicAria: "Flash News nach Thema",
+  newsTopicAria: "Nachrichtenthema",
+  importantNewsAria: "Wichtige News mit Bild",
+  topicOil: "Öl & Preise",
+  topicIran: "Iran & Geopolitik",
+  topicOpec: "OPEC",
+  topicInventory: "Bestände / EIA",
+  topicMacro: "Makro / Fed",
+  topicOther: "Sonstiges",
+  close: "Schließen",
+  originalEn: "Original EN",
+  oilOverview: "Öl-Übersicht",
+  oilOverviewHint: "WTI · Brent · Flash News",
+  geoMonitor: "Geo Monitor",
+  geoMonitorHint: "Hormuz · OPEC+ · Konflikte",
+  oilIntelHint: "Risk · Bias · Confidence",
+  intelAlerts: "Intelligence Alerts",
+  intelAlertsHint: "Warnungen · Verlauf",
+  oilSectionsAria: "Öl-Bereiche",
+  oilFlashTitle: "Oil Flash News",
+  oilFlashSubtitle: "Iran · Trump · Hormuz · OPEC+",
+  flashHeadingDefault: "Iran zuerst · AJ · BBC · US · Öl",
+  flashHeadingOil: "Iran · Al Jazeera · Press TV · Google · BBC",
+  flashHeadingMobile: "Iran · Al Jazeera · Press TV · Google",
+  changeLabel: "Veränderung",
+  volatilityLabel: "Volatilität",
+  activeReports: "Aktive Meldungen",
+  highImpact: "High Impact",
+  attentionElevated: "Aufmerksamkeit erhöht",
+  situationCalm: "Lage ruhig",
+  sourceCoverage: "Quellenabdeckung",
+  agenciesMedia: "Agenturen & Medien",
+  lastUpdate: "Letztes Update",
+  overviewShort: "Übersicht",
+  openProfile: "Profil öffnen",
+  mobileOverviewAria: "Mobile AARYX Übersicht",
+  oilPricesIntro: "Preise, Volatilität und ölpreisrelevante Flash News in einer klaren Ansicht.",
+  upward: "Aufwärts",
+  downward: "Abwärts",
+  moderateDayMove: "Moderate Tagesbewegung — weiter beobachten.",
+  correlation: "Korrelation",
+  oilsMoveTogether: "Ölmärkte bewegen sich gemeinsam",
+  independentOilMove: "Unabhängige Öl-Bewegung",
+  noHotSignal: "Kein HOT-Signal",
+  flashFeedDisconnected: "Flash-Feed getrennt",
+  accessTerminal: "Zugang zum Terminal.",
+  authInviteOnly: "Nur freigeschaltete Konten. Keine öffentliche Registrierung.",
+  passwordMinPlaceholder: "Mindestens 8 Zeichen",
+  globalMarketClocksAria: "Globale Marktuhren",
+
+  liveImageBadge: "Live Bild · Iran · AJ · BBC · US",
+  importantNews: "Wichtige Nachrichten",
+  photos: "Fotos",
+  oilTerminalTitle: "WTI · Brent · Oil Market Intelligence",
+  mostImportantFirst: "Wichtigstes zuerst",
+  topStoriesGlance: "Die aktuell wichtigsten Bilder und Schlagzeilen auf einen Blick.",
+  liveBriefing: "Live Intelligence Briefing",
+  whatMovesNews: "Was die Nachrichtenlage gerade bewegt",
+  prioritizedBundled: "priorisiert & gebündelt",
+  continuousCet: "CET · fortlaufend",
+  nowInFocus: "Jetzt im Fokus",
+  importantNewsFirst: "Wichtige News zuerst",
+  oilShort: "Öl",
+  criticalCount: "kritisch",
+  unreadCountLabel: "ungelesen",
+  noOpenWarnings: "Keine offenen Warnungen",
+  heroIntelligenceBadge: "Intelligence that moves with the market",
+  readOilMoves: "Märkte verstehen.",
+  beforeMarketReacts: "Früher reagieren.",
+  wtiBrentGeoLine:
+    "Öl, Makro und Geopolitik in einem lebendigen Intelligence-Terminal.",
+  noInvestmentAdvice: "Keine Anlageberatung",
+  noTradingSignals: "Keine Handelssignale",
+  authorizedUsers: "Autorisierte Nutzer",
+  kiIntelligence: "KI Intelligence",
+  oilFlashShort: "Oil Flash News",
+
+  signOut: "Abmelden",
+  calmSituation: "Lage",
+  elevatedMove: "erhöhte Bewegung",
+  wtiBrentConfirmed: "WTI + Brent bestätigt",
+  kiAssessment: "KI · Einschätzung",
+  noHotBody: "WTI/Brent ohne erhöhte Volatilität. KI-Hinweise erscheinen bei starken Moves oder Live-Analyse.",
+  hotVolatility: "HOT · Volatilität",
+
+  signupTitle: "Registrieren",
+  signupSubtitle: "Nur freigeschaltete Konten.",
+  nameLabel: "Name",
+  namePlaceholder: "Dein Name",
+  emailPlaceholder: "du@beispiel.de",
+  createAccount: "Registrieren",
+  hasAccount: "Bereits ein Konto?",
+  goSignIn: "Anmelden",
+
+  email: "E-Mail",
+  password: "Passwort",
+  or: "oder",
+
+  dayHigh: "Tageshoch",
+  dayLow: "Tagestief",
+
+  sessionExpiring: "Sitzung läuft ab",
+  sessionExpiringBody: "Sie werden aus Sicherheitsgründen in 1 Minute abgemeldet.",
+  continueWorking: "Weiterarbeiten",
+  staySignedIn: "Angemeldet bleiben",
+  staySignedInHint: "Nur auf privaten Geräten empfohlen.",
+  sessionLoggedOut: "Sie wurden nach 15 Minuten Inaktivität aus Sicherheitsgründen abgemeldet.",
+  geoMonitorTitle: "Geopolitischer Öl-Monitor",
+  geoMonitorSubtitle: "Ereignisse mit möglicher Relevanz für WTI und Brent",
+  focusAll: "Alle",
+  focusSaudi: "Saudi-Arabien",
+  focusRussia: "Russland / Ukraine",
+  focusUsaTrump: "USA / Trump",
+  focusRedSea: "Rotes Meer / Houthis",
+  activeCount: "aktiv",
+  noFocusReports: "Keine aktuellen Meldungen für diesen Fokus.",
+  sourcePrefix: "Quelle:",
+  potentialImpact: "Mögliche Auswirkung:",
+  impactLabel: "IMPACT",
+  aiBriefEyebrow: "KI-gestützte Markt- & Geopolitik-Intelligence",
+  aiBriefTitle: "KI Intelligence Brief",
+  aiBriefSubtitle: "Zusammenhänge zwischen News, Ölpreisen, Volatilität und geopolitischen Risiken.",
+  oilRiskLevel: "Öl-Risikoniveau",
+  liveAiAnalysis: "Live-KI-Analyse",
+  systemAssessment: "Systemeinschätzung",
+  currentOilRisk: "Aktuelle Öl- und Risikolage",
+  aiFallbackSummary: "Die Einschätzung wird aus aktuellen Ölbewegungen, priorisierten Nachrichten und geopolitischen Risikomerkmalen gebildet. Es liegt derzeit keine neue verifizierte Live-KI-Zusammenfassung vor.",
+  wtiVolatility: "WTI-Volatilität",
+  brentMomentumLabel: "Brent-Momentum",
+  hormuzRisk: "Hormuz-Risiko",
+  supplyRisk: "Angebotsrisiko",
+  activeMentions: "Aktive Erwähnungen",
+  noConfirmedDisruption: "Keine bestätigte Störung",
+  newsEventSituation: "News- und Ereignislage",
+  bullishFactors: "Bullische Faktoren",
+  bearishFactors: "Bearishe Faktoren",
+  noBullishFactors: "Keine dominanten bullishen Faktoren erkannt.",
+  noBearishFactors: "Keine dominanten bearishen Faktoren erkannt.",
+  aiConclusion: "KI-Schlussfolgerung",
+  shortTermOilBias: "Kurzfristiger Öl-Bias",
+  riskLabel: "Risiko",
+  aiDisclaimer: "Keine Anlageberatung. Nicht bestätigte Ereignisse werden als Risiko, nicht als Tatsache behandelt.",
+  alertsHistoryEyebrow: "Intelligence Alerts & Verlauf",
+  alertsWhatHappenedTitle: "Was ist passiert – und was bedeutet es?",
+  alertsWorkspaceSubtitle: "Preis-, Volatilitäts- und geopolitische Warnungen mit Einordnung für WTI und Brent.",
+  alertsPausedTitle: "Intelligence Alerts sind pausiert",
+  alertsEmptyTitle: "Keine aktiven Intelligence Alerts",
+  alertsPausedHint: "Du kannst sie unter Einstellungen wieder aktivieren.",
+  alertsEmptyHint: "Neue relevante Preis- oder Risikoereignisse erscheinen hier.",
+  whatHappened: "Was ist passiert?",
+  whyImportant: "Warum ist es wichtig?",
+  meaningForOil: "Bedeutung für WTI & Brent",
+  marketImpactPending: "Marktauswirkung wird noch geprüft.",
+  riskPrefix: "Risiko:",
+  whatAiSays: "Was sagt die KI dazu?",
+  alertThresholdFallback: "Der Alert überschreitet einen überwachten Markt- oder Risikoschwellenwert.",
+  alertNoAiFallback: "Noch keine zusätzliche verifizierte KI-Einordnung verfügbar.",
+  alertMaterialChangeFallback: "Eine überwachte Markt- oder Nachrichtenbedingung hat sich wesentlich verändert.",
+  alertWatchingAiFallback: "Der Alert wird beobachtet; eine zusätzliche Live-KI-Einordnung liegt noch nicht vor.",
+  intelAlertSettings: "Intelligence-Alert-Einstellungen",
+  changesAutoSaved: "Änderungen werden automatisch gespeichert.",
+  hidesAllIntelAlerts: "Blendet alle Intelligence Alerts aus.",
+  minPriority: "Mindestpriorität",
+  preferencesEyebrow: "Preferences",
+  settingsTitle: "Einstellungen",
+  settingsSubtitle: "In-App Alerts, Prioritäten und relevante Ölthemen.",
+  livePrefix: "Live",
+  worldTime: "Weltzeit",
+  marketPulse: "Markt-Puls",
+  marketPulseAria: "Globale Marktzeiten und laufende Kurse",
+  pricesSection: "Preise",
+  pricesSubtitle: "WTI & Brent live",
+  accountTitle: "Konto",
+  accessProtected: "Zugang geschützt",
+  profileDisclaimer: "AARYX ist nur für freigeschaltete Konten. Keine Gesundheitsdaten.",
+  continueWithApple: "Weiter mit Apple",
+  googleNotConfigured: "Google-Anmeldung ist nicht konfiguriert.",
+  loginMobileTagline: "Öl und Geopolitik — live im Terminal.",
+  signupMobileTagline: "Zugang zum Terminal.",
+  loadingOil: "AARYX lädt · WTI / Brent",
+  demoNews: "Demo-News",
+  liveFeedDisconnected: "Live-Feed getrennt",
+  tokyo: "Tokio",
+  marketIntelligenceLabel: "Market Intelligence",
+  liveBadge: "Live",
+  alertsShort: "Alerts",
+
+  oilGeoIntelligence: "Öl- & Geopolitik-Intelligence",
+  kiPanelSubtitle: "HOT · Volatilität · Korrelation · Einschätzung",
+  kiPanelDisclaimer: "Keine Anlageberatung — strukturierte Signale für den Öl-Terminal.",
+
+  aiThreeLines: "KI · 3 Zeilen",
+  aiSituation: "1. Lage:",
+  aiCause: "2. Ursache:",
+  aiRiskWatch: "3. Risiko / Watch:",
+  aiShortDisclaimer: "Keine Anlageberatung — kurze Einschätzung zu High/Critical Events.",
+  aiAssessmentAria: "KI-Einschätzung",
+  rateLimitWait: "Rate limit — kurz warten",
+
+  continueWithGoogle: "Weiter mit Google",
 } as const;
 
-const severityLabels: Record<string, string> = {
-  INFO: "Info",
-  LOW: "Niedrig",
-  MEDIUM: "Mittel",
-  HIGH: "Hoch",
-  CRITICAL: "Kritisch",
-};
-
-const dataAvailabilityLabels: Record<string, string> = {
-  REALTIME: "Echtzeit",
-  DELAYED: "Verzögert",
-  DEMO: "Demo-Daten",
-  UNAVAILABLE: "Nicht verfügbar",
-  STALE: "Veraltet",
-  LIVE: "Live",
-};
-
-const verificationLabels: Record<string, string> = {
-  UNVERIFIED: "Unverifiziert",
-  SINGLE_SOURCE: "Einzelquelle",
-  MULTIPLE_SOURCES: "Mehrere Quellen",
-  CONFIRMED: "Bestätigt",
-  OFFICIAL_SOURCE: "Offizielle Quelle",
-  OFFICIAL_CONFIRMATION: "Offizielle Bestätigung",
-  CONFLICTING: "Widersprüchlich",
-  RETRACTED: "Zurückgezogen",
-  WATCH_MODE: "Beobachtungsmodus",
-};
-
-const regimeLabels: Record<string, string> = {
-  RISK_ON: "Risikobereitschaft",
-  RISK_OFF: "Risikoaversion",
-  INFLATIONARY: "Inflationär",
-  DEFLATIONARY: "Deflationär",
-  LIQUIDITY_DRIVEN: "Liquiditätsgetrieben",
-  ENERGY_SHOCK: "Energieschock",
-  GEOPOLITICAL_RISK: "Geopolitisches Risiko",
-  MACRO_EVENT: "Makro-Ereignis",
-  MIXED: "Gemischt",
-  NEUTRAL: "Neutral",
-  UNCERTAIN: "Unsicher",
-};
-
-const pressureLabels: Record<string, string> = {
-  STRONG_BULLISH: "Starker Aufwärtsdruck",
-  STRONG_BULLISH_PRESSURE: "Starker Aufwärtsdruck",
-  BULLISH: "Aufwärtsdruck",
-  BULLISH_PRESSURE: "Aufwärtsdruck",
-  NEUTRAL: "Neutral",
-  BEARISH: "Abwärtsdruck",
-  BEARISH_PRESSURE: "Abwärtsdruck",
-  STRONG_BEARISH: "Starker Abwärtsdruck",
-  STRONG_BEARISH_PRESSURE: "Starker Abwärtsdruck",
-  UNCERTAIN: "Unsicher",
-};
-
-const volatilityLabels: Record<string, string> = {
-  HIGH_VOLATILITY: "HOHE VOLATILITÄT",
-  ELEVATED_VOLATILITY: "ERHÖHTE VOLATILITÄT",
-};
-
-const eventStatusLabels: Record<string, string> = {
-  ACTIVE: "Aktiv",
-  MONITORING: "Überwachung",
-  CONFIRMED: "Bestätigt",
-  RESOLVED: "Erledigt",
-};
-
-const confidenceLabels: Record<string, string> = {
-  HIGH: "Hoch",
-  MEDIUM: "Mittel",
-  LOW: "Niedrig",
-};
-
-export function tSeverity(value: string): string {
-  return severityLabels[value] ?? value;
-}
-
-export function tDataAvailability(value: string): string {
-  return dataAvailabilityLabels[value] ?? value.replace(/_/g, " ");
-}
-
-export function tVerification(value: string): string {
-  return verificationLabels[value] ?? value.replace(/_/g, " ");
-}
-
-export function tRegime(value: string): string {
-  return regimeLabels[value] ?? value.replace(/_/g, " ");
-}
-
-export function tPressure(value: string): string {
-  return pressureLabels[value] ?? value.replace(/_/g, " ");
-}
-
-export function tStatus(value: string): string {
-  const map: Record<string, string> = {
-    ONLINE: "Online",
-    OFFLINE: "Offline",
-    DEGRADED: "Eingeschränkt",
-    NOT_CONFIGURED: "Nicht konfiguriert",
-    PASS: "OK",
-    WARN: "Warnung",
-    FAIL: "Fehler",
-    HEALTHY: "Gesund",
-    CRITICAL: "Kritisch",
-    ACTIVE: "Aktiv",
-    READY: "Bereit",
-    CONNECTED: "Verbunden",
-    STALE: "Veraltet",
-    RECONNECTING: "Verbindet neu",
-    DISCONNECTED: "Getrennt",
-    LIVE: "Live",
-    DEMO: "Demo",
-  };
-  return map[value] ?? value;
-}
-
-export function tVolatility(value: string): string {
-  return volatilityLabels[value] ?? value.replace(/_/g, " ");
-}
-
-export function tEventStatus(value: string): string {
-  return eventStatusLabels[value] ?? value.replace(/_/g, " ");
-}
-
-export function tConfidence(value: string): string {
-  return confidenceLabels[value] ?? value.replace(/_/g, " ");
-}
-
-export function tSourcesCount(count: number): string {
-  return `Quellen (${count} unabhängig)`;
-}
-
-export function tEvidenceCount(count: number): string {
-  return `Belege (${count} Einträge)`;
-}
-
-export function tUnreadAlerts(count: number): string {
-  return count === 1 ? `${count} ${miDe.unreadAlert}` : `${count} ${miDe.unreadAlerts}`;
-}
-
-export function tDelayedMinutes(minutes: number): string {
-  return `Verzögert ${minutes}m`;
-}
+export {
+  tSeverity,
+  tDataAvailability,
+  tVerification,
+  tRegime,
+  tPressure,
+  tStatus,
+  tVolatility,
+  tEventStatus,
+  tConfidence,
+  tSourcesCount,
+  tEvidenceCount,
+  tUnreadAlerts,
+  tDelayedMinutes,
+} from "@/lib/i18n/labels";
