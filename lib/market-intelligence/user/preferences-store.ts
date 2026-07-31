@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { isActiveMarketSymbol } from "@/lib/market-intelligence/config/assets";
 import {
   DEFAULT_TERMINAL_PREFERENCES,
   type UserTerminalPreferences,
@@ -19,17 +20,24 @@ interface PreferenceRow {
 }
 
 function rowToPreferences(row: PreferenceRow): UserTerminalPreferences {
+  const rawWatchlist =
+    row.watchlist_symbols?.length
+      ? row.watchlist_symbols
+      : DEFAULT_TERMINAL_PREFERENCES.watchlistSymbols;
+  const watchlistSymbols = rawWatchlist.filter(isActiveMarketSymbol);
   return {
     watchlistSymbols:
-      row.watchlist_symbols?.length ? row.watchlist_symbols : DEFAULT_TERMINAL_PREFERENCES.watchlistSymbols,
+      watchlistSymbols.length > 0
+        ? watchlistSymbols
+        : [...DEFAULT_TERMINAL_PREFERENCES.watchlistSymbols],
     telegramEnabled: row.telegram_enabled,
     pushEnabled: row.push_enabled,
     minimumSeverity: row.minimum_severity as AlertSeverity,
     oilAlerts: row.oil_alerts,
     geopoliticalAlerts: row.geopolitical_alerts,
     macroAlerts: row.macro_alerts,
-    cryptoAlerts: row.crypto_alerts,
-    equityAlerts: row.equity_alerts,
+    cryptoAlerts: false,
+    equityAlerts: false,
     alertsPaused: row.alerts_paused,
   };
 }

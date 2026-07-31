@@ -1,6 +1,7 @@
 import { BottomNav } from "@/components/app/bottom-nav";
 import { SessionTimeoutGuard } from "@/components/app/session-timeout-guard";
 import { getUserOrRedirect } from "@/lib/auth";
+import { Suspense } from "react";
 
 export default async function AppLayout({
   children,
@@ -33,7 +34,9 @@ export default async function AppLayout({
       />
       <SessionTimeoutGuard />
       <div className="relative z-10">{children}</div>
-      <BottomNav />
+      <Suspense fallback={null}>
+        <BottomNav />
+      </Suspense>
     </div>
   );
 }

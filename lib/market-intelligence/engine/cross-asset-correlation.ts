@@ -12,7 +12,7 @@ import type {
   TimeWindowMinutes,
 } from "@/lib/types/market";
 
-const CORRELATION_SYMBOLS = ["WTI", "BRENT", "GOLD", "DAX", "NDX"] as const;
+const CORRELATION_SYMBOLS = ["WTI", "BRENT"] as const;
 
 const MIN_MOVEMENT_PERCENT = 0.5;
 
@@ -51,17 +51,18 @@ export function analyzeCrossAssetCorrelation(
   const hasOilUp = movements.some(
     (m) => (m.symbol === "WTI" || m.symbol === "BRENT") && m.direction === "UP",
   );
-  const hasGoldUp = movements.some((m) => m.symbol === "GOLD" && m.direction === "UP");
-  const hasEquityDown = movements.some(
-    (m) => (m.symbol === "DAX" || m.symbol === "NDX") && m.direction === "DOWN",
+  const hasOilDown = movements.some(
+    (m) => (m.symbol === "WTI" || m.symbol === "BRENT") && m.direction === "DOWN",
   );
 
-  if (hasOilUp && hasGoldUp && hasEquityDown) {
-    possibleRegime = "RISK-OFF";
-  } else if (downCount > upCount && hasEquityDown) {
+  if (hasOilUp && downCount === 0) {
+    possibleRegime = "RISK-ON";
+  } else if (hasOilDown && upCount === 0) {
     possibleRegime = "RISK-OFF";
   } else if (upCount > downCount) {
     possibleRegime = "RISK-ON";
+  } else if (downCount > upCount) {
+    possibleRegime = "RISK-OFF";
   }
 
   const description = movements

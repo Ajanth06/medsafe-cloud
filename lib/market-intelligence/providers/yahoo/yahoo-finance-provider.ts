@@ -25,6 +25,10 @@ export const YAHOO_SYMBOL_MAP: Record<string, string> = Object.fromEntries(
   MARKET_ASSETS.map((a) => [a.symbol, a.providerSymbol]),
 );
 
+const YAHOO_TO_INTERNAL: Record<string, string> = Object.fromEntries(
+  Object.entries(YAHOO_SYMBOL_MAP).map(([internal, yahoo]) => [yahoo, internal]),
+);
+
 interface YahooQuoteMeta {
   regularMarketPrice?: number;
   previousClose?: number;
@@ -250,6 +254,8 @@ export class YahooFinanceMarketDataProvider implements MarketDataProvider {
     }
 
     const chart = await this.fetchChart(yahooSymbol, "1m", "1d");
+    const internal = YAHOO_TO_INTERNAL[yahooSymbol];
+    if (internal) seedPriceHistoryFromChart(internal, chart);
     const latest = extractLatestBar(chart);
     const meta: YahooQuoteMeta = {
       ...chart.meta,
@@ -272,6 +278,8 @@ export class YahooFinanceMarketDataProvider implements MarketDataProvider {
     const entries = await Promise.all(
       yahooSymbols.map(async (yahooSymbol) => {
         const chart = await this.fetchChart(yahooSymbol, "1m", "1d");
+        const internal = YAHOO_TO_INTERNAL[yahooSymbol];
+        if (internal) seedPriceHistoryFromChart(internal, chart);
         const latest = extractLatestBar(chart);
         const meta: YahooQuoteMeta = {
           ...chart.meta,
@@ -345,6 +353,47 @@ function extractLatestBar(
     }
   }
   return null;
+}
+
+/** Keep 1m bars in the anomaly buffer so 5–15m windows work without a worker. */
+const historySeedAt = new Map<string, number>();
+const HISTORY_SEED_TTL_MS = 60_000;
+
+function seedPriceHistoryFromChart(
+  internalSymbol: string,
+  chart: YahooChartResult,
+): void {
+  const entry = getSymbolEntry(internalSymbol);
+  if (!entry) return;
+
+  const existing = getPriceHistoryBuffer().getSnapshots(internalSymbol);
+  const lastSeed = historySeedAt.get(internalSymbol) ?? 0;
+  if (
+    existing.length >= 20 &&
+    Date.now() - lastSeed < HISTORY_SEED_TTL_MS
+  ) {
+    return;
+  }
+
+  const timestamps = chart.timestamp ?? [];
+  const closes = chart.indicators?.quote?.[0]?.close ?? [];
+  const snaps: { assetId: string; symbol: string; price: number; timestamp: string }[] =
+    [];
+
+  for (let i = 0; i < timestamps.length; i++) {
+    const close = closes[i];
+    if (typeof close !== "number" || close <= 0) continue;
+    snaps.push({
+      assetId: entry.assetId,
+      symbol: internalSymbol,
+      price: close,
+      timestamp: new Date(timestamps[i] * 1000).toISOString(),
+    });
+  }
+
+  if (snaps.length < 2) return;
+  getPriceHistoryBuffer().setSnapshots(internalSymbol, snaps.slice(-90));
+  historySeedAt.set(internalSymbol, Date.now());
 }
 
 function yahooUnavailableQuote(

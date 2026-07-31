@@ -95,7 +95,6 @@ export function SystemStatus({ health }: SystemStatusProps) {
           <StatusRow label="WTI" status={health.wtiFeed} />
           <StatusRow label="BRENT" status={health.brentFeed} />
           {health.goldFeed && <StatusRow label={miDe.gold} status={health.goldFeed} />}
-          <StatusRow label="WebSocket" status={health.websocket} />
           <StatusRow label={miDe.restFallback} status={health.restFallback} />
           <StatusRow label={miDe.eventDetection} status={health.eventDetection} />
           <StatusRow label={miDe.newsEngine} status={health.newsEngine} />

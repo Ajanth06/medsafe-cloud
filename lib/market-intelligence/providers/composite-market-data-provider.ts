@@ -198,10 +198,10 @@ export function createCompositeMarketDataProvider(): MarketDataProvider {
     ? new PolygonRestMarketDataProvider(marketConfig.apiKey ?? undefined)
     : null;
 
-  marketLogger.info("Using Investing-style Yahoo for oil + markets", {
+  marketLogger.info("Using oil-only Yahoo quotes: WTI + Brent", {
     oilFallback: Boolean(oil),
     polygonFallback: Boolean(polygon),
-    symbols: { WTI: "CL=F", BRENT: "BZ=F", DAX: "^GDAXI" },
+    symbols: { WTI: "CL=F", BRENT: "BZ=F" },
   });
 
   return new CompositeMarketDataProvider({ oil, yahoo, polygon });

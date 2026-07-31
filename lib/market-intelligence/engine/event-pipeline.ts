@@ -124,8 +124,14 @@ export function runEventPipeline(
     return event;
   });
 
+  // MEDIUM+ so oil 0.8%/5m and gold 1%/15m reach Alert Center, not only HIGH
   const intelligenceAlerts = marketEvents
-    .filter((e) => e.severity === "HIGH" || e.severity === "CRITICAL")
+    .filter(
+      (e) =>
+        e.severity === "MEDIUM" ||
+        e.severity === "HIGH" ||
+        e.severity === "CRITICAL",
+    )
     .map((e) => {
       const anomaly = anomalies.find((a) => a.id === e.id)!;
       return createIntelligenceAlert({

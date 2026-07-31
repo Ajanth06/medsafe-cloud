@@ -100,8 +100,6 @@ export function AlertPreferencesPanel() {
               ["oilAlerts", miDe.categories.oil],
               ["geopoliticalAlerts", miDe.categories.geo],
               ["macroAlerts", miDe.categories.macro],
-              ["cryptoAlerts", miDe.categories.crypto],
-              ["equityAlerts", miDe.categories.equities],
             ] as const
           ).map(([key, label]) => (
             <label key={key} className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2 text-sm">

@@ -26,7 +26,20 @@ const seenIds = new Set<string>();
 let feedCache: { at: number; items: NormalizedNewsItem[] } | null = null;
 /** Longer cache = fewer RSS storms; Flash poll is ~60–90s anyway. */
 const CACHE_TTL_MS = 90_000;
-const FEED_TIMEOUT_MS = 4_000;
+/** Serve stale up to 10m while a background refresh runs. */
+const STALE_MAX_MS = 10 * 60_000;
+const FEED_TIMEOUT_MS = 2_200;
+/** Cold start / page paint: only the highest-signal oil feeds. */
+const FAST_FEED_IDS = new Set([
+  "google-oil-de",
+  "google-iran-de",
+  "google-trump-iran-de",
+  "reuters-oil-iran",
+  "tagesschau-wirtschaft",
+  "eia",
+]);
+
+let refreshInFlight: Promise<void> | null = null;
 
 function feedWeightForItem(item: NormalizedNewsItem): number {
   const feed = OIL_RSS_FEEDS.find(
@@ -190,12 +203,37 @@ export class OilRssNewsProvider implements NewsProvider {
   }
 
   private async fetchAll(limit: number): Promise<NormalizedNewsItem[]> {
-    if (feedCache && Date.now() - feedCache.at < CACHE_TTL_MS) {
-      return feedCache.items.slice(0, limit);
+    const now = Date.now();
+    if (feedCache) {
+      const age = now - feedCache.at;
+      if (age < CACHE_TTL_MS) {
+        return feedCache.items.slice(0, limit);
+      }
+      // Stale-while-revalidate: paint instantly, refresh in background
+      if (age < STALE_MAX_MS) {
+        void this.refreshFeedsInBackground();
+        return feedCache.items.slice(0, limit);
+      }
     }
 
+    await this.refreshFeeds({ fast: true });
+    return (feedCache?.items ?? []).slice(0, limit);
+  }
+
+  private refreshFeedsInBackground(): void {
+    if (refreshInFlight) return;
+    refreshInFlight = this.refreshFeeds({ fast: false }).finally(() => {
+      refreshInFlight = null;
+    });
+  }
+
+  private async refreshFeeds(opts: { fast: boolean }): Promise<void> {
+    const feeds = opts.fast
+      ? OIL_RSS_FEEDS.filter((f) => FAST_FEED_IDS.has(f.id))
+      : OIL_RSS_FEEDS;
+
     const results = await Promise.all(
-      OIL_RSS_FEEDS.map(async (feed) => {
+      feeds.map(async (feed) => {
         try {
           const limit =
             feed.id === "aljazeera" || feed.id.startsWith("reuters")
@@ -231,8 +269,12 @@ export class OilRssNewsProvider implements NewsProvider {
       );
     });
 
-    feedCache = { at: Date.now(), items: merged };
-    return merged.slice(0, limit);
+    // Keep previous cache if refresh returned nothing (partial outage)
+    if (merged.length > 0 || !feedCache) {
+      feedCache = { at: Date.now(), items: merged };
+    } else {
+      feedCache = { ...feedCache, at: Date.now() };
+    }
   }
 }
 

@@ -81,9 +81,14 @@ export async function runOperationsTick(): Promise<OperationsTickResult> {
   const stream = getStreamState();
   const pipeline = stream.pipeline;
 
+  let newsAlerts = pipeline?.intelligenceAlerts ?? [];
+  let newsClusters: Awaited<ReturnType<typeof runNewsPipeline>>["intelligenceEvents"] = [];
+
   if (config.newsMonitoringEnabled && pipeline) {
     recordHeartbeat("news-investigator", "news");
     const newsResult = await runNewsPipeline(pipeline);
+    newsAlerts = newsResult.intelligenceAlerts;
+    newsClusters = newsResult.intelligenceEvents;
 
     if (config.aiAnalysisEnabled) {
       recordHeartbeat("ai-analyzer", "ai");
@@ -100,18 +105,19 @@ export async function runOperationsTick(): Promise<OperationsTickResult> {
         }
       }
     }
+  }
 
-    if (config.alertDeliveryEnabled) {
-      recordHeartbeat("alert-delivery", "alert");
-      const delivery = await processAlertsForDelivery({
-        alerts: newsResult.intelligenceAlerts,
-        clusters: newsResult.intelligenceEvents,
-        latency: {
-          marketEventCreatedAt: pipeline.marketEvents[0]?.detectedAt,
-        },
-      });
-      alertsDelivered = delivery.delivered.length;
-    }
+  // Market-only alerts still deliver when news monitoring is off
+  if (config.alertDeliveryEnabled && newsAlerts.length > 0) {
+    recordHeartbeat("alert-delivery", "alert");
+    const delivery = await processAlertsForDelivery({
+      alerts: newsAlerts,
+      clusters: newsClusters,
+      latency: {
+        marketEventCreatedAt: pipeline?.marketEvents[0]?.detectedAt,
+      },
+    });
+    alertsDelivered = delivery.delivered.length;
   }
 
   jobsProcessed += await retryAlertDeliveries();

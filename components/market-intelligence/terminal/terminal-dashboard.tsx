@@ -15,6 +15,7 @@ import { LiveIntelligenceFeed } from "@/components/market-intelligence/live-inte
 import { NewsStatusBadge } from "@/components/market-intelligence/news-status-badge";
 import { MarketCardsGrid } from "@/components/market-intelligence/market-cards-grid";
 import { MarketEvents } from "@/components/market-intelligence/market-events";
+import { MobileHomeHub } from "@/components/market-intelligence/mobile/mobile-home-hub";
 import { OilIntelligenceSection } from "@/components/market-intelligence/oil-intelligence-section";
 import { ReplayValidationSection } from "@/components/market-intelligence/replay-validation-section";
 import { SystemStatus } from "@/components/market-intelligence/system-status";
@@ -183,12 +184,14 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
             )}
           </div>
 
-          <TerminalNav unreadCount={data.unreadAlertCount} />
+          <div className="hidden md:block">
+            <TerminalNav unreadCount={data.unreadAlertCount} />
+          </div>
           <TerminalMarketPulse quotes={quotes} />
         </div>
       </header>
 
-      <section className="group/news relative overflow-hidden rounded-[1.25rem] border border-orange-300/20 bg-gradient-to-r from-orange-400/10 via-[#101c29]/90 to-cyan-400/10 p-3 shadow-[0_10px_30px_rgba(0,0,0,0.16)] backdrop-blur-xl transition duration-300 hover:border-orange-300/30 md:rounded-[1.5rem] md:p-5">
+      <section className="group/news relative hidden overflow-hidden rounded-[1.25rem] border border-orange-300/20 bg-gradient-to-r from-orange-400/10 via-[#101c29]/90 to-cyan-400/10 p-3 shadow-[0_10px_30px_rgba(0,0,0,0.16)] backdrop-blur-xl transition duration-300 hover:border-orange-300/30 md:block md:rounded-[1.5rem] md:p-5">
         <div
           className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-300/15 blur-3xl"
           aria-hidden="true"
@@ -230,10 +233,20 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
 
       <div className="grid items-start gap-3 md:gap-5 xl:grid-cols-[minmax(0,1fr)_19rem]">
         <div className="min-w-0 space-y-4 md:space-y-6">
+          {view !== "overview" && (
+            <Link
+              href="/market-intelligence"
+              className="app-touch inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-semibold text-slate-200 shadow-sm transition hover:-translate-x-0.5 hover:border-orange-300/25 hover:bg-orange-400/10 hover:text-orange-100 md:hidden"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              Zurück zur Übersicht
+            </Link>
+          )}
+
           {view === "intelligence" && (
             <Link
               href="/market-intelligence"
-              className="app-touch inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-semibold text-slate-200 shadow-sm transition hover:-translate-x-0.5 hover:border-orange-300/25 hover:bg-orange-400/10 hover:text-orange-100"
+              className="app-touch hidden min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-semibold text-slate-200 shadow-sm transition hover:-translate-x-0.5 hover:border-orange-300/25 hover:bg-orange-400/10 hover:text-orange-100 md:inline-flex"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Zurück zur Übersicht
@@ -253,34 +266,56 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
 
           {view === "overview" && (
             <>
-              <SystemHealthPill health={data.systemHealth} />
-              <IranUsHeader events={breakingNews} />
-              <FlashNewsStrip
-                events={breakingNews}
-                oilMovePercent={oilMovePercent}
-              />
-              <EventStoryCard
+              <MobileHomeHub
                 quotes={quotes}
                 breakingNews={breakingNews}
-                marketEvents={data.marketEvents}
-                intelligenceEvents={data.intelligenceEvents}
-              />
-              <AiShortAssessment
-                intelligenceEvents={data.intelligenceEvents}
-              />
-              <MorningBriefing
-                quotes={quotes}
-                breakingNews={breakingNews}
-                intelligenceEvents={data.intelligenceEvents}
                 unreadAlertCount={data.unreadAlertCount ?? 0}
+                criticalAlertCount={
+                  data.intelligenceAlerts.filter(
+                    (alert) =>
+                      alert.severity === "CRITICAL" ||
+                      alert.severity === "HIGH",
+                  ).length
+                }
               />
-              <MarketCardsGrid
-                quotes={quotes}
-                primaryQuotes={primaryQuotes}
-                brentWtiSpread={data.brentWtiSpread}
-              />
-              <LiveIntelligenceFeed entries={filteredFeed.length ? filteredFeed : data.liveFeed} />
-              <MarketEvents events={filteredMarketEvents.length ? filteredMarketEvents : data.marketEvents} />
+              <div className="hidden space-y-6 md:block">
+                <SystemHealthPill health={data.systemHealth} />
+                <IranUsHeader events={breakingNews} />
+                <FlashNewsStrip
+                  events={breakingNews}
+                  oilMovePercent={oilMovePercent}
+                />
+                <EventStoryCard
+                  quotes={quotes}
+                  breakingNews={breakingNews}
+                  marketEvents={data.marketEvents}
+                  intelligenceEvents={data.intelligenceEvents}
+                />
+                <AiShortAssessment
+                  intelligenceEvents={data.intelligenceEvents}
+                />
+                <MorningBriefing
+                  quotes={quotes}
+                  breakingNews={breakingNews}
+                  intelligenceEvents={data.intelligenceEvents}
+                  unreadAlertCount={data.unreadAlertCount ?? 0}
+                />
+                <MarketCardsGrid
+                  quotes={quotes}
+                  primaryQuotes={primaryQuotes}
+                  brentWtiSpread={data.brentWtiSpread}
+                />
+                <LiveIntelligenceFeed
+                  entries={filteredFeed.length ? filteredFeed : data.liveFeed}
+                />
+                <MarketEvents
+                  events={
+                    filteredMarketEvents.length
+                      ? filteredMarketEvents
+                      : data.marketEvents
+                  }
+                />
+              </div>
             </>
           )}
 
@@ -345,6 +380,9 @@ function TerminalDashboardContent({ data }: TerminalDashboardProps) {
 
           {view === "alerts" && (
             <>
+              {data.intelligenceAlerts.length > 0 && (
+                <IntelligenceAlerts alerts={data.intelligenceAlerts} />
+              )}
               <AlertCenter
                 alerts={filteredAlerts.length ? filteredAlerts : (data.deliveredAlerts ?? [])}
                 unreadCount={data.unreadAlertCount}

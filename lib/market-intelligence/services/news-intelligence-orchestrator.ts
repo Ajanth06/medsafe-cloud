@@ -28,6 +28,7 @@ import type {
   LiveFeedEntry,
   MarketEvent,
   NewsEvent,
+  NewsProviderHealthInfo,
   NewsSystemHealth,
   NormalizedNewsItem,
   OilCorrelationResult,
@@ -425,10 +426,10 @@ export async function runNewsPipeline(
     }
   }
 
-  // News-first: free Oil RSS breaking + official feeds
+  // News-first: free Oil RSS — skip slow official crawl on fast page path
   try {
     const breaking = await newsProvider.getBreakingNews(breakingLimit);
-    const officialNews = await official.fetchLatest(fast ? 5 : 10);
+    const officialNews = fast ? [] : await official.fetchLatest(10);
     const newsFirst = await processNewsFirstEvents([...breaking, ...officialNews]);
     allClusters = mergeClusters(allClusters, newsFirst);
   } catch (error) {
@@ -512,10 +513,23 @@ export async function runNewsPipeline(
       .filter((a): a is IntelligenceAlert => a !== null),
   ];
 
-  const providerHealths = await Promise.all([
-    newsProvider.getProviderHealth(),
-    official.getProviderHealth(),
-  ]);
+  const providerHealths: NewsProviderHealthInfo[] = fast
+    ? [
+        {
+          providerId: newsProvider.id,
+          status: allClusters.length > 0 ? "ONLINE" : "DEGRADED",
+          lastUpdate: allClusters[0]?.latestUpdateAt ?? null,
+        },
+        {
+          providerId: official.id,
+          status: "DEGRADED",
+          lastUpdate: null,
+        },
+      ]
+    : await Promise.all([
+        newsProvider.getProviderHealth(),
+        official.getProviderHealth(),
+      ]);
 
   if (isMiPersistenceEnabled()) {
     for (const cluster of allClusters.slice(0, fast ? 8 : 20)) {

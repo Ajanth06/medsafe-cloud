@@ -1,5 +1,13 @@
 import type { MarketAssetDefinition } from "@/lib/types/market";
 
+/**
+ * Active terminal focus: oil only (WTI + Brent).
+ * Everything else stays dormant for later.
+ */
+export const ACTIVE_MARKET_SYMBOLS = ["WTI", "BRENT"] as const;
+
+export type ActiveMarketSymbol = (typeof ACTIVE_MARKET_SYMBOLS)[number];
+
 export const MARKET_ASSETS: MarketAssetDefinition[] = [
   {
     assetId: "wti",
@@ -17,12 +25,23 @@ export const MARKET_ASSETS: MarketAssetDefinition[] = [
     assetClass: "commodity",
     priority: "primary",
   },
+];
+
+/** Parked — not polled, not shown. */
+export const DORMANT_ASSETS: MarketAssetDefinition[] = [
   {
     assetId: "gold",
     symbol: "GOLD",
     providerSymbol: "GC=F",
     name: "Gold",
     assetClass: "commodity",
+  },
+  {
+    assetId: "eurusd",
+    symbol: "EURUSD",
+    providerSymbol: "EURUSD=X",
+    name: "EUR/USD",
+    assetClass: "forex",
   },
   {
     assetId: "dax",
@@ -46,13 +65,6 @@ export const MARKET_ASSETS: MarketAssetDefinition[] = [
     assetClass: "index",
   },
   {
-    assetId: "eurusd",
-    symbol: "EURUSD",
-    providerSymbol: "EURUSD=X",
-    name: "EUR/USD",
-    assetClass: "forex",
-  },
-  {
     assetId: "btc",
     symbol: "BTC",
     providerSymbol: "BTC-USD",
@@ -61,7 +73,7 @@ export const MARKET_ASSETS: MarketAssetDefinition[] = [
   },
 ];
 
-/** Future assets — registry only, not yet active. */
+/** Future assets — registry only. */
 export const FUTURE_ASSETS: MarketAssetDefinition[] = [
   { assetId: "silver", symbol: "SILVER", providerSymbol: "SI=F", name: "Silver", assetClass: "commodity" },
   { assetId: "natgas", symbol: "NATGAS", providerSymbol: "NG=F", name: "Natural Gas", assetClass: "commodity" },
@@ -75,6 +87,10 @@ export const FUTURE_ASSETS: MarketAssetDefinition[] = [
 export const TRACKED_SYMBOLS = MARKET_ASSETS.map((a) => a.symbol);
 
 export const PRIMARY_SYMBOLS = ["WTI", "BRENT"] as const;
+
+export function isActiveMarketSymbol(symbol: string): boolean {
+  return (ACTIVE_MARKET_SYMBOLS as readonly string[]).includes(symbol);
+}
 
 export function getAssetBySymbol(symbol: string): MarketAssetDefinition | undefined {
   return MARKET_ASSETS.find((a) => a.symbol === symbol);

@@ -14,27 +14,13 @@ export interface SymbolRegistryEntry {
   staleAfterSeconds: number;
   polygon: {
     market: PolygonMarketType;
-    /** Futures product code for front-month resolution (e.g. CL, BZ) */
     productCode?: string;
-    /** Static REST ticker when not futures (e.g. C:EURUSD, X:BTCUSD, I:SPX) */
     restTicker?: string;
-    /** Expected delay on free/delayed plans in seconds; 0 = realtime */
     defaultDelaySeconds: number;
   };
 }
 
-/**
- * Central symbol mapping — provider-specific symbols must NOT leak into UI.
- *
- * WTI:  NYMEX WTI continuous futures (CL=F) — Investing-style
- * Brent: ICE Brent continuous futures (BZ=F) — Investing-style
- * Gold:  COMEX Gold Futures (GC=F)
- * NDX:   NASDAQ-100 Index (^NDX)
- * SPX:   S&P 500 Index (^GSPC)
- * DAX:   DAX Index (^GDAXI) — Investing-style cash index
- * EURUSD: Forex pair EURUSD=X
- * BTC:   Crypto BTC-USD
- */
+/** Active: oil only. */
 export const SYMBOL_REGISTRY: SymbolRegistryEntry[] = [
   {
     internalSymbol: "WTI",
@@ -68,6 +54,10 @@ export const SYMBOL_REGISTRY: SymbolRegistryEntry[] = [
       defaultDelaySeconds: 0,
     },
   },
+];
+
+/** Parked — not polled. */
+export const DORMANT_SYMBOL_REGISTRY: SymbolRegistryEntry[] = [
   {
     internalSymbol: "GOLD",
     assetId: "gold",
@@ -78,59 +68,7 @@ export const SYMBOL_REGISTRY: SymbolRegistryEntry[] = [
     currency: "USD",
     priority: "standard",
     staleAfterSeconds: 60,
-    polygon: {
-      market: "futures",
-      productCode: "GC",
-      defaultDelaySeconds: 0,
-    },
-  },
-  {
-    internalSymbol: "NDX",
-    assetId: "ndx",
-    name: "NASDAQ 100",
-    instrumentLabel: "Cash Index (I:NDX)",
-    assetClass: "index",
-    exchange: "NASDAQ",
-    currency: "USD",
-    priority: "standard",
-    staleAfterSeconds: 60,
-    polygon: {
-      market: "indices",
-      restTicker: "I:NDX",
-      defaultDelaySeconds: 900,
-    },
-  },
-  {
-    internalSymbol: "SPX",
-    assetId: "spx",
-    name: "S&P 500",
-    instrumentLabel: "Cash Index (I:SPX)",
-    assetClass: "index",
-    exchange: "NYSE",
-    currency: "USD",
-    priority: "standard",
-    staleAfterSeconds: 60,
-    polygon: {
-      market: "indices",
-      restTicker: "I:SPX",
-      defaultDelaySeconds: 900,
-    },
-  },
-  {
-    internalSymbol: "DAX",
-    assetId: "dax",
-    name: "DAX",
-    instrumentLabel: "DAX Cash Index (^GDAXI)",
-    assetClass: "index",
-    exchange: "XETRA",
-    currency: "EUR",
-    priority: "standard",
-    staleAfterSeconds: 120,
-    polygon: {
-      market: "indices",
-      restTicker: "I:GDAXI",
-      defaultDelaySeconds: 900,
-    },
+    polygon: { market: "futures", productCode: "GC", defaultDelaySeconds: 0 },
   },
   {
     internalSymbol: "EURUSD",
@@ -142,11 +80,43 @@ export const SYMBOL_REGISTRY: SymbolRegistryEntry[] = [
     currency: "USD",
     priority: "standard",
     staleAfterSeconds: 30,
-    polygon: {
-      market: "forex",
-      restTicker: "C:EURUSD",
-      defaultDelaySeconds: 0,
-    },
+    polygon: { market: "forex", restTicker: "C:EURUSD", defaultDelaySeconds: 0 },
+  },
+  {
+    internalSymbol: "NDX",
+    assetId: "ndx",
+    name: "NASDAQ 100",
+    instrumentLabel: "Cash Index (I:NDX)",
+    assetClass: "index",
+    exchange: "NASDAQ",
+    currency: "USD",
+    priority: "standard",
+    staleAfterSeconds: 60,
+    polygon: { market: "indices", restTicker: "I:NDX", defaultDelaySeconds: 900 },
+  },
+  {
+    internalSymbol: "SPX",
+    assetId: "spx",
+    name: "S&P 500",
+    instrumentLabel: "Cash Index (I:SPX)",
+    assetClass: "index",
+    exchange: "NYSE",
+    currency: "USD",
+    priority: "standard",
+    staleAfterSeconds: 60,
+    polygon: { market: "indices", restTicker: "I:SPX", defaultDelaySeconds: 900 },
+  },
+  {
+    internalSymbol: "DAX",
+    assetId: "dax",
+    name: "DAX",
+    instrumentLabel: "DAX Cash Index (^GDAXI)",
+    assetClass: "index",
+    exchange: "XETRA",
+    currency: "EUR",
+    priority: "standard",
+    staleAfterSeconds: 120,
+    polygon: { market: "indices", restTicker: "I:GDAXI", defaultDelaySeconds: 900 },
   },
   {
     internalSymbol: "BTC",
@@ -158,11 +128,7 @@ export const SYMBOL_REGISTRY: SymbolRegistryEntry[] = [
     currency: "USD",
     priority: "standard",
     staleAfterSeconds: 30,
-    polygon: {
-      market: "crypto",
-      restTicker: "X:BTCUSD",
-      defaultDelaySeconds: 0,
-    },
+    polygon: { market: "crypto", restTicker: "X:BTCUSD", defaultDelaySeconds: 0 },
   },
 ];
 
@@ -170,9 +136,15 @@ export const TRACKED_SYMBOLS = SYMBOL_REGISTRY.map((e) => e.internalSymbol);
 export const PRIMARY_SYMBOLS = ["WTI", "BRENT"] as const;
 
 export function getSymbolEntry(symbol: string): SymbolRegistryEntry | undefined {
-  return SYMBOL_REGISTRY.find((e) => e.internalSymbol === symbol);
+  return (
+    SYMBOL_REGISTRY.find((e) => e.internalSymbol === symbol) ??
+    DORMANT_SYMBOL_REGISTRY.find((e) => e.internalSymbol === symbol)
+  );
 }
 
 export function getSymbolEntryById(assetId: string): SymbolRegistryEntry | undefined {
-  return SYMBOL_REGISTRY.find((e) => e.assetId === assetId);
+  return (
+    SYMBOL_REGISTRY.find((e) => e.assetId === assetId) ??
+    DORMANT_SYMBOL_REGISTRY.find((e) => e.assetId === assetId)
+  );
 }

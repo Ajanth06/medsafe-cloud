@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MARKET_ASSETS } from "@/lib/market-intelligence/config/assets";
+import { MARKET_ASSETS, isActiveMarketSymbol } from "@/lib/market-intelligence/config/assets";
 import {
   DEFAULT_TERMINAL_PREFERENCES,
   type UserTerminalPreferences,
@@ -101,7 +101,11 @@ export function loadWatchlistFromStorage(): string[] {
     const raw = localStorage.getItem(WATCHLIST_STORAGE_KEY);
     if (!raw) return DEFAULT_TERMINAL_PREFERENCES.watchlistSymbols;
     const parsed = JSON.parse(raw) as string[];
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_TERMINAL_PREFERENCES.watchlistSymbols;
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return DEFAULT_TERMINAL_PREFERENCES.watchlistSymbols;
+    }
+    const active = parsed.filter(isActiveMarketSymbol);
+    return active.length > 0 ? active : DEFAULT_TERMINAL_PREFERENCES.watchlistSymbols;
   } catch {
     return DEFAULT_TERMINAL_PREFERENCES.watchlistSymbols;
   }

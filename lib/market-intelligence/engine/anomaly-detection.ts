@@ -39,7 +39,8 @@ export function detectAnomalies(
     }
 
     events.push({
-      id: `anomaly-${rule.id}-${nowMs}`,
+      // Stable id so delivery cooldown/dedup works across polls
+      id: `anomaly-${rule.id}`,
       assetId: rule.assetId,
       asset: rule.assetName,
       symbol: rule.symbol,

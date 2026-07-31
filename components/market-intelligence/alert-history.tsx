@@ -19,7 +19,14 @@ export function AlertHistory({ alerts }: AlertHistoryProps) {
         {miDe.alertHistory}
       </h2>
       <div className="space-y-3">
-        {alerts.map((alert) => (
+        {alerts.length === 0 ? (
+          <Card>
+            <CardContent className="p-6 text-center text-sm text-muted">
+              {miDe.noAlerts}
+            </CardContent>
+          </Card>
+        ) : (
+          alerts.map((alert) => (
           <Card key={alert.id}>
             <CardContent className="space-y-3 p-4">
               <div className="flex flex-wrap items-center gap-2">
@@ -103,7 +110,8 @@ export function AlertHistory({ alerts }: AlertHistoryProps) {
               </div>
             </CardContent>
           </Card>
-        ))}
+          ))
+        )}
       </div>
     </section>
   );

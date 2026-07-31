@@ -1,4 +1,5 @@
 import type { AlertSeverity } from "@/lib/types/market";
+import { ACTIVE_MARKET_SYMBOLS } from "@/lib/market-intelligence/config/assets";
 
 export interface UserTerminalPreferences {
   watchlistSymbols: string[];
@@ -13,17 +14,17 @@ export interface UserTerminalPreferences {
   alertsPaused: boolean;
 }
 
-export const DEFAULT_WATCHLIST = ["WTI", "BRENT", "GOLD", "SPX", "BTC"] as const;
+export const DEFAULT_WATCHLIST = [...ACTIVE_MARKET_SYMBOLS] as const;
 
 export const DEFAULT_TERMINAL_PREFERENCES: UserTerminalPreferences = {
   watchlistSymbols: [...DEFAULT_WATCHLIST],
   telegramEnabled: false,
   pushEnabled: false,
-  minimumSeverity: "HIGH",
+  minimumSeverity: "MEDIUM",
   oilAlerts: true,
   geopoliticalAlerts: true,
   macroAlerts: true,
-  cryptoAlerts: true,
-  equityAlerts: true,
+  cryptoAlerts: false,
+  equityAlerts: false,
   alertsPaused: false,
 };

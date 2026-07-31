@@ -30,6 +30,15 @@ export class PriceHistoryBuffer {
     return [...(this.snapshots.get(symbol) ?? [])];
   }
 
+  /** Replace history for a symbol (e.g. Yahoo 1m chart seed). */
+  setSnapshots(symbol: string, snapshots: PriceSnapshot[]): void {
+    const trimmed =
+      snapshots.length > MAX_SNAPSHOTS_PER_ASSET
+        ? snapshots.slice(snapshots.length - MAX_SNAPSHOTS_PER_ASSET)
+        : [...snapshots];
+    this.snapshots.set(symbol, trimmed);
+  }
+
   getAllSnapshots(): Map<string, PriceSnapshot[]> {
     return new Map(this.snapshots);
   }

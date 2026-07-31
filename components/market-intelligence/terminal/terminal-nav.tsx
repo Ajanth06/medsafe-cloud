@@ -5,12 +5,10 @@ import { cn } from "@/lib/utils";
 import {
   Activity,
   Bell,
-  Droplets,
   LayoutDashboard,
   LineChart,
   Newspaper,
   Settings,
-  Server,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -26,10 +24,8 @@ export type TerminalView =
 const VIEWS: { id: TerminalView; label: string; icon: typeof Activity }[] = [
   { id: "overview", label: miDe.navOverview, icon: LayoutDashboard },
   { id: "markets", label: miDe.navMarkets, icon: LineChart },
-  { id: "oil", label: miDe.navOil, icon: Droplets },
   { id: "intelligence", label: miDe.navIntel, icon: Newspaper },
   { id: "alerts", label: miDe.navAlerts, icon: Bell },
-  { id: "operations", label: miDe.navOps, icon: Server },
   { id: "settings", label: miDe.navSettings, icon: Settings },
 ];
 

@@ -99,7 +99,8 @@ export async function processAlertsForDelivery(input: {
   latency?: Partial<PipelineLatency>;
 }): Promise<AlertDeliveryResult> {
   const config = getOperationsConfig();
-  if (!config.backgroundWorkersEnabled) {
+  // In-app delivery must work without a background worker process
+  if (!config.alertDeliveryEnabled) {
     return { delivered: [], suppressed: 0, failed: 0 };
   }
 

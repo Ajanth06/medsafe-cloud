@@ -35,6 +35,8 @@ import { buildSystemHealth } from "@/lib/market-intelligence/providers/provider-
 import { runNewsPipeline } from "@/lib/market-intelligence/services/news-intelligence-orchestrator";
 import { buildOperationsHealth } from "@/lib/market-intelligence/operations/system-watchdog";
 import { getInAppAlerts, getUnreadAlertCount } from "@/lib/market-intelligence/operations/in-app-alert-store";
+import { processAlertsForDelivery } from "@/lib/market-intelligence/operations/alert-delivery-engine";
+import { buildLiveMarketAlerts } from "@/lib/market-intelligence/operations/alert-history-mapper";
 import { hydrateOperationsFromDb, getAlertsForApi } from "@/lib/market-intelligence/persistence/hydrate";
 import { isMiPersistenceEnabled } from "@/lib/market-intelligence/persistence/config";
 import { persistMarketEvents } from "@/lib/market-intelligence/persistence/events-repository";
@@ -42,6 +44,7 @@ import {
   persistLatestQuotes,
   persistPriceHistorySnapshots,
 } from "@/lib/market-intelligence/persistence/quotes-repository";
+import { getOperationsConfig } from "@/lib/market-intelligence/config/operations-config";
 
 type PipelineResult = ReturnType<typeof runEventPipeline>;
 
@@ -343,9 +346,55 @@ export async function getMarketIntelligenceDataFromStream(): Promise<MarketIntel
   }
 
   const pipeline = streamState.pipeline!;
-  // Fast path for UI: RSS + quotes, no blocking AI / deep investigation
-  const newsResult = await runNewsPipeline(pipeline, { fast: true });
-  const systemHealth = await buildSystemHealth(streamState);
+
+  // Prefer instant paint: race news vs short timeout; Flash poll fills later
+  const newsResult = await Promise.race([
+    runNewsPipeline(pipeline, { fast: true }),
+    new Promise<Awaited<ReturnType<typeof runNewsPipeline>>>((resolve) => {
+      setTimeout(() => {
+        resolve({
+          intelligenceEvents: [],
+          breakingNews: [],
+          timeline: [],
+          liveFeed: pipeline.liveFeed,
+          intelligenceAlerts: pipeline.intelligenceAlerts,
+          searchHistory: [],
+          newsHealth: {
+            newsEngine: "ACTIVE",
+            providers: [],
+            officialSources: "READY",
+            verificationEngine: "ACTIVE",
+            eventCorrelation: "ACTIVE",
+            lastNewsAt: null,
+            averageNewsLatencyMs: null,
+            isLive: true,
+            primarySource: "Oil RSS",
+            officialSourceLabel: "Free Oil RSS",
+          },
+        });
+      }, 1_400);
+    }),
+  ]);
+
+  // Don't block page on alert delivery
+  if (getOperationsConfig().alertDeliveryEnabled && newsResult.intelligenceAlerts.length > 0) {
+    void processAlertsForDelivery({
+      alerts: newsResult.intelligenceAlerts,
+      clusters: newsResult.intelligenceEvents,
+      latency: {
+        marketEventCreatedAt: pipeline.marketEvents[0]?.detectedAt,
+      },
+    }).catch((error) => {
+      marketLogger.warn("Live alert delivery failed", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    });
+  }
+
+  const systemHealth = await buildSystemHealth({
+    ...streamState,
+    quotes: pipeline.quotes,
+  });
   if (newsResult.newsHealth) {
     systemHealth.newsHealth = newsResult.newsHealth;
     systemHealth.newsEngine = newsResult.newsHealth.newsEngine;
@@ -372,6 +421,12 @@ export async function getMarketIntelligenceDataFromStream(): Promise<MarketIntel
     ...(streamState.isDemo ? MOCK_TIMELINE.filter((t) => !newsResult.timeline.some((n) => n.category === t.category)) : []),
   ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
+  const liveAlerts = buildLiveMarketAlerts({
+    intelligenceAlerts: newsResult.intelligenceAlerts,
+    deliveredAlerts,
+    marketEvents: pipeline.marketEvents,
+  });
+
   return {
     quotes: sortedQuotes,
     primaryQuotes,
@@ -381,7 +436,12 @@ export async function getMarketIntelligenceDataFromStream(): Promise<MarketIntel
     intelligenceEvents: newsResult.intelligenceEvents,
     timeline,
     liveFeed: newsResult.liveFeed,
-    alerts: streamState.isDemo ? MOCK_ALERTS : [],
+    alerts:
+      liveAlerts.length > 0
+        ? liveAlerts
+        : streamState.isDemo
+          ? MOCK_ALERTS
+          : [],
     intelligenceAlerts: newsResult.intelligenceAlerts,
     detectionRules: toLegacyDetectionRules(),
     crossAssetEvents: pipeline.crossAssetEvents,
