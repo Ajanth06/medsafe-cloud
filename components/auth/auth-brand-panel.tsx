@@ -43,7 +43,7 @@ export function AuthBrandPanel({ variant = "signup" }: AuthBrandPanelProps) {
           </span>
         </div>
 
-        <div className="flex flex-1 flex-col justify-center py-6 xl:py-8">
+        <div className="flex flex-1 flex-col justify-start pb-6 pt-36 xl:pb-8 xl:pt-40">
           {isLogin ? (
             <div
               className="aaryx-start-rise"
